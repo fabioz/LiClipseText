@@ -1,0 +1,137 @@
+inherit: BaseDefinitions # Signal that we want to start from base.liclipse
+
+scope_to_color_name: {
+ doubleQuotedMultiLineString: string,
+ singleQuotedMultiLineString: string,
+ doubleQuotedString: string,
+ singleQuotedString: string,
+ default: foreground,
+ pragma: constant,
+ builtins: annotation,
+ customOperators: staticField,
+}
+scope_definition_rules:
+  #Comments
+  - {type: EndOfLineRule, scope: singleLineComment, start: '#'}
+
+  #Multi Line Strings
+  #It's important that the multi-line comes before the single-line (otherwise the single line would always match first
+  #and would never allow the multi-line to work).
+  - {type: MultiLineRule, scope: doubleQuotedMultiLineString, start: '"""', end: '"""', escapeCharacter: \}
+
+  # Single Line Strings (can't be inside number)
+  - {type: CompositeRule, sub_rules: [
+    {type: PrevCharNotIn, scope: singleQuotedString, chars: '0123456789abcdefxobXOB_'}, # I.e.: we can't be inside a number
+    {type: SingleLineRule, scope: singleQuotedString, sequence: "'", escapeCharacter: \, escapeContinuesLine: true},
+  ]}
+  - {type: SingleLineRule, scope: doubleQuotedString, sequence: '"', escapeCharacter: \, escapeContinuesLine: true}
+
+  - {type: MultiLineRule, scope: pragma, start: '{.', end: '.}', escapeCharacter: '\0'}
+
+scope:
+  default:
+    bracket: ['(', ')', '[', ']', '{', '}']
+
+    operator: [<, '>', '=', +, '-', /, '*', '!', '&', '|', '%', '~', ^, ',']
+
+    #builtins (color name: localVariable)
+    localVariable: []
+
+    keyword: [
+      'addr', 'and', 'as', 'asm', 'atomic',
+      'bind', 'block', 'break',
+      'case', 'cast', 'const', 'continue', 'converter',
+      'defer', 'discard', 'distinct', 'div', 'do',
+      'elif', 'else', 'end', 'enum', 'except', 'export',
+      'finally', 'for', 'from', 'func',
+      'generic',
+      'if', 'import', 'in', 'include', 'interface', 'is', 'isnot', 'iterator',
+      'let',
+      'macro', 'method', 'mixin', 'mod',
+      'nil', 'not', 'notin',
+      'object', 'of', 'or', 'out',
+      'proc', 'ptr',
+      'raise', 'ref', 'return',
+      'shl', 'shr', 'static',
+      'template', 'try', 'tuple', 'type',
+      'using',
+      'var',
+      'when', 'while', 'with', 'without',
+      'xor',
+      'yield']
+
+    #Note: we want to define def and class above regardless of using them again later on.
+    #In practice, we'll always match sub-rules before the others, so, if we have a match,
+    #it'll work anyways.
+    sub_rules: [
+      # Class
+      {type: CompositeRule, sub_rules: [
+        { type: AnyWordRule, scope: class },
+        { type: OneOrMoreSpacesRule, scope: default},
+        { type: SequenceRule, scope: operator, sequence: '='},
+        { type: OneOrMoreSpacesRule, scope: default},
+        { type: SequencesRule, scope: keyword, sequences: ['object', 'ref', 'enum']},
+        ]
+      },
+      {type: CompositeRule, sub_rules: [
+        { type: SequencesRule, scope: keyword, sequences: ['proc', 'method', 'template', 'macro']},
+        { type: OneOrMoreSpacesRule, scope: default},
+        { type: SequenceRule, scope: keyword, sequence: '`'},
+        { type: AnyWordRule, scope: method },
+        { type: SequenceRule, scope: keyword, sequence: '`'}]
+      },
+      # Procedure
+      {type: CompositeRule, sub_rules: [
+        { type: SequencesRule, scope: keyword, sequences: ['proc', 'method', 'template', 'macro']},
+        { type: OneOrMoreSpacesRule, scope: default},
+        { type: AnyWordRule, scope: method }]
+      },
+      { type: NimNumberRule, scope: number},
+      {type: SingleLineRule, scope: customOperators, sequence: '`', escapeCharacter: '\0', escapeContinuesLine: false}
+
+     ]
+
+file_extensions: [nim]
+filename: []
+shebang: "^#!.*\\bnim\\b"
+name: Nim
+
+
+outline: #Icons: LiClipseParsedItem.getImage(): class, method, comment, attribute (based on 'define')
+  - {type: Scope, scope: [default, class], define: class} #scope is a list to identify sub-rule
+  - {type: Scope, scope: [default, method], define: method}
+  - {type: Regexp, scope: [singleLineComment], regexp: '#---.*', define: comment, group: 0}
+
+indent: {
+  type: spaces, #Spaces are used for indenting in Python
+  outline_scopes: [class, method], #Scopes are created where the outline defines a class or method.
+  spaces_for_tabs: true, #Python folks recommend it.
+  tab_width: 4, #Note: optional (default is based on preferences for text editors in the eclipse preferences)
+}
+
+auto_edit:
+  - {after: ':', trigger: '\n', action: indent, scope: default} #in a new line, indent after ':'
+  - {before: ':', trigger: ':', action: skip, scope: default} #skip ':' if already there
+  - {auto_close_scopes: [doubleQuotedString, singleQuotedString, singleQuotedMultiLineString, doubleQuotedMultiLineString], scope: default} #To work, the scopes must be: SingleLineRule(sequence used for start/end) or MultiLineRule.
+  - {auto_close_parens: ['(', '[', '{'], scope: default} #Will close the parens if it's not properly balanced
+  - {auto_skip_parens: [')', ']', '}'], scope: default} #Will skip the close parens if it's properly balanced
+
+comment: {type: singleLine, sequence: '#'}
+
+# The launch is composed of: ${executable} ${vm_args} ${file_to_run_from_selection} ${arguments}
+# ${file_to_run_from_selection} is usually filled based on the current selection (F9 on active editor)
+# ${arguments} must be filled later on in the run configuration (run > run configurations)
+launch: {
+  command: 'nim', #Note: 'nim' must be in the PATH for the launch to work
+  vm_args: 'c --listFullPaths --run',
+  environment: {
+  },
+  hyperlink: {
+    regexp: '(.*)\((\d*),\s\d*(\))\s(.*)',
+    start: 1, #i.e.: start the hyperlink on 'File' -- group 0 is "all".
+    filename: 1, #i.e.: group 2 of the regexp has the filename
+    line: 2, #i.e.: group 1 of the regexp has the line in the file where we should go to
+    end: 3,
+  }
+}
+

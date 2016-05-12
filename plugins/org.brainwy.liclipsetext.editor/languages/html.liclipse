@@ -1,0 +1,4220 @@
+scope_to_color_name: {
+  tag: foreground,
+  default: foreground,
+  doubleQuotedString: string,
+  singleQuotedString: string,
+  cdata: foreground,
+  close_class: class,
+  close_tag: bracket,
+  open_tag: bracket,
+  open_tag_close: bracket,
+  br: class,
+
+  #Add some used on css (shouldn't be needed!?)
+  media: javadocKeyword,
+  url: number,
+}
+scope_definition_rules:
+  # Note that the order of the  rules is actually important.
+
+  #The SwitchLanguageHtmlRule is a special hand-made rule to match the html script tag.
+  #If there are other 'language' switching cases, this may need to be more flexible.
+  #It create sub-tokens for the tag as the rules here (open_tag, close_tag, class, etc, so, if this
+  #changes, the rule may need to be changed too).
+  - {type: SwitchLanguageHtmlRule, #custom rule matching for: '<script type="???", language="???">', end: '</script>'
+     scope: this, #On a switch, the scope must alway be 'this'
+     tag: 'script',
+     type_attr: {
+        'application/javascript': javascript, 'application/ecmascript': javascript, 'application/x-javascript': javascript,
+        'application/x-ecmascript': javascript, 'text/javascript': javascript, 'text/ecmascript': javascript, 'text/jscript':javascript
+     },
+     language_attr: {JavaScript: javascript} #the expected language attr to switch to the target language (used with startswith() and case-independent)
+    }
+  - {type: SwitchLanguageHtmlRule, #custom rule matching for: '<style type="???", language="???">', end: '</style>'
+     scope: this, #On a switch, the scope must alway be 'this'
+     tag: 'style',
+     type_attr: {
+        'text/css': source.css
+     },
+     language_attr: {}
+    }
+  - {type: MultiLineRule, scope: multiLineComment, start: '<!--', end: '-->', escapeCharacter: '\0'}
+  - {type: MultiLineRule, scope: cdata, start: '<![CDATA[', end: ']]>', escapeCharacter: '\0'}
+  - {type: MultiLineRuleWithSkip, scope: tag, start: '<', end: '>', escapeCharacter: '\0',
+      skip_rules:[
+        #Needed because if we find the end sequence within a string, we want to skip it.
+        {type: MultiLineRule, scope: unused0, start: '"', end: '"', escapeCharacter: '\0'},
+        {type: MultiLineRule, scope: unused1, start: "'", end: "'",  escapeCharacter: '\0'},
+      ]
+    }
+
+scope:
+  tag:
+    operator: ['=']
+    bracket: ['<', '>', '/', '?'] # Note: the opening '<' is 'usually' matched in the CompositeRule below.
+    sub_rules: [
+      #Handling special case: <br> is ignored for considering a new scope (because closing is optional in html)
+      #(so, we don't mark the class scope on it, we create a special 'br' scope)
+      {type: CompositeRule, sub_rules: [
+        { type: SequenceRule, scope: bracket, sequence: '<'},
+        { type: OptionalSequenceRule, scope: bracket, sequence: '/'}, #??not even sure if </br> is valid??
+        { type: ZeroOrMoreSpacesRule, scope: tag},
+        { type: SequenceRule, scope: br, sequence: 'br'},
+        { type: ZeroOrMoreSpacesRule, scope: tag},
+        { type: OptionalSequenceRule, scope: bracket, sequence: '/'},
+        { type: SequenceRule, scope: bracket, sequence: '>'}]
+      },
+      {type: CompositeRule, sub_rules: [
+        { type: SequenceRule, scope: open_tag, sequence: '<'},
+        { type: AnyWordRule, scope: class }]
+      },
+      # Closing </tag> (identify closing a tag that was previously opened)
+      {type: CompositeRule, sub_rules: [
+        { type: SequenceRule, scope: close_tag, sequence: '</'},
+        { type: AnyWordRule, scope: close_class }]
+      },
+      # Attributes
+      {type: AnyWordRule, scope: keyword},
+
+      # Note: we have no escape chars on xml.
+      {type: MultiLineRule, scope: doubleQuotedString, start: '"', end: '"',  escapeCharacter: '\0'},
+
+      {type: MultiLineRule, scope: singleQuotedString, start: "'", end: "'",  escapeCharacter: '\0'},
+
+      #closing /> (identify a 'full' tag)
+      { type: SequenceRule, scope: open_tag_close, sequence: '/>'},
+
+    ]
+
+
+file_extensions: [html, htm]
+
+filename: []
+
+name: HTML
+
+outline:
+  - {type: Scope, scope: [tag, class], define: class}
+  - {type: Scope, scope: [javascript&__dftl_partition_content_type, method], define: method}
+  - {type: Scope, scope: [this&class], define: method}
+
+indent: {
+  type: scopes, #scopes define increasing or decreasing a level
+  scope: tag, #Only 'see' tag scopes when parsing.
+  scope_start: [tag.open_tag], #on open tag raise the indent level
+  scope_end: [tag.close_tag, tag.open_tag_close], #on close tag lower the indent level
+  outline_scopes: [class], #Scopes are created where the outline defines a class
+}
+
+comment: {type: multiLine, start: '<!--', end: '-->', scope: multiLineComment}
+
+auto_edit:
+  - {auto_close_scopes: [tag], scope: default} #To work, the scopes must be: SingleLineRule(sequence used for start/end)
+  - {auto_close_parens: ['<'], scope: default} #Will close the parens if it's not properly balanced
+  - {auto_skip_parens: ['>'], scope: tag} #Will skip the close parens if it's properly balanced
+
+
+template_variables: {
+  text_javascript: ['text/javascript'] #Note: this is needed because '/' cannot appear as a part of a variable as it's not a valid identifier.
+}
+
+templates:
+- name: ''
+  description: "Surround with tag"
+  pattern: '<${tag}>${selection}${cursor}</${tag}>'
+  scope: default #If context is given, it's only triggered at that context, not on others (if not given, it's always triggered).
+
+
+- name: ''
+  description: "Surround with <a href='selection'> tag"
+  pattern: '<a href="${selection}">${cursor}</a>'
+  scope: default
+
+
+- name: 'br'
+  description: 'Line Break'
+  pattern: '<br/>${cursor}'
+  icon: tag
+  scope: default
+
+
+- name: 'script'
+  description: 'The <script> element allows authors to include dynamic script and data blocks in their documents.'
+  pattern: '<script type="${text_javascript}">${cursor}</script>'
+  icon: tag
+  scope: default
+
+- name: 'pre_code'
+  pattern: |-
+    <pre style="font-family: Andale Mono, Lucida Console, Monaco, fixed, monospace; color: #000000; background-color: #eee; font-size: 12px; border: 1px dashed #999999; line-height: 14px; padding: 5px; overflow: auto; width: 100%">
+      <code style="color:#000000;word-wrap:normal;">${code}</code></pre>
+
+# NOTE: From this point below, auto-generated contents based on the HTML specification to
+# give code-completion for tags, event handlers and the proper attributes (considering the scope
+# of the tag).
+
+
+#--- html attributes cog start
+#Note: run cog on this file to regenerate contents.
+# [[[cog
+# import cog
+# #Globals: on any html element: http://www.w3.org/wiki/HTML/Attributes/_Global
+# contents = [ [ 'a',
+#     'The <a> element represents a hyperlink.',
+#     [ [ 'name',
+#         'ID (must not contain any space characters). Specifies that its a element is a named hyperlink, with the name given by the value of this attribute.The name attribute on the a element is obsolete. Consider putting an id attribute on the nearest container instead.Any string, with the following restrictions:'],
+#       [ 'href',
+#         'URL potentially surrounded by spaces. A URL that provides the destination of the hyperlink. If the href attribute is not specified, the element represents a placeholder hyperlink.'],
+#       [ 'target',
+#         'A browsing-context name or any case-insensitive match for one of the following literal strings: "_blank", "_self", "_parent", or "_top". Browsing-context name or keyword. A name or keyword giving a browsing context for UAs to use when following the hyperlink.The target attribute on the a element was deprecated in a previous version of HTML, but is no longer deprecated, as it is useful in Web applications, particularly in combination with the iframe element.'],
+#       [ 'rel',
+#         'set of space-separated tokens. A list of tokens that specify the relationship between the document containing the hyperlink and the destination indicated by the hyperlink.'],
+#       [ 'hreflang',
+#         'language tag. The language of the destination of the hyperlink.A valid language tag, as defined in [BCP47].'],
+#       [ 'media',
+#         'media-query list. The media for which the destination of the hyperlink was designed.A valid media query list, as defined in [MediaQueries].'],
+#       [ 'type',
+#         'MIME typeThe MIME type of the destination of the hyperlink.A string that identifies a valid MIME media type, as defined in [RFC2046].'] ] ],
+#   ['abbr', 'The <abbr> element represents an abbreviation or acronym.', [] ],
+#   [ 'address',
+#     'The <address> element represents the contact information for its nearest article or body element ancestor.',
+#     [] ],
+#   [ 'area',
+#     'The <area> element represents either a hyperlink with some text and a corresponding area on an image map, or a dead area on an image map.',
+#     [ [ 'alt',
+#         'fallback content for the image mapIf the area element has a href attribute, the alt attribute must be present.The alt attribute may be left blank if there is another area element in the same image map that points to the same resource and has a non-blank alt attribute.'],
+#       [ 'coords',
+#         'valid list of integers. This attribute gives the coordinates for the shape described by the shape attribute. The processing for this attribute is described as part of the image map processing model.'],
+#       ['shape', 'circle/ poly/ rect/ default'],
+#       [ 'href',
+#         'URL potentially surrounded by spaces. A URL that provides the destination of the hyperlink. If the href attribute is not specified, the element represents a placeholder hyperlink.'],
+#       [ 'target',
+#         'browsing-context name or "_blank", "_self", "_parent", or "_top". A name or keyword giving a browsing context for UAs to use when following the hyperlink.The target attribute on the a element was deprecated in a previous version of HTML, but is no longer deprecated, as it is useful in Web applications, particularly in combination with the iframe element.Any string that is either of the following:'],
+#       [ 'rel',
+#         'set of space-separated tokens. A list of tokens that specify the relationship between the document containing the hyperlink and the destination indicated by the hyperlink.'],
+#       [ 'hreflang',
+#         'language tag. The language of the destination of the hyperlink.A valid language tag, as defined in [BCP47].'],
+#       [ 'media',
+#         'media-query list. The media for which the destination of the hyperlink was designed.A valid media query list, as defined in [MediaQueries].'],
+#       [ 'type',
+#         'MIME typeThe MIME type of the destination of the hyperlink.A string that identifies a valid MIME media type, as defined in [RFC2046].'] ] ],
+#   ['article', 'The <article> element represents an independent item section of content.', [] ],
+#   [ 'aside',
+#     'The <aside> element represents a section of a page that consists of content that is tangentially related to the content around the aside element, and which could be considered separate from that content.',
+#     [] ],
+#   [ 'audio',
+#     'The <audio> element represents a sound or an audio stream.',
+#     [ [ 'autoplay',
+#         '"autoplay" or "" (empty string) or emptyInstructs the UA to automatically begin playback of the audio stream as soon as it can do so without stopping.'],
+#       [ 'preload',
+#         '"none" or "metadata" or "auto" or "" (empty string) or empty. Represents a hint to the UA about whether optimistic downloading of the audio stream itself or its metadata is considered worthwhile.'],
+#       [ 'controls',
+#         '"controls" or "" (empty string) or emptyInstructs the UA to expose a user interface for controlling playback of the audio stream.'],
+#       [ 'loop',
+#         '"loop" or "" (empty string) or emptyInstructs the UA to seek back to the start of the audio stream upon reaching the end.'],
+#       ['mediagroup', 'string. Instructs the UA to link multiple videos and/or audio streams together.'],
+#       ['src', 'URL potentially surrounded by spaces. The URL for the audio stream.'] ] ],
+#   [ 'b',
+#     'The <b> element represents a span of text to be stylistically offset from the normal prose without conveying any extra importance.',
+#     [] ],
+#   [ 'base',
+#     'The <base> element allows authors to specify the document base URL for the purposes of resolving relative URLs, and the name of the default browsing context for the purposes of following hyperlinks. The element does not represent any content beyond this information.',
+#     [ [ 'href',
+#         "valid URL potentially surrounded by spaces. A base element, if it has an href attribute, must come before any other elements in the tree that have attributes defined as taking URLs, except the html element (its manifest attribute isn't affected by base elements)."],
+#       [ 'target',
+#         'valid browsing context name or keyword ( _blank, _self, _parent, or _top)The value of the target attribute is used as the default when hyperlinks and forms in the Document cause navigation.'] ] ],
+#   ['bdo', 'The <bdo> element represent explicit text directionality formatting control for its children.', [] ],
+#   [ 'blockquote',
+#     'The <blockquote> element represents a quoted section.',
+#     [['cite', 'valid URL potentially surrounded by spaces. Specifies the address in the quotation source.'] ] ],
+#   [ 'body',
+#     'The <body> element represents the main content of the document.',
+#     [ ['onafterprint', 'string. User printed current document.'],
+#       ['onbeforeprint', 'string. User requested printing of current document.'],
+#       ['onbeforeunload', 'string. Document is about to be unloaded.'],
+#       ['onblur', 'string. Document lost focus.'],
+#       ['onerror', 'string. Document failed to load properly.'],
+#       ['onfocus', 'string. Document received focus.'],
+#       ['onhashchange', 'string. Fragment identifier part of the document\xe2\x80\x99s current address changed.'],
+#       ['onload', 'string. Document finished loading.'],
+#       ['onmessage', 'string. Document received a message.'],
+#       ['onoffline', 'string. Network connections failed.'],
+#       ['ononline', 'string. Network connections returned.'],
+#       ['onpopstate', 'string. User navigated session history.'],
+#       ['onredo', 'string. User went forward in undo transaction history.'],
+#       ['onresize', 'string. Document view was resized.'],
+#       ['onstorage', 'string. Storage area changed.'],
+#       ['onundo', 'string. User went backward in undo transaction history.'],
+#       ['onunload', 'string. Document is going away.'] ] ],
+#   [ 'button',
+#     'The <button> element represents a button.',
+#     [ ['type', 'submit/ reset/ buttonThe missing value default is the Submit Button state.'],
+#       [ 'autofocus',
+#         'boolean. Allows the author to indicate that a control is to be focused as soon as the page is loaded'],
+#       [ 'disabled',
+#         'boolean. If present, make the control non-interactive and to prevent its value from being submitted.'],
+#       [ 'form',
+#         "the ID of a form element in the element's owner. Associate the button element with its form owner.By default, the button element is associated with its nearest ancestor form element."],
+#       ['name', "unique name. Represents the element's name."],
+#       ['value', "element's value. Gives the element's value for the purposes of form submission."] ] ],
+#   [ 'canvas',
+#     'A <canvas> element provides scripts with a resolution-dependent bitmap canvas, which can be used for rendering graphs, game graphics, or other visual images on the fly.',
+#     [ ['height', 'non-negative integer. The height of the canvas, in CSS pixels.'],
+#       ['width', 'non-negative integer. The width of the canvas, in CSS pixels.'] ] ],
+#   [ 'caption',
+#     'The <caption> element represents the title of the table that is its parent, if it has a parent and that is a table element.',
+#     [] ],
+#   ['cite', 'The <cite> element represents the title of a work.', [] ],
+#   ['code', 'The <code> element represents a fragment of computer code.', [] ],
+#   [ 'col',
+#     'The <col> element represents one or more columns in the column group represented by that colgroup.',
+#     [['span', 'valid non-negative integer'] ] ],
+#   [ 'colgroup',
+#     'The <colgroup> element represents a group of one or more columns in the table that is its parent.',
+#     [['span', 'valid non-negative integer'] ] ],
+#   [ 'command',
+#     'The <command> element represents a command that the user can invoke.',
+#     [ ['type', 'command/ checkbox/ radioIndicates the kind of command.'],
+#       [ 'label',
+#         'string. Gives the name of the command, as shown to the user.The label attribute must be specified and must have a value that is not the empty string.'],
+#       ['icon', 'valid non-empty URL potentially. Gives a picture that represents the command.'],
+#       ['disabled', 'boolean. If present, indicates that the command is not available in the current state.'],
+#       [ 'checked',
+#         'boolean. If present, indicates that the command is selected.The attribute must be omitted unless the type attribute is in either the Checkbox state or the Radio state.'],
+#       [ 'radiogroup',
+#         'string. Gives the name of the group of commands that will be toggled when the command itself is toggled, for commands whose type attribute has the value "radio".'] ] ],
+#   ['datalist', 'The <datalist> element represents the list that represent predefined options for other controls.', [] ],
+#   [ 'dd',
+#     'The <dd> element represents the discription, definition, or value, part of a term-description group in a description list.',
+#     [] ],
+#   [ 'del',
+#     'The <del> element represents a removal from the document.',
+#     [ [ 'cite',
+#         'valid URL potentially surrounded by space. Specify the address of a document that explains the change. For example, the minutes of meeting.'],
+#       ['datetime', 'valid date string with optional time. Specify the time and date of the change.'] ] ],
+#   [ 'details',
+#     'The <details> element represents a disclosure widget from which the user can obtain additional information or controls.',
+#     [ [ 'open',
+#         'boolean. If present, it indicates that the details are to be shown to the user. If the attribute is absent, the details are not to be shown.'] ] ],
+#   ['dfn', 'The <dfn> element represents the defining instance of a term.', [] ],
+#   ['div', 'The <div> element has no special meaning at all.', [] ],
+#   ['dl', 'The <dl> element represents the the definition list.', [] ],
+#   ['dt', 'The <dt> element represents the term, or name, part of a term-description group in a description list.', [] ],
+#   ['em', 'The <em> element represents stress emphasis of its contents.', [] ],
+#   [ 'embed',
+#     'The <embed> element represents an integration point for an external (typically non-HTML) application or interactive content.',
+#     [ ['src', 'URL potentially surrounded by spaces. Gives the address of the resource being embedded.'],
+#       ['type', 'MIME type. Specifies the type of the resource.'],
+#       ['width', 'non-negative integer. Give the width of the visual content of the element, in CSS pixels.'],
+#       ['height', 'non-negative integer. Give the height of the visual content of the element, in CSS pixels.'] ] ],
+#   [ 'fieldset',
+#     'The <fieldset> element represents a set of form controls optionally grouped under a common name.',
+#     [ [ 'disabled',
+#         "boolean. When specified, causes all the form control descendants of the fieldset element, excluding those that are descendants of the fieldset element's first legend element child, if any, to be disabled."],
+#       ['form', 'string. Associate the fieldset element with its form owner.'],
+#       ['name', "string. Represents the element's name."] ] ],
+#   [ 'figcaption',
+#     'The <figcaption> element represents a caption or legend for the contents of the parent figure element.',
+#     [] ],
+#   ['figure', 'The <figure> element represents some flow content.', [] ],
+#   [ 'footer',
+#     'The <footer> element represents a footer for its nearest ancestor sectioning content or sectioning root element.',
+#     [] ],
+#   [ 'form',
+#     'The form element represents a user-submittable form.',
+#     [ [ 'accept-charset',
+#         'list of character-encoding namesgives the character encodings that are to be used for the submission.'],
+#       ['action', 'valid URL potentially surrounded by spaces. Specify the form-submission action for the element.'],
+#       [ 'autocomplete',
+#         'on/ off. Specifies whether the element represents a form for which by default a UA is meant to store the values entered into its input elements by the user (so that the UA can pre-fill the form later).'],
+#       [ 'enctype',
+#         'application/x-www-form-urlencoded / multipart/form-data / text/plain. Specify a MIME type with which a UA is meant to associate this element for form submission.The missing value default for these attributes is the application/x-www-form-urlencoded state.'],
+#       [ 'method',
+#         'get/ post. Specify the HTTP method with which a UA is meant to associate this element for form submission.The missing value default for this attributes is the GET state.'],
+#       ['name', 'string. Gives the name of the input element.'],
+#       ['novalidate', 'boolean. If present, they indicate that the form is not to be validated during submission.'],
+#       [ 'target',
+#         'valid browsing context names or keywords. Specify a browsing context name or keyword that represents the target of the control.'] ] ],
+#   ['h1', 'H1 heading (highest rank)', [] ],
+#   ['h2', 'H2 heading', [] ],
+#   ['h3', 'H3 heading', [] ],
+#   ['h4', 'H4 heading', [] ],
+#   ['h5', 'H5 Heading', [] ],
+#   ['h6', 'H6 Heading', [] ],
+#   ['head', 'The <head> element represents a collection of metadata for the Document.', [] ],
+#   ['header', 'The <header> element represents a group of introductory or navigational aids.', [] ],
+#   ['hgroup', 'The <hgroup> element represent the heading of a section.', [] ],
+#   ['hr', 'The <hr> element represents a paragraph-level thematic break.', [] ],
+#   [ 'html',
+#     'The <html> element represents the root of HTML and XHTML documents. Any subsequent elements are the children of this root element.',
+#     [ [ 'manifest',
+#         'URL potentially surrounded by spaces. The address of the document\xe2\x80\x99s application cache manifest (which controls caching of content for offline use).'] ] ],
+#   ['i', 'The <i> element represents an span of text that offset from the normal prose.', [] ],
+#   [ 'iframe',
+#     'The <iframe> element represents a nested browsing context.',
+#     [ [ 'src',
+#         'URL potentially surrounded by spaces. Gives the address of a page that the nested browsing context is to contain.'],
+#       ['srcdoc', 'HTML contents. Gives the content of the page that the nested browsing context is to contain.'],
+#       [ 'name',
+#         'browsing-context name. Represents the browsing-context name. When the browsing context is created, if the attribute is present, the browsing context name must be set to the value of this attribute; otherwise, the browsing context name must be set to the empty string.'],
+#       [ 'sandbox',
+#         'allow-same-origin/ allow-top-navigation/ allow-forms/ allow-scripts. Enables a set of extra restrictions on any content hosted by the iframe.'],
+#       [ 'seamless',
+#         "boolean. Indicates that the iframe element's browsing context is to be rendered in a manner that makes it appear to be part of the containing document (seamlessly included in the parent document)."],
+#       ['width', 'non-negative integer. Give the width of the visual content of the element, in CSS pixels.'],
+#       ['height', 'non-negative integer. Give the height of the visual content of the element, in CSS pixels.'] ] ],
+#   [ 'img',
+#     'The <img> element represents an image.',
+#     [ [ 'alt',
+#         "normal character data. Gives the fallback content for the image.The requirements on the alt attribute's value are described in the next section."],
+#       [ 'src',
+#         'URL potentially surrounded by spaces. Specifies a URL referencing a non-interactive, optionally animated, image that is neither paged nor scripted.'],
+#       [ 'usemap',
+#         'hash-name reference. Specifies a hash-name reference to a map element with which to associate the object.'],
+#       ['ismap', 'boolean. Specifies that its img element provides access to a server-side image map.'],
+#       ['width', 'non-negative integer. Give the width of the visual content of the element, in CSS pixels.'],
+#       ['height', 'non-negative integer. Give the height of the visual content of the element, in CSS pixels.'] ] ],
+#   [ 'input',
+#     'The <input> element represents a typed data field, usually with a form control to allow the user to edit the data.',
+#     [ [ 'accept',
+#         'audio/*, video/*, image/*, MIME_type. Specifies the types of files that the server accepts (only for type="file").'],
+#       [ 'align',
+#         'left, right, top, middle, bottom. Not supported in HTML5. Deprecated in HTML 4.01. Specifies the alignment of an image input (only for type="image").'],
+#       ['alt', 'text. Specifies an alternate text for images (only for type="image").'],
+#       ['autocomplete', 'on|off. Specifies whether an <input> element should have autocomplete enabled.'],
+#       ['autofocus', 'Specifies that an <input> element should automatically get focus when the page loads'],
+#       [ 'checked',
+#         'checked. Specifies that an <input> element should be pre-selected when the page loads (for type="checkbox" or type="radio")'],
+#       ['disabled', 'Specifies that an <input> element should be disabled'],
+#       ['form', 'Specifies one or more forms the <input> element belongs to'],
+#       [ 'formaction',
+#         'URL. Specifies the URL of the file that will process the input control when the form is submitted (for type="submit" and type="image")'],
+#       [ 'formenctype',
+#         'Specifies how the form-data should be encoded when submitting it to the server (for type="submit" and type="image")'],
+#       [ 'formmethod',
+#         'get|post.Defines the HTTP method for sending data to the action URL (for type="submit" and type="image")'],
+#       ['formnovalidate', 'Defines that form elements should not be validated when submitted.'],
+#       [ 'formtarget',
+#         '_blank|_self|_parent|_top|framename. Specifies where to display the response that is received after submitting the form (for type="submit" and type="image")'],
+#       ['height', 'pixels. Specifies the height of an <input> element (only for type="image")'],
+#       ['list', 'Refers to a <datalist> element that contains pre-defined options for an <input> element'],
+#       ['max', 'Specifies the maximum value for an <input> element'],
+#       ['maxlength', 'Specifies the maximum number of characters allowed in an <input> element'],
+#       ['min', 'Specifies a minimum value for an <input> element'],
+#       ['multiple', 'Specifies that a user can enter more than one value in an <input> element'],
+#       ['name', 'Specifies the name of an <input> element'],
+#       ['pattern', "Specifies a regular expression that an <input> element's value is checked against"],
+#       ['placeholder', 'Specifies a short hint that describes the expected value of an <input> element'],
+#       ['readonly', 'Specifies that an input field is read-only'],
+#       ['required', 'Specifies that an input field must be filled out before submitting the form'],
+#       ['size', 'Specifies the width, in characters, of an <input> element'],
+#       ['src', 'URL. Specifies the URL of the image to use as a submit button (only for type="image")'],
+#       ['step', 'number. Specifies the legal number intervals for an input field'],
+#       [ 'type',
+#         'button | checkbox | color | date | datetime | datetime-local | email | file | hidden | image | month | number | password | radio | range | reset | search | submit | tel | text | time | url | week. Specifies the type <input> element to display.'],
+#       ['value', 'text. Specifies the value of an <input> element'],
+#       ['width', 'Specifies the width of an <input> element (only for type="image")'] ] ],
+#   [ 'ins',
+#     'The <ins> element represents an addition to the document.',
+#     [ [ 'cite',
+#         'valid URL potentially surrounded by space. Specify the address of a document that explains the change. For example, the minutes of meeting.'],
+#       ['datetime', 'valid date string with optional time. Specify the time and date of the change.'] ] ],
+#   ['kbd', 'The <kbd> element represents user input.', [] ],
+#   [ 'keygen',
+#     'The <keygen> element represents a key pair generator control.',
+#     [ [ 'autofocus',
+#         'boolean. Allows the author to indicate that a control is to be focused as soon as the page is loaded'],
+#       ['challenge', 'string. A challenge string that is submitted along with the public key.'],
+#       [ 'disabled',
+#         'boolean. If present, make the control non-interactive and to prevent its value from being submitted.'],
+#       [ 'form',
+#         "the ID of a form element in the element's owner. Associate the keygen element with its form owner.By default, the keygen element is associated with its nearest ancestor form element."],
+#       ['keytype', 'rsa. The type of key generated.'],
+#       ['name', "unique name. Represents the element's name."] ] ],
+#   [ 'label',
+#     'The <label> element represents a caption in a user interface.',
+#     [ ['form', 'string. Associate the fieldset element with its form owner.'],
+#       [ 'for',
+#         "string. Specified to indicate a form control with which the caption is to be associated.The attribute's value must be the ID of a labelable form-associated element in the same Document as the label element."] ] ],
+#   [ 'legend',
+#     "The <legend> element represents a caption for the rest of the contents of the legend element's parent fieldset element.",
+#     [] ],
+#   [ 'li',
+#     'The <li> element represents a list of items.',
+#     [ [ 'value',
+#         'valid integer. Specifies the ordinal value of the list item.The value attribute can be used when the parent element in only a ol element.'] ] ],
+#   [ 'link',
+#     'The <link> element allows authors to link their document to other resources. A link element must have rel attribute.',
+#     [ ['href', 'URL potentially surrounded by spaces. Specifies a URL that provides the destination of the link.'],
+#       [ 'rel',
+#         'set of space-separated tokens. Specifies a list of tokens that specify the relationship between the document containing the link and the destination indicated by the link.Two categories of links can be created using the link element: Links to external resources and hyperlinks:'],
+#       [ 'media',
+#         'media-query list. The media for which the destination of the hyperlink was designed. If the link is a hyperlink then the media attribute is purely advisory, and describes for which media the document in question was designed.However, if the link is an external resource link, then the media attribute is prescriptive. The user agent must apply the external resource when the media attribute\'s value matches the environment and the other relevant conditions apply, and must not apply it otherwise.The default, if the media attribute is omitted, is "all", meaning that by default links apply to all media.'],
+#       [ 'hreflang',
+#         'language tag. The language of the destination of the hyperlink.A valid language tag, as defined in [BCP47].'],
+#       [ 'type',
+#         'A valid MIME type that destination of the hyperlink.gives the MIME type of the linked resource.The default value for the type attribute, which is used if the attribute is absent, is "text/css".'],
+#       [ 'sizes',
+#         'icon sizes. The sizes attribute is used with the icon link type. The attribute must not be specified on link elements that do not have a rel attribute that specifies the icon keyword.'] ] ],
+#   [ 'map',
+#     'The <map> element, in conjunction with any area element descendants, defines an image map.',
+#     [ [ 'name',
+#         'name of map. Gives the map a name so that it can be referenced.The attribute must be present and must have a non-empty value with no space characters.The value of the name attribute must not be a compatibility-caseless match for the value of the name attribute of another map element in the same document. If the id attribute is also specified, both attributes must have the same value.'] ] ],
+#   [ 'mark',
+#     'The <mark> element represents a run of text in one document marked or highlighted for reference purposes, due to its relevance in another context.',
+#     [] ],
+#   [ 'menu',
+#     'The <menu> element represents a list of commands.',
+#     [ ['type', 'context/ toolbar/ listIndicates the kind of menu being declared.'],
+#       ['label', 'string. Gives the label of the menu.'] ] ],
+#   [ 'meta',
+#     'The <meta> element represents various kinds of metadata that cannot be expressed using the title, base, link, style, and script elements.',
+#     [ ['name', 'string. Sets document metadata.'],
+#       [ 'http-equiv',
+#         'string. When the http-equiv attribute is specified on a meta element, the element is a pragma directive.'],
+#       [ 'content',
+#         'string. Gives the value of the document metadata or pragma directive when the element is used for those purposes.'],
+#       ['charset', 'character encoding name. Specifies the character encoding used by the document.'] ] ],
+#   [ 'meter',
+#     'The <meter> element represents a scalar measurement within a known range, or a fractional value.',
+#     [ [ 'value',
+#         'valid floating point numbers. Specifies the value to have the gauge indicate as the "measured" value.The value attribute must be specified.'],
+#       ['min', 'valid floating point numbers. Specifies the lower bound of the range.'],
+#       ['max', 'valid floating point numbers. Specifies the upper bound'],
+#       ['low', 'valid floating point numbers. Specifies the range that is considered to be the "low" part.'],
+#       ['high', 'valid floating point numbers. Specifies the range that is considered to be the "high" part.'],
+#       ['optimum', 'valid floating point numbers. Gives the position that is "optimum":'] ] ],
+#   ['nav', 'The <nav> element represents a section with navigation links.', [] ],
+#   [ 'noscript',
+#     'The <noscript> element represents nothing if scripting is enabled, and represents its children if scripting is disabled.',
+#     [] ],
+#   [ 'object',
+#     'The <object> element represents can represent an external resource, which, depending on the type of the resource, will either be treated as an image, as a nested browsing context, or as an external resource to be processed by a plugin.',
+#     [ ['data', 'URL potentially surrounded by spaces. Specifies the address of the resource.'],
+#       ['type', 'MIME type. Specifies the type of the resource.'],
+#       ['name', 'string. Gives the name of the input element.'],
+#       [ 'usemap',
+#         'hash-name reference. Specifies a hash-name reference to a map element with which to associate the object.'],
+#       ['form', "the ID of a form element in the element's owner. Associate the object element with its form owner."],
+#       ['width', 'non-negative integer. Give the width of the visual content of the element, in CSS pixels.'],
+#       ['height', 'non-negative integer. Give the height of the visual content of the element, in CSS pixels.'] ] ],
+#   [ 'ol',
+#     'The <ol> element represents the ordered list.',
+#     [ ['reversed', 'Changes into the descending order list, if present.'],
+#       ['start', 'valid integer. Specifies the ordinal value of the first list item.'],
+#       ['type', 'the kind of marker. Specifies the kind of marker to use in the list.'] ] ],
+#   [ 'optgroup',
+#     'The <optgroup> element represents a group of option elements with a common label.',
+#     [ ['disabled', 'boolean. If present, disable a group of option elements together.'],
+#       ['label', 'string. Its value gives the name of the group, for the purposes of the user interface.'] ] ],
+#   [ 'option',
+#     'The <option> element represents an option in a select element or as part of a list of suggestions in a datalist element.',
+#     [ ['disabled', 'boolean. If present, disable a option.'],
+#       [ 'label',
+#         "string. Provides a label for element. If there isn't, the label of an option element is the textContent of the element."],
+#       [ 'value',
+#         "string. Provides a value for element. If there isn't, the value of an option element is the textContent of the element."],
+#       ['selected', 'boolean. Represents the default selectedness of the element.'] ] ],
+#   [ 'output',
+#     'The <output> element represents the result of a calculation.',
+#     [ [ 'for',
+#         'unordered set of unique space-separated tokens. Allows an explicit relationship to be made between the result of a calculation and the elements that represent the values that went into the calculation or that otherwise influenced the calculation.This attribute must have the value of an ID of an element in the same Document.[Example B]'],
+#       [ 'form',
+#         "the ID of a form element in the element's owner. Associate the output element with its form owner.By default, the output element is associated with its nearest ancestor form element."],
+#       ['name', "unique name. Represents the element's name."] ] ],
+#   ['p', 'The <p> element represents a paragraph.', [] ],
+#   [ 'param',
+#     'The <param> element defines parameters for plugins invoked by object elements.',
+#     [ ['name', 'name of the parameter. Gives the name of the parameter.This attribute must be present.'],
+#       ['value', 'value of the parameter. Gives the value of the parameter.This attribute must be present.'] ] ],
+#   ['pre', 'The <pre> element represents a block of preformatted text.', [] ],
+#   [ 'progress',
+#     'The <progress> element represents the completion progress of a task.',
+#     [ [ 'value',
+#         'valid floating point numbers. Specifies how much of the task has been completed.This attribute must have a value equal to or greater than zero, and less than or equal to the value of the max attribute. If the mux attribute is not present, the value attribute must have a value less than 1.0.'],
+#       [ 'max',
+#         'valid floating point numbers. Specifies how much work the task requires in total.This attribute must have a value greater than zero.'] ] ],
+#   [ 'q',
+#     'The <q> element represents some phrasing content quoted from another source.',
+#     [['cite', 'valid URL potentially surrounded by spaces. Specifies the address in the quotation source.'] ] ],
+#   ['rp', 'The <rp> element can be used to provide parentheses around a ruby text component of a ruby annotation.', [] ],
+#   ['rt', 'The <rt> element marks the ruby text component of a ruby annotation.', [] ],
+#   ['ruby', 'The <ruby> element allows one or more spans of phrasing content to be marked with ruby annotations.', [] ],
+#   ['s', 'The <s> element represents contents that are no longer accurate or no longer relevant.', [] ],
+#   ['samp', 'The <samp> element represents output from a program or computing system.', [] ],
+#   [ 'script',
+#     'The <script> element allows authors to include dynamic script and data blocks in their documents.',
+#     [ ['src', 'URL potentially surrounded by spaces. Gives the address of the external script resource to use.'],
+#       [ 'async',
+#         'boolean. Specifies that the script should be executed asynchronously, as soon as it becomes available.'],
+#       ['defer', 'boolean. Specifies that script should be executed after the document has been parsed.'],
+#       ['type', 'MIME type. Gives the language of the script or format of the data.'],
+#       [ 'charset',
+#         'character encoding name. Gives the character encoding of the external script resource.The attribute must not be specified if the src attribute is not present.'] ] ],
+#   ['section', 'The <section> element represents a generic section of a document or application.', [] ],
+#   [ 'select',
+#     'The <select> element represents a control for selecting amongst a set of options.',
+#     [ [ 'autofocus',
+#         'boolean. Allows the author to indicate that a control is to be focused as soon as the page is loaded'],
+#       [ 'disabled',
+#         'boolean. If present, make the control non-interactive and to prevent its value from being submitted.'],
+#       [ 'form',
+#         "the ID of a form element in the element's owner. Associate the select element with its form owner.By default, the select element is associated with its nearest ancestor form element."],
+#       [ 'multiple',
+#         'boolean. If the attribute is present, then the select element represents a control for selecting zero or more options from the list of options.'],
+#       ['name', "unique name. Represents the element's name."],
+#       [ 'required',
+#         'boolean. When specified, the user will be required to select a value before submitting the form.'],
+#       [ 'size',
+#         "valid non-negative intege. Gives the number of options to show to the user. If the multiple attribute is present, then the size attribute's default value is 4. If the multiple attribute is absent, then the size attribute's default value is 1."] ] ],
+#   ['small', 'The <small> element represents side comments such as small print.', [] ],
+#   [ 'span',
+#     "The <span> element doesn't mean anything on its own, but can be useful when used together with the global attributes, e.g. class, lang, or dir. It represents its children.",
+#     [] ],
+#   ['strong', 'The <strong> element represents strong importance for its contents.', [] ],
+#   [ 'style',
+#     'The <style> element allows authors to embed style information in their documents.',
+#     [ [ 'media',
+#         'media-query list. Specifies which media the styles apply to.The default, if the media attribute is omitted, is "all", meaning that by default styles apply to all media.'],
+#       [ 'type',
+#         'A valid MIME type that designates a styling language. Gives the styling language.The default value for the type attribute, which is used if the attribute is absent, is "text/css".'],
+#       [ 'scoped',
+#         'boolean. Indicates that the specified style information is meant to apply only to the style element\xe2\x80\x99s parent element, and that element\xe2\x80\x99s child nodes. Otherwise, the specified styles are meant to apply to the entire document.'] ] ],
+#   ['sub', 'The <sub> element represents a subscript.', [] ],
+#   [ 'summary',
+#     "The <summary> element represents a summary, caption, or legend for the rest of the contents of the summary element's parent details element, if any.",
+#     [] ],
+#   ['sup', 'The <sup> element represents a superscript.', [] ],
+#   [ 'table',
+#     'The <table> element represents data with more than one dimension, in the form of a table.',
+#     [['summary', 'explanatory information introducing the table'] ] ],
+#   [ 'tbody',
+#     'The <tbody> element represents a block of rows that consist of a body of data for the parent table element, if the tbody element has a parent and it is a table.',
+#     [] ],
+#   [ 'td',
+#     'The <td> element represents a data cell in a table.',
+#     [ [ 'colspan',
+#         'valid non-negative integer. This attribute gives the number of columns respectively that the cell is to span.'],
+#       [ 'rowspan',
+#         'valid non-negative integer. This attribute gives the number of rows respectively that the cell is to span.'],
+#       [ 'headers',
+#         'unordered set of unique space-separated tokens. The value of this attribute must have the value of an id attribute of the th element that is targeted.'] ] ],
+#   [ 'textarea',
+#     "The <textarea> element represents a multiline plain text edit control for the element's raw value.",
+#     [ [ 'autofocus',
+#         'boolean. Allows the author to indicate that a control is to be focused as soon as the page is loaded'],
+#       [ 'cols',
+#         'valid non-negative integer. Specifies the expected maximum number of characters per line. by defult, it is 20.'],
+#       [ 'disabled',
+#         'boolean. If present, make the control non-interactive and to prevent its value from being submitted.'],
+#       [ 'form',
+#         "the ID of a form element in the element's owner. Associate the textarea element with its form owner.By default, the textarea element is associated with its nearest ancestor form element."],
+#       ['name', "unique name. Represents the element's name."],
+#       [ 'placeholder',
+#         'sample value or a brief description of the expected formatRepresents a hint (a word or short phrase) intended to aid the user with data entry.The placeholder attribute should not be used as an alternative to a label.'],
+#       ['readonly', 'boolean. Control whether the text can be edited by the user or not.'],
+#       [ 'required',
+#         'boolean. When specified, the user will be required to enter a value before submitting the form.'],
+#       ['rows', 'valid non-negative integer. Specifies the number of lines to show. by defult, it is 2.'],
+#       ['wrap', 'soft/ hard'] ] ],
+#   [ 'tfoot',
+#     'The <tfoot> element represents the block of rows that consist of the column summaries (footers) for the parent table element, if the tfoot element has a parent and it is a table.',
+#     [] ],
+#   [ 'th',
+#     'The <th> element represents a header cell in a table.',
+#     [ [ 'colspan',
+#         'valid non-negative integer. This attribute gives the number of columns respectively that the cell is to span.'],
+#       [ 'rowspan',
+#         'valid non-negative integer. This attribute gives the number of rows respectively that the cell is to span.'],
+#       [ 'headers',
+#         'unordered set of unique space-separated tokens. The value of this attribute must have the value of an id attribute of the th element that is targeted.'],
+#       [ 'scope',
+#         'row/ col/ rowgroup/ colgroup. The scope attribute specifies the cell which the influence of headding cell reaches.'] ] ],
+#   [ 'thead',
+#     'The <thead> element represents the block of rows that consist of the column labels (headers) for the parent table element, if the thead element has a parent and it is a table.',
+#     [] ],
+#   [ 'time',
+#     'The <time> element represents its contents, along with a machine-readable form of those contents in the datetime attribute.',
+#     [['datetime', 'date or time. Specifies the date or time that the element represents.'] ] ],
+#   ['title', "The <title> element represents the document's title or name.", [] ],
+#   ['tr', 'The <tr> element represents a row of cells in a table.', [] ],
+#   [ 'track',
+#     'The <track> element allows authors to specify explicit external timed tracks for media elements. It does not represent anything on its own.',
+#     [ ['kind', 'subtitles/ captions/ descriptions/ chapters/ metadata'],
+#       [ 'src',
+#         'valid non-empty URL potentially surrounded by spaces. Gives the address of the timed track data.This attribute must be present.'],
+#       ['charset', 'character encoding name'],
+#       [ 'srclang',
+#         "valid BCP47 language tag.Gives the language of the timed track data.This attribute must be present if the element's kind attribute is in the subtitles state."],
+#       ['label', 'string. Gives a user-readable title for the track.'] ] ],
+#   ['ul', 'The <ul> element represents the unordered list.', [] ],
+#   ['var', 'The <var> element represents a variable.', [] ],
+#   [ 'video',
+#     'A <video> element is used for playing videos or movies.',
+#     [ [ 'autoplay',
+#         '"autoplay" or "" (empty string) or emptyInstructs the UA to automatically begin playback of the video as soon as it can do so without stopping.'],
+#       [ 'preload',
+#         '"none" or "metadata" or "auto" or "" (empty string) or empty. Represents a hint to the UA about whether optimistic downloading of the video itself or its metadata is considered worthwhile.'],
+#       [ 'controls',
+#         '"controls" or "" (empty string) or emptyInstructs the UA to expose a user interface for controlling playback of the video.'],
+#       [ 'loop',
+#         '"loop" or "" (empty string) or emptyInstructs the UA to seek back to the start of the video upon reaching the end.'],
+#       [ 'poster',
+#         'URL potentially surrounded by spaces. The address of an image file for the UA to show while no video data is available.'],
+#       ['height', 'non-negative integer. The height of the video, in CSS pixels.'],
+#       ['width', 'non-negative integer. The width of the video, in CSS pixels.'],
+#       [ 'muted',
+#         '"muted" or "" (empty string) or empty. Represents the default state of the audio channel of the video, potentially overriding user preferences.'],
+#       ['mediagroup', 'string. Instructs the UA to link multiple videos and/or audio streams together.'],
+#       ['src', 'URL potentially surrounded by spaces. The URL for the video.'] ] ],
+#   ['wbr', 'The <wbr> element represents a line break opportunity.', [] ] ]
+#
+#
+# template_top = '''- name: '%(name)s'
+#   description: "%(desc)s"
+#   pattern: '<%(name)s${cursor}></%(name)s>'
+#   icon: tag
+#   scope: default
+# '''
+#
+# template_top_in_tag = '''- name: '%(name)s'
+#   description: "%(desc)s"
+#   pattern: '%(name)s'
+#   icon: tag
+#   scope: tag
+#   match_current_sub_scope: ['tag.class', '']
+# '''
+#
+# template_sub = '''- name: '%(name)s'
+#   description: "%(desc)s"
+#   pattern: '%(name)s="${cursor}"'
+#   scope: tag
+#   icon: attribute
+#   match_current_sub_scope: ['tag.class', '%(top_name)s']
+# '''
+#
+# for content in contents:
+#   el, desc, inner = content
+#   desc = desc.replace('"', '\\"')
+#
+#   if el != 'script': #We already handle script outside.
+#     cog.outl(template_top % {'name':el, 'desc':desc})
+#
+#   cog.outl(template_top_in_tag % {'name':el, 'desc':desc})
+#
+#   for in_el in inner:
+#     name, desc = in_el
+#     desc = desc.replace('"', '\\"')
+#     cog.outl(template_sub % {'name':name, 'desc':desc, 'top_name': el})
+#
+# #--- html attributes cog end
+# ]]]
+- name: 'a'
+  description: "The <a> element represents a hyperlink."
+  pattern: '<a${cursor}></a>'
+  icon: tag
+  scope: default
+
+- name: 'a'
+  description: "The <a> element represents a hyperlink."
+  pattern: 'a'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'name'
+  description: "ID (must not contain any space characters). Specifies that its a element is a named hyperlink, with the name given by the value of this attribute.The name attribute on the a element is obsolete. Consider putting an id attribute on the nearest container instead.Any string, with the following restrictions:"
+  pattern: 'name="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'a']
+
+- name: 'href'
+  description: "URL potentially surrounded by spaces. A URL that provides the destination of the hyperlink. If the href attribute is not specified, the element represents a placeholder hyperlink."
+  pattern: 'href="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'a']
+
+- name: 'target'
+  description: "A browsing-context name or any case-insensitive match for one of the following literal strings: \"_blank\", \"_self\", \"_parent\", or \"_top\". Browsing-context name or keyword. A name or keyword giving a browsing context for UAs to use when following the hyperlink.The target attribute on the a element was deprecated in a previous version of HTML, but is no longer deprecated, as it is useful in Web applications, particularly in combination with the iframe element."
+  pattern: 'target="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'a']
+
+- name: 'rel'
+  description: "set of space-separated tokens. A list of tokens that specify the relationship between the document containing the hyperlink and the destination indicated by the hyperlink."
+  pattern: 'rel="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'a']
+
+- name: 'hreflang'
+  description: "language tag. The language of the destination of the hyperlink.A valid language tag, as defined in [BCP47]."
+  pattern: 'hreflang="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'a']
+
+- name: 'media'
+  description: "media-query list. The media for which the destination of the hyperlink was designed.A valid media query list, as defined in [MediaQueries]."
+  pattern: 'media="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'a']
+
+- name: 'type'
+  description: "MIME typeThe MIME type of the destination of the hyperlink.A string that identifies a valid MIME media type, as defined in [RFC2046]."
+  pattern: 'type="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'a']
+
+- name: 'abbr'
+  description: "The <abbr> element represents an abbreviation or acronym."
+  pattern: '<abbr${cursor}></abbr>'
+  icon: tag
+  scope: default
+
+- name: 'abbr'
+  description: "The <abbr> element represents an abbreviation or acronym."
+  pattern: 'abbr'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'address'
+  description: "The <address> element represents the contact information for its nearest article or body element ancestor."
+  pattern: '<address${cursor}></address>'
+  icon: tag
+  scope: default
+
+- name: 'address'
+  description: "The <address> element represents the contact information for its nearest article or body element ancestor."
+  pattern: 'address'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'area'
+  description: "The <area> element represents either a hyperlink with some text and a corresponding area on an image map, or a dead area on an image map."
+  pattern: '<area${cursor}></area>'
+  icon: tag
+  scope: default
+
+- name: 'area'
+  description: "The <area> element represents either a hyperlink with some text and a corresponding area on an image map, or a dead area on an image map."
+  pattern: 'area'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'alt'
+  description: "fallback content for the image mapIf the area element has a href attribute, the alt attribute must be present.The alt attribute may be left blank if there is another area element in the same image map that points to the same resource and has a non-blank alt attribute."
+  pattern: 'alt="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'area']
+
+- name: 'coords'
+  description: "valid list of integers. This attribute gives the coordinates for the shape described by the shape attribute. The processing for this attribute is described as part of the image map processing model."
+  pattern: 'coords="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'area']
+
+- name: 'shape'
+  description: "circle/ poly/ rect/ default"
+  pattern: 'shape="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'area']
+
+- name: 'href'
+  description: "URL potentially surrounded by spaces. A URL that provides the destination of the hyperlink. If the href attribute is not specified, the element represents a placeholder hyperlink."
+  pattern: 'href="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'area']
+
+- name: 'target'
+  description: "browsing-context name or \"_blank\", \"_self\", \"_parent\", or \"_top\". A name or keyword giving a browsing context for UAs to use when following the hyperlink.The target attribute on the a element was deprecated in a previous version of HTML, but is no longer deprecated, as it is useful in Web applications, particularly in combination with the iframe element.Any string that is either of the following:"
+  pattern: 'target="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'area']
+
+- name: 'rel'
+  description: "set of space-separated tokens. A list of tokens that specify the relationship between the document containing the hyperlink and the destination indicated by the hyperlink."
+  pattern: 'rel="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'area']
+
+- name: 'hreflang'
+  description: "language tag. The language of the destination of the hyperlink.A valid language tag, as defined in [BCP47]."
+  pattern: 'hreflang="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'area']
+
+- name: 'media'
+  description: "media-query list. The media for which the destination of the hyperlink was designed.A valid media query list, as defined in [MediaQueries]."
+  pattern: 'media="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'area']
+
+- name: 'type'
+  description: "MIME typeThe MIME type of the destination of the hyperlink.A string that identifies a valid MIME media type, as defined in [RFC2046]."
+  pattern: 'type="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'area']
+
+- name: 'article'
+  description: "The <article> element represents an independent item section of content."
+  pattern: '<article${cursor}></article>'
+  icon: tag
+  scope: default
+
+- name: 'article'
+  description: "The <article> element represents an independent item section of content."
+  pattern: 'article'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'aside'
+  description: "The <aside> element represents a section of a page that consists of content that is tangentially related to the content around the aside element, and which could be considered separate from that content."
+  pattern: '<aside${cursor}></aside>'
+  icon: tag
+  scope: default
+
+- name: 'aside'
+  description: "The <aside> element represents a section of a page that consists of content that is tangentially related to the content around the aside element, and which could be considered separate from that content."
+  pattern: 'aside'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'audio'
+  description: "The <audio> element represents a sound or an audio stream."
+  pattern: '<audio${cursor}></audio>'
+  icon: tag
+  scope: default
+
+- name: 'audio'
+  description: "The <audio> element represents a sound or an audio stream."
+  pattern: 'audio'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'autoplay'
+  description: "\"autoplay\" or \"\" (empty string) or emptyInstructs the UA to automatically begin playback of the audio stream as soon as it can do so without stopping."
+  pattern: 'autoplay="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'audio']
+
+- name: 'preload'
+  description: "\"none\" or \"metadata\" or \"auto\" or \"\" (empty string) or empty. Represents a hint to the UA about whether optimistic downloading of the audio stream itself or its metadata is considered worthwhile."
+  pattern: 'preload="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'audio']
+
+- name: 'controls'
+  description: "\"controls\" or \"\" (empty string) or emptyInstructs the UA to expose a user interface for controlling playback of the audio stream."
+  pattern: 'controls="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'audio']
+
+- name: 'loop'
+  description: "\"loop\" or \"\" (empty string) or emptyInstructs the UA to seek back to the start of the audio stream upon reaching the end."
+  pattern: 'loop="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'audio']
+
+- name: 'mediagroup'
+  description: "string. Instructs the UA to link multiple videos and/or audio streams together."
+  pattern: 'mediagroup="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'audio']
+
+- name: 'src'
+  description: "URL potentially surrounded by spaces. The URL for the audio stream."
+  pattern: 'src="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'audio']
+
+- name: 'b'
+  description: "The <b> element represents a span of text to be stylistically offset from the normal prose without conveying any extra importance."
+  pattern: '<b${cursor}></b>'
+  icon: tag
+  scope: default
+
+- name: 'b'
+  description: "The <b> element represents a span of text to be stylistically offset from the normal prose without conveying any extra importance."
+  pattern: 'b'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'base'
+  description: "The <base> element allows authors to specify the document base URL for the purposes of resolving relative URLs, and the name of the default browsing context for the purposes of following hyperlinks. The element does not represent any content beyond this information."
+  pattern: '<base${cursor}></base>'
+  icon: tag
+  scope: default
+
+- name: 'base'
+  description: "The <base> element allows authors to specify the document base URL for the purposes of resolving relative URLs, and the name of the default browsing context for the purposes of following hyperlinks. The element does not represent any content beyond this information."
+  pattern: 'base'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'href'
+  description: "valid URL potentially surrounded by spaces. A base element, if it has an href attribute, must come before any other elements in the tree that have attributes defined as taking URLs, except the html element (its manifest attribute isn't affected by base elements)."
+  pattern: 'href="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'base']
+
+- name: 'target'
+  description: "valid browsing context name or keyword ( _blank, _self, _parent, or _top)The value of the target attribute is used as the default when hyperlinks and forms in the Document cause navigation."
+  pattern: 'target="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'base']
+
+- name: 'bdo'
+  description: "The <bdo> element represent explicit text directionality formatting control for its children."
+  pattern: '<bdo${cursor}></bdo>'
+  icon: tag
+  scope: default
+
+- name: 'bdo'
+  description: "The <bdo> element represent explicit text directionality formatting control for its children."
+  pattern: 'bdo'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'blockquote'
+  description: "The <blockquote> element represents a quoted section."
+  pattern: '<blockquote${cursor}></blockquote>'
+  icon: tag
+  scope: default
+
+- name: 'blockquote'
+  description: "The <blockquote> element represents a quoted section."
+  pattern: 'blockquote'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'cite'
+  description: "valid URL potentially surrounded by spaces. Specifies the address in the quotation source."
+  pattern: 'cite="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'blockquote']
+
+- name: 'body'
+  description: "The <body> element represents the main content of the document."
+  pattern: '<body${cursor}></body>'
+  icon: tag
+  scope: default
+
+- name: 'body'
+  description: "The <body> element represents the main content of the document."
+  pattern: 'body'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'onafterprint'
+  description: "string. User printed current document."
+  pattern: 'onafterprint="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'body']
+
+- name: 'onbeforeprint'
+  description: "string. User requested printing of current document."
+  pattern: 'onbeforeprint="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'body']
+
+- name: 'onbeforeunload'
+  description: "string. Document is about to be unloaded."
+  pattern: 'onbeforeunload="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'body']
+
+- name: 'onblur'
+  description: "string. Document lost focus."
+  pattern: 'onblur="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'body']
+
+- name: 'onerror'
+  description: "string. Document failed to load properly."
+  pattern: 'onerror="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'body']
+
+- name: 'onfocus'
+  description: "string. Document received focus."
+  pattern: 'onfocus="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'body']
+
+- name: 'onhashchange'
+  description: "string. Fragment identifier part of the document’s current address changed."
+  pattern: 'onhashchange="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'body']
+
+- name: 'onload'
+  description: "string. Document finished loading."
+  pattern: 'onload="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'body']
+
+- name: 'onmessage'
+  description: "string. Document received a message."
+  pattern: 'onmessage="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'body']
+
+- name: 'onoffline'
+  description: "string. Network connections failed."
+  pattern: 'onoffline="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'body']
+
+- name: 'ononline'
+  description: "string. Network connections returned."
+  pattern: 'ononline="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'body']
+
+- name: 'onpopstate'
+  description: "string. User navigated session history."
+  pattern: 'onpopstate="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'body']
+
+- name: 'onredo'
+  description: "string. User went forward in undo transaction history."
+  pattern: 'onredo="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'body']
+
+- name: 'onresize'
+  description: "string. Document view was resized."
+  pattern: 'onresize="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'body']
+
+- name: 'onstorage'
+  description: "string. Storage area changed."
+  pattern: 'onstorage="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'body']
+
+- name: 'onundo'
+  description: "string. User went backward in undo transaction history."
+  pattern: 'onundo="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'body']
+
+- name: 'onunload'
+  description: "string. Document is going away."
+  pattern: 'onunload="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'body']
+
+- name: 'button'
+  description: "The <button> element represents a button."
+  pattern: '<button${cursor}></button>'
+  icon: tag
+  scope: default
+
+- name: 'button'
+  description: "The <button> element represents a button."
+  pattern: 'button'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'type'
+  description: "submit/ reset/ buttonThe missing value default is the Submit Button state."
+  pattern: 'type="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'button']
+
+- name: 'autofocus'
+  description: "boolean. Allows the author to indicate that a control is to be focused as soon as the page is loaded"
+  pattern: 'autofocus="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'button']
+
+- name: 'disabled'
+  description: "boolean. If present, make the control non-interactive and to prevent its value from being submitted."
+  pattern: 'disabled="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'button']
+
+- name: 'form'
+  description: "the ID of a form element in the element's owner. Associate the button element with its form owner.By default, the button element is associated with its nearest ancestor form element."
+  pattern: 'form="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'button']
+
+- name: 'name'
+  description: "unique name. Represents the element's name."
+  pattern: 'name="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'button']
+
+- name: 'value'
+  description: "element's value. Gives the element's value for the purposes of form submission."
+  pattern: 'value="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'button']
+
+- name: 'canvas'
+  description: "A <canvas> element provides scripts with a resolution-dependent bitmap canvas, which can be used for rendering graphs, game graphics, or other visual images on the fly."
+  pattern: '<canvas${cursor}></canvas>'
+  icon: tag
+  scope: default
+
+- name: 'canvas'
+  description: "A <canvas> element provides scripts with a resolution-dependent bitmap canvas, which can be used for rendering graphs, game graphics, or other visual images on the fly."
+  pattern: 'canvas'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'height'
+  description: "non-negative integer. The height of the canvas, in CSS pixels."
+  pattern: 'height="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'canvas']
+
+- name: 'width'
+  description: "non-negative integer. The width of the canvas, in CSS pixels."
+  pattern: 'width="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'canvas']
+
+- name: 'caption'
+  description: "The <caption> element represents the title of the table that is its parent, if it has a parent and that is a table element."
+  pattern: '<caption${cursor}></caption>'
+  icon: tag
+  scope: default
+
+- name: 'caption'
+  description: "The <caption> element represents the title of the table that is its parent, if it has a parent and that is a table element."
+  pattern: 'caption'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'cite'
+  description: "The <cite> element represents the title of a work."
+  pattern: '<cite${cursor}></cite>'
+  icon: tag
+  scope: default
+
+- name: 'cite'
+  description: "The <cite> element represents the title of a work."
+  pattern: 'cite'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'code'
+  description: "The <code> element represents a fragment of computer code."
+  pattern: '<code${cursor}></code>'
+  icon: tag
+  scope: default
+
+- name: 'code'
+  description: "The <code> element represents a fragment of computer code."
+  pattern: 'code'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'col'
+  description: "The <col> element represents one or more columns in the column group represented by that colgroup."
+  pattern: '<col${cursor}></col>'
+  icon: tag
+  scope: default
+
+- name: 'col'
+  description: "The <col> element represents one or more columns in the column group represented by that colgroup."
+  pattern: 'col'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'span'
+  description: "valid non-negative integer"
+  pattern: 'span="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'col']
+
+- name: 'colgroup'
+  description: "The <colgroup> element represents a group of one or more columns in the table that is its parent."
+  pattern: '<colgroup${cursor}></colgroup>'
+  icon: tag
+  scope: default
+
+- name: 'colgroup'
+  description: "The <colgroup> element represents a group of one or more columns in the table that is its parent."
+  pattern: 'colgroup'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'span'
+  description: "valid non-negative integer"
+  pattern: 'span="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'colgroup']
+
+- name: 'command'
+  description: "The <command> element represents a command that the user can invoke."
+  pattern: '<command${cursor}></command>'
+  icon: tag
+  scope: default
+
+- name: 'command'
+  description: "The <command> element represents a command that the user can invoke."
+  pattern: 'command'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'type'
+  description: "command/ checkbox/ radioIndicates the kind of command."
+  pattern: 'type="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'command']
+
+- name: 'label'
+  description: "string. Gives the name of the command, as shown to the user.The label attribute must be specified and must have a value that is not the empty string."
+  pattern: 'label="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'command']
+
+- name: 'icon'
+  description: "valid non-empty URL potentially. Gives a picture that represents the command."
+  pattern: 'icon="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'command']
+
+- name: 'disabled'
+  description: "boolean. If present, indicates that the command is not available in the current state."
+  pattern: 'disabled="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'command']
+
+- name: 'checked'
+  description: "boolean. If present, indicates that the command is selected.The attribute must be omitted unless the type attribute is in either the Checkbox state or the Radio state."
+  pattern: 'checked="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'command']
+
+- name: 'radiogroup'
+  description: "string. Gives the name of the group of commands that will be toggled when the command itself is toggled, for commands whose type attribute has the value \"radio\"."
+  pattern: 'radiogroup="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'command']
+
+- name: 'datalist'
+  description: "The <datalist> element represents the list that represent predefined options for other controls."
+  pattern: '<datalist${cursor}></datalist>'
+  icon: tag
+  scope: default
+
+- name: 'datalist'
+  description: "The <datalist> element represents the list that represent predefined options for other controls."
+  pattern: 'datalist'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'dd'
+  description: "The <dd> element represents the discription, definition, or value, part of a term-description group in a description list."
+  pattern: '<dd${cursor}></dd>'
+  icon: tag
+  scope: default
+
+- name: 'dd'
+  description: "The <dd> element represents the discription, definition, or value, part of a term-description group in a description list."
+  pattern: 'dd'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'del'
+  description: "The <del> element represents a removal from the document."
+  pattern: '<del${cursor}></del>'
+  icon: tag
+  scope: default
+
+- name: 'del'
+  description: "The <del> element represents a removal from the document."
+  pattern: 'del'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'cite'
+  description: "valid URL potentially surrounded by space. Specify the address of a document that explains the change. For example, the minutes of meeting."
+  pattern: 'cite="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'del']
+
+- name: 'datetime'
+  description: "valid date string with optional time. Specify the time and date of the change."
+  pattern: 'datetime="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'del']
+
+- name: 'details'
+  description: "The <details> element represents a disclosure widget from which the user can obtain additional information or controls."
+  pattern: '<details${cursor}></details>'
+  icon: tag
+  scope: default
+
+- name: 'details'
+  description: "The <details> element represents a disclosure widget from which the user can obtain additional information or controls."
+  pattern: 'details'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'open'
+  description: "boolean. If present, it indicates that the details are to be shown to the user. If the attribute is absent, the details are not to be shown."
+  pattern: 'open="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'details']
+
+- name: 'dfn'
+  description: "The <dfn> element represents the defining instance of a term."
+  pattern: '<dfn${cursor}></dfn>'
+  icon: tag
+  scope: default
+
+- name: 'dfn'
+  description: "The <dfn> element represents the defining instance of a term."
+  pattern: 'dfn'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'div'
+  description: "The <div> element has no special meaning at all."
+  pattern: '<div${cursor}></div>'
+  icon: tag
+  scope: default
+
+- name: 'div'
+  description: "The <div> element has no special meaning at all."
+  pattern: 'div'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'dl'
+  description: "The <dl> element represents the the definition list."
+  pattern: '<dl${cursor}></dl>'
+  icon: tag
+  scope: default
+
+- name: 'dl'
+  description: "The <dl> element represents the the definition list."
+  pattern: 'dl'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'dt'
+  description: "The <dt> element represents the term, or name, part of a term-description group in a description list."
+  pattern: '<dt${cursor}></dt>'
+  icon: tag
+  scope: default
+
+- name: 'dt'
+  description: "The <dt> element represents the term, or name, part of a term-description group in a description list."
+  pattern: 'dt'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'em'
+  description: "The <em> element represents stress emphasis of its contents."
+  pattern: '<em${cursor}></em>'
+  icon: tag
+  scope: default
+
+- name: 'em'
+  description: "The <em> element represents stress emphasis of its contents."
+  pattern: 'em'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'embed'
+  description: "The <embed> element represents an integration point for an external (typically non-HTML) application or interactive content."
+  pattern: '<embed${cursor}></embed>'
+  icon: tag
+  scope: default
+
+- name: 'embed'
+  description: "The <embed> element represents an integration point for an external (typically non-HTML) application or interactive content."
+  pattern: 'embed'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'src'
+  description: "URL potentially surrounded by spaces. Gives the address of the resource being embedded."
+  pattern: 'src="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'embed']
+
+- name: 'type'
+  description: "MIME type. Specifies the type of the resource."
+  pattern: 'type="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'embed']
+
+- name: 'width'
+  description: "non-negative integer. Give the width of the visual content of the element, in CSS pixels."
+  pattern: 'width="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'embed']
+
+- name: 'height'
+  description: "non-negative integer. Give the height of the visual content of the element, in CSS pixels."
+  pattern: 'height="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'embed']
+
+- name: 'fieldset'
+  description: "The <fieldset> element represents a set of form controls optionally grouped under a common name."
+  pattern: '<fieldset${cursor}></fieldset>'
+  icon: tag
+  scope: default
+
+- name: 'fieldset'
+  description: "The <fieldset> element represents a set of form controls optionally grouped under a common name."
+  pattern: 'fieldset'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'disabled'
+  description: "boolean. When specified, causes all the form control descendants of the fieldset element, excluding those that are descendants of the fieldset element's first legend element child, if any, to be disabled."
+  pattern: 'disabled="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'fieldset']
+
+- name: 'form'
+  description: "string. Associate the fieldset element with its form owner."
+  pattern: 'form="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'fieldset']
+
+- name: 'name'
+  description: "string. Represents the element's name."
+  pattern: 'name="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'fieldset']
+
+- name: 'figcaption'
+  description: "The <figcaption> element represents a caption or legend for the contents of the parent figure element."
+  pattern: '<figcaption${cursor}></figcaption>'
+  icon: tag
+  scope: default
+
+- name: 'figcaption'
+  description: "The <figcaption> element represents a caption or legend for the contents of the parent figure element."
+  pattern: 'figcaption'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'figure'
+  description: "The <figure> element represents some flow content."
+  pattern: '<figure${cursor}></figure>'
+  icon: tag
+  scope: default
+
+- name: 'figure'
+  description: "The <figure> element represents some flow content."
+  pattern: 'figure'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'footer'
+  description: "The <footer> element represents a footer for its nearest ancestor sectioning content or sectioning root element."
+  pattern: '<footer${cursor}></footer>'
+  icon: tag
+  scope: default
+
+- name: 'footer'
+  description: "The <footer> element represents a footer for its nearest ancestor sectioning content or sectioning root element."
+  pattern: 'footer'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'form'
+  description: "The form element represents a user-submittable form."
+  pattern: '<form${cursor}></form>'
+  icon: tag
+  scope: default
+
+- name: 'form'
+  description: "The form element represents a user-submittable form."
+  pattern: 'form'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'accept-charset'
+  description: "list of character-encoding namesgives the character encodings that are to be used for the submission."
+  pattern: 'accept-charset="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'form']
+
+- name: 'action'
+  description: "valid URL potentially surrounded by spaces. Specify the form-submission action for the element."
+  pattern: 'action="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'form']
+
+- name: 'autocomplete'
+  description: "on/ off. Specifies whether the element represents a form for which by default a UA is meant to store the values entered into its input elements by the user (so that the UA can pre-fill the form later)."
+  pattern: 'autocomplete="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'form']
+
+- name: 'enctype'
+  description: "application/x-www-form-urlencoded / multipart/form-data / text/plain. Specify a MIME type with which a UA is meant to associate this element for form submission.The missing value default for these attributes is the application/x-www-form-urlencoded state."
+  pattern: 'enctype="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'form']
+
+- name: 'method'
+  description: "get/ post. Specify the HTTP method with which a UA is meant to associate this element for form submission.The missing value default for this attributes is the GET state."
+  pattern: 'method="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'form']
+
+- name: 'name'
+  description: "string. Gives the name of the input element."
+  pattern: 'name="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'form']
+
+- name: 'novalidate'
+  description: "boolean. If present, they indicate that the form is not to be validated during submission."
+  pattern: 'novalidate="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'form']
+
+- name: 'target'
+  description: "valid browsing context names or keywords. Specify a browsing context name or keyword that represents the target of the control."
+  pattern: 'target="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'form']
+
+- name: 'h1'
+  description: "H1 heading (highest rank)"
+  pattern: '<h1${cursor}></h1>'
+  icon: tag
+  scope: default
+
+- name: 'h1'
+  description: "H1 heading (highest rank)"
+  pattern: 'h1'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'h2'
+  description: "H2 heading"
+  pattern: '<h2${cursor}></h2>'
+  icon: tag
+  scope: default
+
+- name: 'h2'
+  description: "H2 heading"
+  pattern: 'h2'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'h3'
+  description: "H3 heading"
+  pattern: '<h3${cursor}></h3>'
+  icon: tag
+  scope: default
+
+- name: 'h3'
+  description: "H3 heading"
+  pattern: 'h3'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'h4'
+  description: "H4 heading"
+  pattern: '<h4${cursor}></h4>'
+  icon: tag
+  scope: default
+
+- name: 'h4'
+  description: "H4 heading"
+  pattern: 'h4'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'h5'
+  description: "H5 Heading"
+  pattern: '<h5${cursor}></h5>'
+  icon: tag
+  scope: default
+
+- name: 'h5'
+  description: "H5 Heading"
+  pattern: 'h5'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'h6'
+  description: "H6 Heading"
+  pattern: '<h6${cursor}></h6>'
+  icon: tag
+  scope: default
+
+- name: 'h6'
+  description: "H6 Heading"
+  pattern: 'h6'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'head'
+  description: "The <head> element represents a collection of metadata for the Document."
+  pattern: '<head${cursor}></head>'
+  icon: tag
+  scope: default
+
+- name: 'head'
+  description: "The <head> element represents a collection of metadata for the Document."
+  pattern: 'head'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'header'
+  description: "The <header> element represents a group of introductory or navigational aids."
+  pattern: '<header${cursor}></header>'
+  icon: tag
+  scope: default
+
+- name: 'header'
+  description: "The <header> element represents a group of introductory or navigational aids."
+  pattern: 'header'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'hgroup'
+  description: "The <hgroup> element represent the heading of a section."
+  pattern: '<hgroup${cursor}></hgroup>'
+  icon: tag
+  scope: default
+
+- name: 'hgroup'
+  description: "The <hgroup> element represent the heading of a section."
+  pattern: 'hgroup'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'hr'
+  description: "The <hr> element represents a paragraph-level thematic break."
+  pattern: '<hr${cursor}></hr>'
+  icon: tag
+  scope: default
+
+- name: 'hr'
+  description: "The <hr> element represents a paragraph-level thematic break."
+  pattern: 'hr'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'html'
+  description: "The <html> element represents the root of HTML and XHTML documents. Any subsequent elements are the children of this root element."
+  pattern: '<html${cursor}></html>'
+  icon: tag
+  scope: default
+
+- name: 'html'
+  description: "The <html> element represents the root of HTML and XHTML documents. Any subsequent elements are the children of this root element."
+  pattern: 'html'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'manifest'
+  description: "URL potentially surrounded by spaces. The address of the document’s application cache manifest (which controls caching of content for offline use)."
+  pattern: 'manifest="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'html']
+
+- name: 'i'
+  description: "The <i> element represents an span of text that offset from the normal prose."
+  pattern: '<i${cursor}></i>'
+  icon: tag
+  scope: default
+
+- name: 'i'
+  description: "The <i> element represents an span of text that offset from the normal prose."
+  pattern: 'i'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'iframe'
+  description: "The <iframe> element represents a nested browsing context."
+  pattern: '<iframe${cursor}></iframe>'
+  icon: tag
+  scope: default
+
+- name: 'iframe'
+  description: "The <iframe> element represents a nested browsing context."
+  pattern: 'iframe'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'src'
+  description: "URL potentially surrounded by spaces. Gives the address of a page that the nested browsing context is to contain."
+  pattern: 'src="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'iframe']
+
+- name: 'srcdoc'
+  description: "HTML contents. Gives the content of the page that the nested browsing context is to contain."
+  pattern: 'srcdoc="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'iframe']
+
+- name: 'name'
+  description: "browsing-context name. Represents the browsing-context name. When the browsing context is created, if the attribute is present, the browsing context name must be set to the value of this attribute; otherwise, the browsing context name must be set to the empty string."
+  pattern: 'name="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'iframe']
+
+- name: 'sandbox'
+  description: "allow-same-origin/ allow-top-navigation/ allow-forms/ allow-scripts. Enables a set of extra restrictions on any content hosted by the iframe."
+  pattern: 'sandbox="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'iframe']
+
+- name: 'seamless'
+  description: "boolean. Indicates that the iframe element's browsing context is to be rendered in a manner that makes it appear to be part of the containing document (seamlessly included in the parent document)."
+  pattern: 'seamless="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'iframe']
+
+- name: 'width'
+  description: "non-negative integer. Give the width of the visual content of the element, in CSS pixels."
+  pattern: 'width="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'iframe']
+
+- name: 'height'
+  description: "non-negative integer. Give the height of the visual content of the element, in CSS pixels."
+  pattern: 'height="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'iframe']
+
+- name: 'img'
+  description: "The <img> element represents an image."
+  pattern: '<img${cursor}></img>'
+  icon: tag
+  scope: default
+
+- name: 'img'
+  description: "The <img> element represents an image."
+  pattern: 'img'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'alt'
+  description: "normal character data. Gives the fallback content for the image.The requirements on the alt attribute's value are described in the next section."
+  pattern: 'alt="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'img']
+
+- name: 'src'
+  description: "URL potentially surrounded by spaces. Specifies a URL referencing a non-interactive, optionally animated, image that is neither paged nor scripted."
+  pattern: 'src="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'img']
+
+- name: 'usemap'
+  description: "hash-name reference. Specifies a hash-name reference to a map element with which to associate the object."
+  pattern: 'usemap="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'img']
+
+- name: 'ismap'
+  description: "boolean. Specifies that its img element provides access to a server-side image map."
+  pattern: 'ismap="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'img']
+
+- name: 'width'
+  description: "non-negative integer. Give the width of the visual content of the element, in CSS pixels."
+  pattern: 'width="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'img']
+
+- name: 'height'
+  description: "non-negative integer. Give the height of the visual content of the element, in CSS pixels."
+  pattern: 'height="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'img']
+
+- name: 'input'
+  description: "The <input> element represents a typed data field, usually with a form control to allow the user to edit the data."
+  pattern: '<input${cursor}></input>'
+  icon: tag
+  scope: default
+
+- name: 'input'
+  description: "The <input> element represents a typed data field, usually with a form control to allow the user to edit the data."
+  pattern: 'input'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'accept'
+  description: "audio/*, video/*, image/*, MIME_type. Specifies the types of files that the server accepts (only for type=\"file\")."
+  pattern: 'accept="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'align'
+  description: "left, right, top, middle, bottom. Not supported in HTML5. Deprecated in HTML 4.01. Specifies the alignment of an image input (only for type=\"image\")."
+  pattern: 'align="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'alt'
+  description: "text. Specifies an alternate text for images (only for type=\"image\")."
+  pattern: 'alt="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'autocomplete'
+  description: "on|off. Specifies whether an <input> element should have autocomplete enabled."
+  pattern: 'autocomplete="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'autofocus'
+  description: "Specifies that an <input> element should automatically get focus when the page loads"
+  pattern: 'autofocus="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'checked'
+  description: "checked. Specifies that an <input> element should be pre-selected when the page loads (for type=\"checkbox\" or type=\"radio\")"
+  pattern: 'checked="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'disabled'
+  description: "Specifies that an <input> element should be disabled"
+  pattern: 'disabled="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'form'
+  description: "Specifies one or more forms the <input> element belongs to"
+  pattern: 'form="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'formaction'
+  description: "URL. Specifies the URL of the file that will process the input control when the form is submitted (for type=\"submit\" and type=\"image\")"
+  pattern: 'formaction="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'formenctype'
+  description: "Specifies how the form-data should be encoded when submitting it to the server (for type=\"submit\" and type=\"image\")"
+  pattern: 'formenctype="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'formmethod'
+  description: "get|post.Defines the HTTP method for sending data to the action URL (for type=\"submit\" and type=\"image\")"
+  pattern: 'formmethod="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'formnovalidate'
+  description: "Defines that form elements should not be validated when submitted."
+  pattern: 'formnovalidate="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'formtarget'
+  description: "_blank|_self|_parent|_top|framename. Specifies where to display the response that is received after submitting the form (for type=\"submit\" and type=\"image\")"
+  pattern: 'formtarget="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'height'
+  description: "pixels. Specifies the height of an <input> element (only for type=\"image\")"
+  pattern: 'height="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'list'
+  description: "Refers to a <datalist> element that contains pre-defined options for an <input> element"
+  pattern: 'list="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'max'
+  description: "Specifies the maximum value for an <input> element"
+  pattern: 'max="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'maxlength'
+  description: "Specifies the maximum number of characters allowed in an <input> element"
+  pattern: 'maxlength="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'min'
+  description: "Specifies a minimum value for an <input> element"
+  pattern: 'min="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'multiple'
+  description: "Specifies that a user can enter more than one value in an <input> element"
+  pattern: 'multiple="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'name'
+  description: "Specifies the name of an <input> element"
+  pattern: 'name="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'pattern'
+  description: "Specifies a regular expression that an <input> element's value is checked against"
+  pattern: 'pattern="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'placeholder'
+  description: "Specifies a short hint that describes the expected value of an <input> element"
+  pattern: 'placeholder="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'readonly'
+  description: "Specifies that an input field is read-only"
+  pattern: 'readonly="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'required'
+  description: "Specifies that an input field must be filled out before submitting the form"
+  pattern: 'required="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'size'
+  description: "Specifies the width, in characters, of an <input> element"
+  pattern: 'size="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'src'
+  description: "URL. Specifies the URL of the image to use as a submit button (only for type=\"image\")"
+  pattern: 'src="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'step'
+  description: "number. Specifies the legal number intervals for an input field"
+  pattern: 'step="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'type'
+  description: "button | checkbox | color | date | datetime | datetime-local | email | file | hidden | image | month | number | password | radio | range | reset | search | submit | tel | text | time | url | week. Specifies the type <input> element to display."
+  pattern: 'type="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'value'
+  description: "text. Specifies the value of an <input> element"
+  pattern: 'value="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'width'
+  description: "Specifies the width of an <input> element (only for type=\"image\")"
+  pattern: 'width="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'input']
+
+- name: 'ins'
+  description: "The <ins> element represents an addition to the document."
+  pattern: '<ins${cursor}></ins>'
+  icon: tag
+  scope: default
+
+- name: 'ins'
+  description: "The <ins> element represents an addition to the document."
+  pattern: 'ins'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'cite'
+  description: "valid URL potentially surrounded by space. Specify the address of a document that explains the change. For example, the minutes of meeting."
+  pattern: 'cite="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'ins']
+
+- name: 'datetime'
+  description: "valid date string with optional time. Specify the time and date of the change."
+  pattern: 'datetime="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'ins']
+
+- name: 'kbd'
+  description: "The <kbd> element represents user input."
+  pattern: '<kbd${cursor}></kbd>'
+  icon: tag
+  scope: default
+
+- name: 'kbd'
+  description: "The <kbd> element represents user input."
+  pattern: 'kbd'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'keygen'
+  description: "The <keygen> element represents a key pair generator control."
+  pattern: '<keygen${cursor}></keygen>'
+  icon: tag
+  scope: default
+
+- name: 'keygen'
+  description: "The <keygen> element represents a key pair generator control."
+  pattern: 'keygen'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'autofocus'
+  description: "boolean. Allows the author to indicate that a control is to be focused as soon as the page is loaded"
+  pattern: 'autofocus="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'keygen']
+
+- name: 'challenge'
+  description: "string. A challenge string that is submitted along with the public key."
+  pattern: 'challenge="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'keygen']
+
+- name: 'disabled'
+  description: "boolean. If present, make the control non-interactive and to prevent its value from being submitted."
+  pattern: 'disabled="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'keygen']
+
+- name: 'form'
+  description: "the ID of a form element in the element's owner. Associate the keygen element with its form owner.By default, the keygen element is associated with its nearest ancestor form element."
+  pattern: 'form="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'keygen']
+
+- name: 'keytype'
+  description: "rsa. The type of key generated."
+  pattern: 'keytype="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'keygen']
+
+- name: 'name'
+  description: "unique name. Represents the element's name."
+  pattern: 'name="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'keygen']
+
+- name: 'label'
+  description: "The <label> element represents a caption in a user interface."
+  pattern: '<label${cursor}></label>'
+  icon: tag
+  scope: default
+
+- name: 'label'
+  description: "The <label> element represents a caption in a user interface."
+  pattern: 'label'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'form'
+  description: "string. Associate the fieldset element with its form owner."
+  pattern: 'form="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'label']
+
+- name: 'for'
+  description: "string. Specified to indicate a form control with which the caption is to be associated.The attribute's value must be the ID of a labelable form-associated element in the same Document as the label element."
+  pattern: 'for="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'label']
+
+- name: 'legend'
+  description: "The <legend> element represents a caption for the rest of the contents of the legend element's parent fieldset element."
+  pattern: '<legend${cursor}></legend>'
+  icon: tag
+  scope: default
+
+- name: 'legend'
+  description: "The <legend> element represents a caption for the rest of the contents of the legend element's parent fieldset element."
+  pattern: 'legend'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'li'
+  description: "The <li> element represents a list of items."
+  pattern: '<li${cursor}></li>'
+  icon: tag
+  scope: default
+
+- name: 'li'
+  description: "The <li> element represents a list of items."
+  pattern: 'li'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'value'
+  description: "valid integer. Specifies the ordinal value of the list item.The value attribute can be used when the parent element in only a ol element."
+  pattern: 'value="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'li']
+
+- name: 'link'
+  description: "The <link> element allows authors to link their document to other resources. A link element must have rel attribute."
+  pattern: '<link${cursor}></link>'
+  icon: tag
+  scope: default
+
+- name: 'link'
+  description: "The <link> element allows authors to link their document to other resources. A link element must have rel attribute."
+  pattern: 'link'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'href'
+  description: "URL potentially surrounded by spaces. Specifies a URL that provides the destination of the link."
+  pattern: 'href="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'link']
+
+- name: 'rel'
+  description: "set of space-separated tokens. Specifies a list of tokens that specify the relationship between the document containing the link and the destination indicated by the link.Two categories of links can be created using the link element: Links to external resources and hyperlinks:"
+  pattern: 'rel="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'link']
+
+- name: 'media'
+  description: "media-query list. The media for which the destination of the hyperlink was designed. If the link is a hyperlink then the media attribute is purely advisory, and describes for which media the document in question was designed.However, if the link is an external resource link, then the media attribute is prescriptive. The user agent must apply the external resource when the media attribute's value matches the environment and the other relevant conditions apply, and must not apply it otherwise.The default, if the media attribute is omitted, is \"all\", meaning that by default links apply to all media."
+  pattern: 'media="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'link']
+
+- name: 'hreflang'
+  description: "language tag. The language of the destination of the hyperlink.A valid language tag, as defined in [BCP47]."
+  pattern: 'hreflang="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'link']
+
+- name: 'type'
+  description: "A valid MIME type that destination of the hyperlink.gives the MIME type of the linked resource.The default value for the type attribute, which is used if the attribute is absent, is \"text/css\"."
+  pattern: 'type="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'link']
+
+- name: 'sizes'
+  description: "icon sizes. The sizes attribute is used with the icon link type. The attribute must not be specified on link elements that do not have a rel attribute that specifies the icon keyword."
+  pattern: 'sizes="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'link']
+
+- name: 'map'
+  description: "The <map> element, in conjunction with any area element descendants, defines an image map."
+  pattern: '<map${cursor}></map>'
+  icon: tag
+  scope: default
+
+- name: 'map'
+  description: "The <map> element, in conjunction with any area element descendants, defines an image map."
+  pattern: 'map'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'name'
+  description: "name of map. Gives the map a name so that it can be referenced.The attribute must be present and must have a non-empty value with no space characters.The value of the name attribute must not be a compatibility-caseless match for the value of the name attribute of another map element in the same document. If the id attribute is also specified, both attributes must have the same value."
+  pattern: 'name="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'map']
+
+- name: 'mark'
+  description: "The <mark> element represents a run of text in one document marked or highlighted for reference purposes, due to its relevance in another context."
+  pattern: '<mark${cursor}></mark>'
+  icon: tag
+  scope: default
+
+- name: 'mark'
+  description: "The <mark> element represents a run of text in one document marked or highlighted for reference purposes, due to its relevance in another context."
+  pattern: 'mark'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'menu'
+  description: "The <menu> element represents a list of commands."
+  pattern: '<menu${cursor}></menu>'
+  icon: tag
+  scope: default
+
+- name: 'menu'
+  description: "The <menu> element represents a list of commands."
+  pattern: 'menu'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'type'
+  description: "context/ toolbar/ listIndicates the kind of menu being declared."
+  pattern: 'type="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'menu']
+
+- name: 'label'
+  description: "string. Gives the label of the menu."
+  pattern: 'label="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'menu']
+
+- name: 'meta'
+  description: "The <meta> element represents various kinds of metadata that cannot be expressed using the title, base, link, style, and script elements."
+  pattern: '<meta${cursor}></meta>'
+  icon: tag
+  scope: default
+
+- name: 'meta'
+  description: "The <meta> element represents various kinds of metadata that cannot be expressed using the title, base, link, style, and script elements."
+  pattern: 'meta'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'name'
+  description: "string. Sets document metadata."
+  pattern: 'name="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'meta']
+
+- name: 'http-equiv'
+  description: "string. When the http-equiv attribute is specified on a meta element, the element is a pragma directive."
+  pattern: 'http-equiv="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'meta']
+
+- name: 'content'
+  description: "string. Gives the value of the document metadata or pragma directive when the element is used for those purposes."
+  pattern: 'content="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'meta']
+
+- name: 'charset'
+  description: "character encoding name. Specifies the character encoding used by the document."
+  pattern: 'charset="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'meta']
+
+- name: 'meter'
+  description: "The <meter> element represents a scalar measurement within a known range, or a fractional value."
+  pattern: '<meter${cursor}></meter>'
+  icon: tag
+  scope: default
+
+- name: 'meter'
+  description: "The <meter> element represents a scalar measurement within a known range, or a fractional value."
+  pattern: 'meter'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'value'
+  description: "valid floating point numbers. Specifies the value to have the gauge indicate as the \"measured\" value.The value attribute must be specified."
+  pattern: 'value="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'meter']
+
+- name: 'min'
+  description: "valid floating point numbers. Specifies the lower bound of the range."
+  pattern: 'min="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'meter']
+
+- name: 'max'
+  description: "valid floating point numbers. Specifies the upper bound"
+  pattern: 'max="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'meter']
+
+- name: 'low'
+  description: "valid floating point numbers. Specifies the range that is considered to be the \"low\" part."
+  pattern: 'low="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'meter']
+
+- name: 'high'
+  description: "valid floating point numbers. Specifies the range that is considered to be the \"high\" part."
+  pattern: 'high="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'meter']
+
+- name: 'optimum'
+  description: "valid floating point numbers. Gives the position that is \"optimum\":"
+  pattern: 'optimum="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'meter']
+
+- name: 'nav'
+  description: "The <nav> element represents a section with navigation links."
+  pattern: '<nav${cursor}></nav>'
+  icon: tag
+  scope: default
+
+- name: 'nav'
+  description: "The <nav> element represents a section with navigation links."
+  pattern: 'nav'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'noscript'
+  description: "The <noscript> element represents nothing if scripting is enabled, and represents its children if scripting is disabled."
+  pattern: '<noscript${cursor}></noscript>'
+  icon: tag
+  scope: default
+
+- name: 'noscript'
+  description: "The <noscript> element represents nothing if scripting is enabled, and represents its children if scripting is disabled."
+  pattern: 'noscript'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'object'
+  description: "The <object> element represents can represent an external resource, which, depending on the type of the resource, will either be treated as an image, as a nested browsing context, or as an external resource to be processed by a plugin."
+  pattern: '<object${cursor}></object>'
+  icon: tag
+  scope: default
+
+- name: 'object'
+  description: "The <object> element represents can represent an external resource, which, depending on the type of the resource, will either be treated as an image, as a nested browsing context, or as an external resource to be processed by a plugin."
+  pattern: 'object'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'data'
+  description: "URL potentially surrounded by spaces. Specifies the address of the resource."
+  pattern: 'data="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'object']
+
+- name: 'type'
+  description: "MIME type. Specifies the type of the resource."
+  pattern: 'type="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'object']
+
+- name: 'name'
+  description: "string. Gives the name of the input element."
+  pattern: 'name="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'object']
+
+- name: 'usemap'
+  description: "hash-name reference. Specifies a hash-name reference to a map element with which to associate the object."
+  pattern: 'usemap="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'object']
+
+- name: 'form'
+  description: "the ID of a form element in the element's owner. Associate the object element with its form owner."
+  pattern: 'form="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'object']
+
+- name: 'width'
+  description: "non-negative integer. Give the width of the visual content of the element, in CSS pixels."
+  pattern: 'width="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'object']
+
+- name: 'height'
+  description: "non-negative integer. Give the height of the visual content of the element, in CSS pixels."
+  pattern: 'height="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'object']
+
+- name: 'ol'
+  description: "The <ol> element represents the ordered list."
+  pattern: '<ol${cursor}></ol>'
+  icon: tag
+  scope: default
+
+- name: 'ol'
+  description: "The <ol> element represents the ordered list."
+  pattern: 'ol'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'reversed'
+  description: "Changes into the descending order list, if present."
+  pattern: 'reversed="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'ol']
+
+- name: 'start'
+  description: "valid integer. Specifies the ordinal value of the first list item."
+  pattern: 'start="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'ol']
+
+- name: 'type'
+  description: "the kind of marker. Specifies the kind of marker to use in the list."
+  pattern: 'type="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'ol']
+
+- name: 'optgroup'
+  description: "The <optgroup> element represents a group of option elements with a common label."
+  pattern: '<optgroup${cursor}></optgroup>'
+  icon: tag
+  scope: default
+
+- name: 'optgroup'
+  description: "The <optgroup> element represents a group of option elements with a common label."
+  pattern: 'optgroup'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'disabled'
+  description: "boolean. If present, disable a group of option elements together."
+  pattern: 'disabled="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'optgroup']
+
+- name: 'label'
+  description: "string. Its value gives the name of the group, for the purposes of the user interface."
+  pattern: 'label="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'optgroup']
+
+- name: 'option'
+  description: "The <option> element represents an option in a select element or as part of a list of suggestions in a datalist element."
+  pattern: '<option${cursor}></option>'
+  icon: tag
+  scope: default
+
+- name: 'option'
+  description: "The <option> element represents an option in a select element or as part of a list of suggestions in a datalist element."
+  pattern: 'option'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'disabled'
+  description: "boolean. If present, disable a option."
+  pattern: 'disabled="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'option']
+
+- name: 'label'
+  description: "string. Provides a label for element. If there isn't, the label of an option element is the textContent of the element."
+  pattern: 'label="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'option']
+
+- name: 'value'
+  description: "string. Provides a value for element. If there isn't, the value of an option element is the textContent of the element."
+  pattern: 'value="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'option']
+
+- name: 'selected'
+  description: "boolean. Represents the default selectedness of the element."
+  pattern: 'selected="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'option']
+
+- name: 'output'
+  description: "The <output> element represents the result of a calculation."
+  pattern: '<output${cursor}></output>'
+  icon: tag
+  scope: default
+
+- name: 'output'
+  description: "The <output> element represents the result of a calculation."
+  pattern: 'output'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'for'
+  description: "unordered set of unique space-separated tokens. Allows an explicit relationship to be made between the result of a calculation and the elements that represent the values that went into the calculation or that otherwise influenced the calculation.This attribute must have the value of an ID of an element in the same Document.[Example B]"
+  pattern: 'for="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'output']
+
+- name: 'form'
+  description: "the ID of a form element in the element's owner. Associate the output element with its form owner.By default, the output element is associated with its nearest ancestor form element."
+  pattern: 'form="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'output']
+
+- name: 'name'
+  description: "unique name. Represents the element's name."
+  pattern: 'name="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'output']
+
+- name: 'p'
+  description: "The <p> element represents a paragraph."
+  pattern: '<p${cursor}></p>'
+  icon: tag
+  scope: default
+
+- name: 'p'
+  description: "The <p> element represents a paragraph."
+  pattern: 'p'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'param'
+  description: "The <param> element defines parameters for plugins invoked by object elements."
+  pattern: '<param${cursor}></param>'
+  icon: tag
+  scope: default
+
+- name: 'param'
+  description: "The <param> element defines parameters for plugins invoked by object elements."
+  pattern: 'param'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'name'
+  description: "name of the parameter. Gives the name of the parameter.This attribute must be present."
+  pattern: 'name="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'param']
+
+- name: 'value'
+  description: "value of the parameter. Gives the value of the parameter.This attribute must be present."
+  pattern: 'value="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'param']
+
+- name: 'pre'
+  description: "The <pre> element represents a block of preformatted text."
+  pattern: '<pre${cursor}></pre>'
+  icon: tag
+  scope: default
+
+- name: 'pre'
+  description: "The <pre> element represents a block of preformatted text."
+  pattern: 'pre'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'progress'
+  description: "The <progress> element represents the completion progress of a task."
+  pattern: '<progress${cursor}></progress>'
+  icon: tag
+  scope: default
+
+- name: 'progress'
+  description: "The <progress> element represents the completion progress of a task."
+  pattern: 'progress'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'value'
+  description: "valid floating point numbers. Specifies how much of the task has been completed.This attribute must have a value equal to or greater than zero, and less than or equal to the value of the max attribute. If the mux attribute is not present, the value attribute must have a value less than 1.0."
+  pattern: 'value="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'progress']
+
+- name: 'max'
+  description: "valid floating point numbers. Specifies how much work the task requires in total.This attribute must have a value greater than zero."
+  pattern: 'max="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'progress']
+
+- name: 'q'
+  description: "The <q> element represents some phrasing content quoted from another source."
+  pattern: '<q${cursor}></q>'
+  icon: tag
+  scope: default
+
+- name: 'q'
+  description: "The <q> element represents some phrasing content quoted from another source."
+  pattern: 'q'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'cite'
+  description: "valid URL potentially surrounded by spaces. Specifies the address in the quotation source."
+  pattern: 'cite="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'q']
+
+- name: 'rp'
+  description: "The <rp> element can be used to provide parentheses around a ruby text component of a ruby annotation."
+  pattern: '<rp${cursor}></rp>'
+  icon: tag
+  scope: default
+
+- name: 'rp'
+  description: "The <rp> element can be used to provide parentheses around a ruby text component of a ruby annotation."
+  pattern: 'rp'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'rt'
+  description: "The <rt> element marks the ruby text component of a ruby annotation."
+  pattern: '<rt${cursor}></rt>'
+  icon: tag
+  scope: default
+
+- name: 'rt'
+  description: "The <rt> element marks the ruby text component of a ruby annotation."
+  pattern: 'rt'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'ruby'
+  description: "The <ruby> element allows one or more spans of phrasing content to be marked with ruby annotations."
+  pattern: '<ruby${cursor}></ruby>'
+  icon: tag
+  scope: default
+
+- name: 'ruby'
+  description: "The <ruby> element allows one or more spans of phrasing content to be marked with ruby annotations."
+  pattern: 'ruby'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 's'
+  description: "The <s> element represents contents that are no longer accurate or no longer relevant."
+  pattern: '<s${cursor}></s>'
+  icon: tag
+  scope: default
+
+- name: 's'
+  description: "The <s> element represents contents that are no longer accurate or no longer relevant."
+  pattern: 's'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'samp'
+  description: "The <samp> element represents output from a program or computing system."
+  pattern: '<samp${cursor}></samp>'
+  icon: tag
+  scope: default
+
+- name: 'samp'
+  description: "The <samp> element represents output from a program or computing system."
+  pattern: 'samp'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'script'
+  description: "The <script> element allows authors to include dynamic script and data blocks in their documents."
+  pattern: 'script'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'src'
+  description: "URL potentially surrounded by spaces. Gives the address of the external script resource to use."
+  pattern: 'src="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'script']
+
+- name: 'async'
+  description: "boolean. Specifies that the script should be executed asynchronously, as soon as it becomes available."
+  pattern: 'async="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'script']
+
+- name: 'defer'
+  description: "boolean. Specifies that script should be executed after the document has been parsed."
+  pattern: 'defer="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'script']
+
+- name: 'type'
+  description: "MIME type. Gives the language of the script or format of the data."
+  pattern: 'type="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'script']
+
+- name: 'charset'
+  description: "character encoding name. Gives the character encoding of the external script resource.The attribute must not be specified if the src attribute is not present."
+  pattern: 'charset="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'script']
+
+- name: 'section'
+  description: "The <section> element represents a generic section of a document or application."
+  pattern: '<section${cursor}></section>'
+  icon: tag
+  scope: default
+
+- name: 'section'
+  description: "The <section> element represents a generic section of a document or application."
+  pattern: 'section'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'select'
+  description: "The <select> element represents a control for selecting amongst a set of options."
+  pattern: '<select${cursor}></select>'
+  icon: tag
+  scope: default
+
+- name: 'select'
+  description: "The <select> element represents a control for selecting amongst a set of options."
+  pattern: 'select'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'autofocus'
+  description: "boolean. Allows the author to indicate that a control is to be focused as soon as the page is loaded"
+  pattern: 'autofocus="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'select']
+
+- name: 'disabled'
+  description: "boolean. If present, make the control non-interactive and to prevent its value from being submitted."
+  pattern: 'disabled="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'select']
+
+- name: 'form'
+  description: "the ID of a form element in the element's owner. Associate the select element with its form owner.By default, the select element is associated with its nearest ancestor form element."
+  pattern: 'form="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'select']
+
+- name: 'multiple'
+  description: "boolean. If the attribute is present, then the select element represents a control for selecting zero or more options from the list of options."
+  pattern: 'multiple="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'select']
+
+- name: 'name'
+  description: "unique name. Represents the element's name."
+  pattern: 'name="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'select']
+
+- name: 'required'
+  description: "boolean. When specified, the user will be required to select a value before submitting the form."
+  pattern: 'required="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'select']
+
+- name: 'size'
+  description: "valid non-negative intege. Gives the number of options to show to the user. If the multiple attribute is present, then the size attribute's default value is 4. If the multiple attribute is absent, then the size attribute's default value is 1."
+  pattern: 'size="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'select']
+
+- name: 'small'
+  description: "The <small> element represents side comments such as small print."
+  pattern: '<small${cursor}></small>'
+  icon: tag
+  scope: default
+
+- name: 'small'
+  description: "The <small> element represents side comments such as small print."
+  pattern: 'small'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'span'
+  description: "The <span> element doesn't mean anything on its own, but can be useful when used together with the global attributes, e.g. class, lang, or dir. It represents its children."
+  pattern: '<span${cursor}></span>'
+  icon: tag
+  scope: default
+
+- name: 'span'
+  description: "The <span> element doesn't mean anything on its own, but can be useful when used together with the global attributes, e.g. class, lang, or dir. It represents its children."
+  pattern: 'span'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'strong'
+  description: "The <strong> element represents strong importance for its contents."
+  pattern: '<strong${cursor}></strong>'
+  icon: tag
+  scope: default
+
+- name: 'strong'
+  description: "The <strong> element represents strong importance for its contents."
+  pattern: 'strong'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'style'
+  description: "The <style> element allows authors to embed style information in their documents."
+  pattern: '<style${cursor}></style>'
+  icon: tag
+  scope: default
+
+- name: 'style'
+  description: "The <style> element allows authors to embed style information in their documents."
+  pattern: 'style'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'media'
+  description: "media-query list. Specifies which media the styles apply to.The default, if the media attribute is omitted, is \"all\", meaning that by default styles apply to all media."
+  pattern: 'media="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'style']
+
+- name: 'type'
+  description: "A valid MIME type that designates a styling language. Gives the styling language.The default value for the type attribute, which is used if the attribute is absent, is \"text/css\"."
+  pattern: 'type="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'style']
+
+- name: 'scoped'
+  description: "boolean. Indicates that the specified style information is meant to apply only to the style element’s parent element, and that element’s child nodes. Otherwise, the specified styles are meant to apply to the entire document."
+  pattern: 'scoped="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'style']
+
+- name: 'sub'
+  description: "The <sub> element represents a subscript."
+  pattern: '<sub${cursor}></sub>'
+  icon: tag
+  scope: default
+
+- name: 'sub'
+  description: "The <sub> element represents a subscript."
+  pattern: 'sub'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'summary'
+  description: "The <summary> element represents a summary, caption, or legend for the rest of the contents of the summary element's parent details element, if any."
+  pattern: '<summary${cursor}></summary>'
+  icon: tag
+  scope: default
+
+- name: 'summary'
+  description: "The <summary> element represents a summary, caption, or legend for the rest of the contents of the summary element's parent details element, if any."
+  pattern: 'summary'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'sup'
+  description: "The <sup> element represents a superscript."
+  pattern: '<sup${cursor}></sup>'
+  icon: tag
+  scope: default
+
+- name: 'sup'
+  description: "The <sup> element represents a superscript."
+  pattern: 'sup'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'table'
+  description: "The <table> element represents data with more than one dimension, in the form of a table."
+  pattern: '<table${cursor}></table>'
+  icon: tag
+  scope: default
+
+- name: 'table'
+  description: "The <table> element represents data with more than one dimension, in the form of a table."
+  pattern: 'table'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'summary'
+  description: "explanatory information introducing the table"
+  pattern: 'summary="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'table']
+
+- name: 'tbody'
+  description: "The <tbody> element represents a block of rows that consist of a body of data for the parent table element, if the tbody element has a parent and it is a table."
+  pattern: '<tbody${cursor}></tbody>'
+  icon: tag
+  scope: default
+
+- name: 'tbody'
+  description: "The <tbody> element represents a block of rows that consist of a body of data for the parent table element, if the tbody element has a parent and it is a table."
+  pattern: 'tbody'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'td'
+  description: "The <td> element represents a data cell in a table."
+  pattern: '<td${cursor}></td>'
+  icon: tag
+  scope: default
+
+- name: 'td'
+  description: "The <td> element represents a data cell in a table."
+  pattern: 'td'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'colspan'
+  description: "valid non-negative integer. This attribute gives the number of columns respectively that the cell is to span."
+  pattern: 'colspan="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'td']
+
+- name: 'rowspan'
+  description: "valid non-negative integer. This attribute gives the number of rows respectively that the cell is to span."
+  pattern: 'rowspan="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'td']
+
+- name: 'headers'
+  description: "unordered set of unique space-separated tokens. The value of this attribute must have the value of an id attribute of the th element that is targeted."
+  pattern: 'headers="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'td']
+
+- name: 'textarea'
+  description: "The <textarea> element represents a multiline plain text edit control for the element's raw value."
+  pattern: '<textarea${cursor}></textarea>'
+  icon: tag
+  scope: default
+
+- name: 'textarea'
+  description: "The <textarea> element represents a multiline plain text edit control for the element's raw value."
+  pattern: 'textarea'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'autofocus'
+  description: "boolean. Allows the author to indicate that a control is to be focused as soon as the page is loaded"
+  pattern: 'autofocus="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'textarea']
+
+- name: 'cols'
+  description: "valid non-negative integer. Specifies the expected maximum number of characters per line. by defult, it is 20."
+  pattern: 'cols="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'textarea']
+
+- name: 'disabled'
+  description: "boolean. If present, make the control non-interactive and to prevent its value from being submitted."
+  pattern: 'disabled="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'textarea']
+
+- name: 'form'
+  description: "the ID of a form element in the element's owner. Associate the textarea element with its form owner.By default, the textarea element is associated with its nearest ancestor form element."
+  pattern: 'form="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'textarea']
+
+- name: 'name'
+  description: "unique name. Represents the element's name."
+  pattern: 'name="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'textarea']
+
+- name: 'placeholder'
+  description: "sample value or a brief description of the expected formatRepresents a hint (a word or short phrase) intended to aid the user with data entry.The placeholder attribute should not be used as an alternative to a label."
+  pattern: 'placeholder="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'textarea']
+
+- name: 'readonly'
+  description: "boolean. Control whether the text can be edited by the user or not."
+  pattern: 'readonly="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'textarea']
+
+- name: 'required'
+  description: "boolean. When specified, the user will be required to enter a value before submitting the form."
+  pattern: 'required="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'textarea']
+
+- name: 'rows'
+  description: "valid non-negative integer. Specifies the number of lines to show. by defult, it is 2."
+  pattern: 'rows="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'textarea']
+
+- name: 'wrap'
+  description: "soft/ hard"
+  pattern: 'wrap="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'textarea']
+
+- name: 'tfoot'
+  description: "The <tfoot> element represents the block of rows that consist of the column summaries (footers) for the parent table element, if the tfoot element has a parent and it is a table."
+  pattern: '<tfoot${cursor}></tfoot>'
+  icon: tag
+  scope: default
+
+- name: 'tfoot'
+  description: "The <tfoot> element represents the block of rows that consist of the column summaries (footers) for the parent table element, if the tfoot element has a parent and it is a table."
+  pattern: 'tfoot'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'th'
+  description: "The <th> element represents a header cell in a table."
+  pattern: '<th${cursor}></th>'
+  icon: tag
+  scope: default
+
+- name: 'th'
+  description: "The <th> element represents a header cell in a table."
+  pattern: 'th'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'colspan'
+  description: "valid non-negative integer. This attribute gives the number of columns respectively that the cell is to span."
+  pattern: 'colspan="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'th']
+
+- name: 'rowspan'
+  description: "valid non-negative integer. This attribute gives the number of rows respectively that the cell is to span."
+  pattern: 'rowspan="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'th']
+
+- name: 'headers'
+  description: "unordered set of unique space-separated tokens. The value of this attribute must have the value of an id attribute of the th element that is targeted."
+  pattern: 'headers="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'th']
+
+- name: 'scope'
+  description: "row/ col/ rowgroup/ colgroup. The scope attribute specifies the cell which the influence of headding cell reaches."
+  pattern: 'scope="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'th']
+
+- name: 'thead'
+  description: "The <thead> element represents the block of rows that consist of the column labels (headers) for the parent table element, if the thead element has a parent and it is a table."
+  pattern: '<thead${cursor}></thead>'
+  icon: tag
+  scope: default
+
+- name: 'thead'
+  description: "The <thead> element represents the block of rows that consist of the column labels (headers) for the parent table element, if the thead element has a parent and it is a table."
+  pattern: 'thead'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'time'
+  description: "The <time> element represents its contents, along with a machine-readable form of those contents in the datetime attribute."
+  pattern: '<time${cursor}></time>'
+  icon: tag
+  scope: default
+
+- name: 'time'
+  description: "The <time> element represents its contents, along with a machine-readable form of those contents in the datetime attribute."
+  pattern: 'time'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'datetime'
+  description: "date or time. Specifies the date or time that the element represents."
+  pattern: 'datetime="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'time']
+
+- name: 'title'
+  description: "The <title> element represents the document's title or name."
+  pattern: '<title${cursor}></title>'
+  icon: tag
+  scope: default
+
+- name: 'title'
+  description: "The <title> element represents the document's title or name."
+  pattern: 'title'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'tr'
+  description: "The <tr> element represents a row of cells in a table."
+  pattern: '<tr${cursor}></tr>'
+  icon: tag
+  scope: default
+
+- name: 'tr'
+  description: "The <tr> element represents a row of cells in a table."
+  pattern: 'tr'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'track'
+  description: "The <track> element allows authors to specify explicit external timed tracks for media elements. It does not represent anything on its own."
+  pattern: '<track${cursor}></track>'
+  icon: tag
+  scope: default
+
+- name: 'track'
+  description: "The <track> element allows authors to specify explicit external timed tracks for media elements. It does not represent anything on its own."
+  pattern: 'track'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'kind'
+  description: "subtitles/ captions/ descriptions/ chapters/ metadata"
+  pattern: 'kind="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'track']
+
+- name: 'src'
+  description: "valid non-empty URL potentially surrounded by spaces. Gives the address of the timed track data.This attribute must be present."
+  pattern: 'src="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'track']
+
+- name: 'charset'
+  description: "character encoding name"
+  pattern: 'charset="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'track']
+
+- name: 'srclang'
+  description: "valid BCP47 language tag.Gives the language of the timed track data.This attribute must be present if the element's kind attribute is in the subtitles state."
+  pattern: 'srclang="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'track']
+
+- name: 'label'
+  description: "string. Gives a user-readable title for the track."
+  pattern: 'label="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'track']
+
+- name: 'ul'
+  description: "The <ul> element represents the unordered list."
+  pattern: '<ul${cursor}></ul>'
+  icon: tag
+  scope: default
+
+- name: 'ul'
+  description: "The <ul> element represents the unordered list."
+  pattern: 'ul'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'var'
+  description: "The <var> element represents a variable."
+  pattern: '<var${cursor}></var>'
+  icon: tag
+  scope: default
+
+- name: 'var'
+  description: "The <var> element represents a variable."
+  pattern: 'var'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'video'
+  description: "A <video> element is used for playing videos or movies."
+  pattern: '<video${cursor}></video>'
+  icon: tag
+  scope: default
+
+- name: 'video'
+  description: "A <video> element is used for playing videos or movies."
+  pattern: 'video'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+- name: 'autoplay'
+  description: "\"autoplay\" or \"\" (empty string) or emptyInstructs the UA to automatically begin playback of the video as soon as it can do so without stopping."
+  pattern: 'autoplay="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'video']
+
+- name: 'preload'
+  description: "\"none\" or \"metadata\" or \"auto\" or \"\" (empty string) or empty. Represents a hint to the UA about whether optimistic downloading of the video itself or its metadata is considered worthwhile."
+  pattern: 'preload="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'video']
+
+- name: 'controls'
+  description: "\"controls\" or \"\" (empty string) or emptyInstructs the UA to expose a user interface for controlling playback of the video."
+  pattern: 'controls="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'video']
+
+- name: 'loop'
+  description: "\"loop\" or \"\" (empty string) or emptyInstructs the UA to seek back to the start of the video upon reaching the end."
+  pattern: 'loop="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'video']
+
+- name: 'poster'
+  description: "URL potentially surrounded by spaces. The address of an image file for the UA to show while no video data is available."
+  pattern: 'poster="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'video']
+
+- name: 'height'
+  description: "non-negative integer. The height of the video, in CSS pixels."
+  pattern: 'height="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'video']
+
+- name: 'width'
+  description: "non-negative integer. The width of the video, in CSS pixels."
+  pattern: 'width="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'video']
+
+- name: 'muted'
+  description: "\"muted\" or \"\" (empty string) or empty. Represents the default state of the audio channel of the video, potentially overriding user preferences."
+  pattern: 'muted="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'video']
+
+- name: 'mediagroup'
+  description: "string. Instructs the UA to link multiple videos and/or audio streams together."
+  pattern: 'mediagroup="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'video']
+
+- name: 'src'
+  description: "URL potentially surrounded by spaces. The URL for the video."
+  pattern: 'src="${cursor}"'
+  scope: tag
+  icon: attribute
+  match_current_sub_scope: ['tag.class', 'video']
+
+- name: 'wbr'
+  description: "The <wbr> element represents a line break opportunity."
+  pattern: '<wbr${cursor}></wbr>'
+  icon: tag
+  scope: default
+
+- name: 'wbr'
+  description: "The <wbr> element represents a line break opportunity."
+  pattern: 'wbr'
+  icon: tag
+  scope: tag
+  match_current_sub_scope: ['tag.class', '']
+
+# [[[end]]]
+#--- html attributes end
+
+
+
+#--- global attributes cog start
+#Note: run cog on this file to regenerate contents.
+# [[[cog
+# import cog
+# #Globals: on any html element: http://www.w3.org/wiki/HTML/Attributes/_Global
+# contents = [
+#   ['accesskey',  'list of key labels',  'A key label or list of key labels with which to associate the element; each key label represents a keyboard shortcut which UAs can use to activate the element or give focus to the element. An ordered set of unique space-separated tokens, each of which must be exactly one Unicode code point in length.'],
+#   ['class', 'set of space-separated tokens',   'A name of a classification, or list of names of classifications, to which the element belongs.'],
+#   ['contenteditable',  '"true" or "false" or "" (empty string) or empty',   'Specifies whether the contents of the element are editable.'],
+#   ['contextmenu',  'ID reference',  'The value of the id attribute on the menu with which to associate the element as a context menu.'],
+#   ['dir',  '"ltr" or "rtl"',  'Specifies the element’s text directionality.'],
+#   ['draggable',  '"true" or "false"',   'Specifies whether the element is draggable.'],
+#   ['hidden',   '"hidden" or "" (empty string) or empty',  'Specifies that the element represents an element that is not yet, or is no longer, relevant.'],
+#   ['id',   'ID',  'A unique identifier for the element. There must not be multiple elements in a document that have the same id value. Any string, with the following restrictions: 1. must be at least one character long 2. must not contain any space characters'],
+#   ['lang',   'language tag',  'Specifies the primary language for the contents of the element and for any of the element’s attributes that contain text. A valid language tag, as defined in [BCP47].'],
+#   ['spellcheck',   '"true" or "false" or "" (empty string) or empty',   'Specifies whether the element represents an element whose contents are subject to spell checking and grammar checking.'],
+#   ['style',  'string',  'Specifies zero or more CSS declarations that apply to the element [CSS].'],
+#   ['tabindex',   'integer',   'Specifies whether the element represents an element that is is focusable (that is, an element which is part of the sequence of focusable elements in the document), and the relative order of the element in the sequence of focusable elements in the document.'],
+#   ['title',  'normal character data',   'Advisory information associated with the element.'],
+#   ['translate',  '"yes" or "no"', 'Specifies whether an element\'s attribute values and the values of its Text node children are to be translated when the page is localized, or whether to leave them unchanged.'],
+# ]
+#
+# template = '''- name: '%(name)s'
+#   description: "%(desc)s"
+#   pattern: '%(name)s="${cursor}"'
+#   icon: 'attribute'
+#   scope: tag
+#   match_current_sub_scope: ['tag.class', '*notempty*']
+# '''
+#
+# for el, desc, long_desc in contents:
+#   cog.outl(template % {'name':el, 'desc':long_desc})
+# #--- global attributes cog end
+# ]]]
+- name: 'accesskey'
+  description: "A key label or list of key labels with which to associate the element; each key label represents a keyboard shortcut which UAs can use to activate the element or give focus to the element. An ordered set of unique space-separated tokens, each of which must be exactly one Unicode code point in length."
+  pattern: 'accesskey="${cursor}"'
+  icon: 'attribute'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'class'
+  description: "A name of a classification, or list of names of classifications, to which the element belongs."
+  pattern: 'class="${cursor}"'
+  icon: 'attribute'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'contenteditable'
+  description: "Specifies whether the contents of the element are editable."
+  pattern: 'contenteditable="${cursor}"'
+  icon: 'attribute'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'contextmenu'
+  description: "The value of the id attribute on the menu with which to associate the element as a context menu."
+  pattern: 'contextmenu="${cursor}"'
+  icon: 'attribute'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'dir'
+  description: "Specifies the element’s text directionality."
+  pattern: 'dir="${cursor}"'
+  icon: 'attribute'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'draggable'
+  description: "Specifies whether the element is draggable."
+  pattern: 'draggable="${cursor}"'
+  icon: 'attribute'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'hidden'
+  description: "Specifies that the element represents an element that is not yet, or is no longer, relevant."
+  pattern: 'hidden="${cursor}"'
+  icon: 'attribute'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'id'
+  description: "A unique identifier for the element. There must not be multiple elements in a document that have the same id value. Any string, with the following restrictions: 1. must be at least one character long 2. must not contain any space characters"
+  pattern: 'id="${cursor}"'
+  icon: 'attribute'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'lang'
+  description: "Specifies the primary language for the contents of the element and for any of the element’s attributes that contain text. A valid language tag, as defined in [BCP47]."
+  pattern: 'lang="${cursor}"'
+  icon: 'attribute'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'spellcheck'
+  description: "Specifies whether the element represents an element whose contents are subject to spell checking and grammar checking."
+  pattern: 'spellcheck="${cursor}"'
+  icon: 'attribute'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'style'
+  description: "Specifies zero or more CSS declarations that apply to the element [CSS]."
+  pattern: 'style="${cursor}"'
+  icon: 'attribute'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'tabindex'
+  description: "Specifies whether the element represents an element that is is focusable (that is, an element which is part of the sequence of focusable elements in the document), and the relative order of the element in the sequence of focusable elements in the document."
+  pattern: 'tabindex="${cursor}"'
+  icon: 'attribute'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'title'
+  description: "Advisory information associated with the element."
+  pattern: 'title="${cursor}"'
+  icon: 'attribute'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'translate'
+  description: "Specifies whether an element's attribute values and the values of its Text node children are to be translated when the page is localized, or whether to leave them unchanged."
+  pattern: 'translate="${cursor}"'
+  icon: 'attribute'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+# [[[end]]]
+#--- global attributes end
+
+
+
+
+
+
+
+
+
+#--- event handlers cog start
+#Note: run cog on this file to regenerate contents.
+# [[[cog
+# import cog
+# #Globals: on any html element: http://www.w3.org/wiki/HTML/Attributes/_Global
+# contents = [
+#   ['onabort', 'string', 'Load of element was aborted by the user.'],
+#   ['onblur', 'string', 'Element lost focus.'],
+#   ['oncanplay', 'string', 'The UA can resume playback of media data for this video or audio element, but estimates that if playback were to be started now, the video or audio could not be rendered at the current playback rate up to its end without having to stop for further buffering of content.'],
+#   ['oncanplaythrough', 'string', 'The UA estimates that if playback were to be started now, the video or audio element could be rendered at the current playback rate all the way to its end without having to stop for further buffering'],
+#   ['onchange', 'string', 'User committed a change to the value of element (form control).'],
+#   ['onclick', 'string', 'User pressed pointer button down and released pointer button over element, or otherwise activated the pointer in a manner that emulates such an action.'],
+#   ['oncontextmenu', 'string', 'User requested the context menu for element.'],
+#   ['ondblclick', 'string', 'User clicked pointer button twice over element, or otherwise activated the pointer in a manner that simulates such an action.'],
+#   ['ondrag', 'string', 'User is continuing to drag element.'],
+#   ['ondragend', 'string', 'User ended dragging element.'],
+#   ['ondragenter', 'string', 'User’s drag operation entered element.'],
+#   ['ondragleave', 'string', 'User’s drag operation left element.'],
+#   ['ondragover', 'string', 'User is continuing drag operation over element.'],
+#   ['ondragstart', 'string', 'User started dragging element.'],
+#   ['ondrop', 'string', 'User completed drop operation over element.'],
+#   ['ondurationchange', 'string', 'The DOM attribute duration on the video or audio element has been updated.'],
+#   ['onemptied', 'string', 'The video or audio element has returned to the uninitialized state.'],
+#   ['onended', 'string', 'The end of the video or audio element has been reached.'],
+#   ['onerror', 'string', 'Element failed to load properly.'],
+#   ['onfocus', 'string', 'Element received focus.'],
+#   ['onformchange', 'string', 'User committed a change to the value of a form control in the form to which the element belongs.'],
+#   ['onforminput', 'string', 'User changed the value of a form control in the form to which the element belongs.'],
+#   ['oninput', 'string', 'User changed the value of element (form control).'],
+#   ['oninvalid', 'string', 'Element (form control) did not meet validity constraints.'],
+#   ['onkeydown', 'string', 'User pressed down a key.'],
+#   ['onkeypress', 'string', 'User pressed down a key that is associated with a character value.'],
+#   ['onkeyup', 'string', 'User release a key.'],
+#   ['onload', 'string', 'Element finished loading.'],
+#   ['onloadeddata', 'string', 'UA can render the video or audio element at the current playback position for the first time.'],
+#   ['onloadedmetadata', 'string', 'UA has just determined the duration and dimensions of the video or audio element.'],
+#   ['onloadstart', 'string', 'UA has begun looking for media data in the video or audio element.'],
+#   ['onmousedown', 'string', 'User pressed down pointer button over element.'],
+#   ['onmousemove', 'string', 'User moved mouse.'],
+#   ['onmouseout', 'string', 'User moved pointer off boundaries of element.'],
+#   ['onmouseover', 'string', 'User moved pointer into boundaries of element or one of its descendant elements.'],
+#   ['onmouseup', 'string', 'User released pointer button over element.'],
+#   ['onmousewheel', 'string', 'User rotated wheel of mouse or other device in a manner that emulates such an action.'],
+#   ['onpause', 'string', 'User has paused playback of the video or audio element.'],
+#   ['onplay', 'string', 'UA has initiated playback of the video or audio element.'],
+#   ['onplaying', 'string', 'Playback of the video or audio element has started.'],
+#   ['onprogress', 'string', 'UA is fetching media data for the video or audio element.'],
+#   ['onratechange', 'string', 'Either the DOM attribute defaultPlaybackRate or the DOM attribute playbackRate on the video or audio element has been updated.'],
+#   ['onreadystatechange', 'string', 'Element and all its subresources have finished loading.'],
+#   ['onscroll', 'string', 'Element or document view was scrolled.'],
+#   ['onseeked', 'string', 'The value of the IDL attribute seeking changed to false (a seek operation on the video or audio element ended).'],
+#   ['onseeking', 'string', 'The value of the IDL attribute seeking changed to true, and the seek operation on the video or audio elements is taking long enough that the UA has time to fire the seeking event.'],
+#   ['onselect', 'string', 'User selected some text.'],
+#   ['onshow', 'string', 'User requested the element be shown as a context menu.'],
+#   ['onstalled', 'string', 'UA is attempting to fetch media data for the video or audio element, but that data is not forthcoming.'],
+#   ['onsubmit', 'string', 'The form element was submitted.'],
+#   ['onsuspend', 'string', 'UA is intentionally not currently fetching media data for the video or audio element, but does not yet have the entire contents downloaded.'],
+#   ['ontimeupdate', 'string', 'The current playback position of the video or audio element changed either as part of normal playback, or in an especially interesting way (for example, discontinuously).'],
+#   ['onvolumechange', 'string', 'Either the DOM attribute volume or the DOM attribute muted on the video or audio element has been changed.'],
+#   ['onwaiting', 'string', 'Playback of the video or audio element has stopped because the next frame is not yet available (but UA agent expects that frame to become available in due course).'],
+# ]
+#
+# template = '''- name: '%(name)s'
+#   description: "%(desc)s"
+#   pattern: '%(name)s="${cursor}"'
+#   icon: 'action'
+#   scope: tag
+#   match_current_sub_scope: ['tag.class', '*notempty*']
+# '''
+#
+# for el, desc, long_desc in contents:
+#   cog.outl(template % {'name':el, 'desc':long_desc})
+# #--- event handlers cog end
+# ]]]
+- name: 'onabort'
+  description: "Load of element was aborted by the user."
+  pattern: 'onabort="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onblur'
+  description: "Element lost focus."
+  pattern: 'onblur="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'oncanplay'
+  description: "The UA can resume playback of media data for this video or audio element, but estimates that if playback were to be started now, the video or audio could not be rendered at the current playback rate up to its end without having to stop for further buffering of content."
+  pattern: 'oncanplay="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'oncanplaythrough'
+  description: "The UA estimates that if playback were to be started now, the video or audio element could be rendered at the current playback rate all the way to its end without having to stop for further buffering"
+  pattern: 'oncanplaythrough="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onchange'
+  description: "User committed a change to the value of element (form control)."
+  pattern: 'onchange="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onclick'
+  description: "User pressed pointer button down and released pointer button over element, or otherwise activated the pointer in a manner that emulates such an action."
+  pattern: 'onclick="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'oncontextmenu'
+  description: "User requested the context menu for element."
+  pattern: 'oncontextmenu="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'ondblclick'
+  description: "User clicked pointer button twice over element, or otherwise activated the pointer in a manner that simulates such an action."
+  pattern: 'ondblclick="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'ondrag'
+  description: "User is continuing to drag element."
+  pattern: 'ondrag="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'ondragend'
+  description: "User ended dragging element."
+  pattern: 'ondragend="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'ondragenter'
+  description: "User’s drag operation entered element."
+  pattern: 'ondragenter="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'ondragleave'
+  description: "User’s drag operation left element."
+  pattern: 'ondragleave="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'ondragover'
+  description: "User is continuing drag operation over element."
+  pattern: 'ondragover="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'ondragstart'
+  description: "User started dragging element."
+  pattern: 'ondragstart="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'ondrop'
+  description: "User completed drop operation over element."
+  pattern: 'ondrop="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'ondurationchange'
+  description: "The DOM attribute duration on the video or audio element has been updated."
+  pattern: 'ondurationchange="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onemptied'
+  description: "The video or audio element has returned to the uninitialized state."
+  pattern: 'onemptied="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onended'
+  description: "The end of the video or audio element has been reached."
+  pattern: 'onended="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onerror'
+  description: "Element failed to load properly."
+  pattern: 'onerror="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onfocus'
+  description: "Element received focus."
+  pattern: 'onfocus="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onformchange'
+  description: "User committed a change to the value of a form control in the form to which the element belongs."
+  pattern: 'onformchange="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onforminput'
+  description: "User changed the value of a form control in the form to which the element belongs."
+  pattern: 'onforminput="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'oninput'
+  description: "User changed the value of element (form control)."
+  pattern: 'oninput="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'oninvalid'
+  description: "Element (form control) did not meet validity constraints."
+  pattern: 'oninvalid="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onkeydown'
+  description: "User pressed down a key."
+  pattern: 'onkeydown="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onkeypress'
+  description: "User pressed down a key that is associated with a character value."
+  pattern: 'onkeypress="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onkeyup'
+  description: "User release a key."
+  pattern: 'onkeyup="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onload'
+  description: "Element finished loading."
+  pattern: 'onload="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onloadeddata'
+  description: "UA can render the video or audio element at the current playback position for the first time."
+  pattern: 'onloadeddata="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onloadedmetadata'
+  description: "UA has just determined the duration and dimensions of the video or audio element."
+  pattern: 'onloadedmetadata="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onloadstart'
+  description: "UA has begun looking for media data in the video or audio element."
+  pattern: 'onloadstart="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onmousedown'
+  description: "User pressed down pointer button over element."
+  pattern: 'onmousedown="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onmousemove'
+  description: "User moved mouse."
+  pattern: 'onmousemove="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onmouseout'
+  description: "User moved pointer off boundaries of element."
+  pattern: 'onmouseout="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onmouseover'
+  description: "User moved pointer into boundaries of element or one of its descendant elements."
+  pattern: 'onmouseover="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onmouseup'
+  description: "User released pointer button over element."
+  pattern: 'onmouseup="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onmousewheel'
+  description: "User rotated wheel of mouse or other device in a manner that emulates such an action."
+  pattern: 'onmousewheel="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onpause'
+  description: "User has paused playback of the video or audio element."
+  pattern: 'onpause="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onplay'
+  description: "UA has initiated playback of the video or audio element."
+  pattern: 'onplay="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onplaying'
+  description: "Playback of the video or audio element has started."
+  pattern: 'onplaying="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onprogress'
+  description: "UA is fetching media data for the video or audio element."
+  pattern: 'onprogress="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onratechange'
+  description: "Either the DOM attribute defaultPlaybackRate or the DOM attribute playbackRate on the video or audio element has been updated."
+  pattern: 'onratechange="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onreadystatechange'
+  description: "Element and all its subresources have finished loading."
+  pattern: 'onreadystatechange="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onscroll'
+  description: "Element or document view was scrolled."
+  pattern: 'onscroll="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onseeked'
+  description: "The value of the IDL attribute seeking changed to false (a seek operation on the video or audio element ended)."
+  pattern: 'onseeked="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onseeking'
+  description: "The value of the IDL attribute seeking changed to true, and the seek operation on the video or audio elements is taking long enough that the UA has time to fire the seeking event."
+  pattern: 'onseeking="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onselect'
+  description: "User selected some text."
+  pattern: 'onselect="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onshow'
+  description: "User requested the element be shown as a context menu."
+  pattern: 'onshow="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onstalled'
+  description: "UA is attempting to fetch media data for the video or audio element, but that data is not forthcoming."
+  pattern: 'onstalled="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onsubmit'
+  description: "The form element was submitted."
+  pattern: 'onsubmit="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onsuspend'
+  description: "UA is intentionally not currently fetching media data for the video or audio element, but does not yet have the entire contents downloaded."
+  pattern: 'onsuspend="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'ontimeupdate'
+  description: "The current playback position of the video or audio element changed either as part of normal playback, or in an especially interesting way (for example, discontinuously)."
+  pattern: 'ontimeupdate="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onvolumechange'
+  description: "Either the DOM attribute volume or the DOM attribute muted on the video or audio element has been changed."
+  pattern: 'onvolumechange="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+- name: 'onwaiting'
+  description: "Playback of the video or audio element has stopped because the next frame is not yet available (but UA agent expects that frame to become available in due course)."
+  pattern: 'onwaiting="${cursor}"'
+  icon: 'action'
+  scope: tag
+  match_current_sub_scope: ['tag.class', '*notempty*']
+
+# [[[end]]]
+#--- event handlers end

@@ -1,0 +1,7 @@
+# For now we only support having a reference to the .tmLanguage
+# In the future this should not be needed (i.e.: we should just
+# be able to interpret any TextMate/SublimeText package as is
+# just by being in the proper location).
+tm_language: language_test_rst.tmLanguage
+
+name: 'test_text.restructuredtext'

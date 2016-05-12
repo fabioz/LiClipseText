@@ -1,0 +1,136 @@
+scope_to_color_name: {
+  singleQuotedString: string,
+  doubleQuotedString: string,
+  templateString: string,
+  default: foreground,
+  class: class,
+  regexp: string,
+  funcWithReceiver: foreground,
+}
+
+rule_aliases: {
+  'Comment': {type: EndOfLineRule, scope: singleLineComment, start: //},
+  'MultiLineComment': {type: MultiLineRule, scope: multiLineComment, start: '/*', end: '*/', escapeCharacter: '\0'},
+  'SingleLineString': {type: SingleLineRule, scope: doubleQuotedString, sequence: '"', escapeCharacter: \, escapeContinuesLine: true},
+  'RawLiteral': {type: MultiLineRule, scope: keyword, start: '`', end: '`', escapeCharacter: '\0'},
+}
+
+
+scope_definition_rules:
+  # This deserves some notes:
+  # We're getting func (xxxxx) FuncName and defining it all as a funcWithReceiver so that we
+  # can later find anything which is ')'Name and say that it's a method (to have proper highlight and appear
+  # in the outline).
+  # i.e.: Match function name func '('ignore')' X()
+  - {type: CompositeRule, sub_rules: [
+      {type: SequenceRule, scope: funcWithReceiver, sequence: 'func'},
+      {type: ZeroOrMoreSpacesRule, scope: funcWithReceiver},
+      {type: MultiLineRuleRecursive, scope: funcWithReceiver, start: '(', end: ')', escapeCharacter: \0, skip_rules:[
+        # Skip those patterns here (later we'll re-add proper coloring for it in the funcWithReceiver scope).
+        'Comment',
+        'MultiLineComment',
+        'SingleLineString',
+        'RawLiteral',
+      ]},
+      {type: ZeroOrMoreSpacesRule, scope: funcWithReceiver},
+      {type: AnyWordRule, scope: funcWithReceiver},
+      ]
+    }
+
+  - 'Comment'
+  - 'MultiLineComment'
+  - 'SingleLineString'
+  - 'RawLiteral'
+
+scope:
+
+  default:
+    keyword: ['break',        'default',      'func',         'interface',    'select',
+      'case',         'defer',        'go',           'map',          'struct',
+      'chan',         'else',         'goto',         'package',      'switch',
+      'const',        'fallthrough',  'if',           'range',        'type',
+      'continue',     'for',          'import',       'return',       'var',
+      ]
+    bracket: ['(', '{', '[', ']', '}', ')']
+    operator: ['+',    '&',     '+=',    '&=',     '&&',    '==',    '!=',
+      '-',    '|',     '-=',    '|=',     '||',    '<',     '<=',
+      '*',    '^',     '*=',    '^=',     '<-',    '>',     '>=',
+      '/',    '<<',    '/=',    '<<=',    '++',    '=',     ':=',    ';',
+      '%',    '>>',    '%=',    '>>=',    '--',    '!',     '...',   ':',
+      '&^',          '&^='
+    ]
+
+    sub_rules: [
+      # Match function name: func X()
+      {type: CompositeRule, sub_rules: [
+          { type: SequenceRule, scope: keyword, sequence: 'func'},
+          { type: OneOrMoreSpacesRule, scope: default},
+          { type: AnyWordRule, scope: method }
+        ]
+      },
+
+      # Match type name: type X
+      {type: CompositeRule, sub_rules: [
+          { type: SequenceRule, scope: keyword, sequence: 'type'},
+          { type: OneOrMoreSpacesRule, scope: default},
+          { type: AnyWordRule, scope: class }
+        ]
+      },
+    ]
+
+  funcWithReceiver:
+    # Argh. A lot of copy/paste as this should be the same as the default just hacking around
+    # a way to set the method in the case where there's a function with a receiver.
+    keyword: ['break',        'default',      'func',         'interface',    'select',
+      'case',         'defer',        'go',           'map',          'struct',
+      'chan',         'else',         'goto',         'package',      'switch',
+      'const',        'fallthrough',  'if',           'range',        'type',
+      'continue',     'for',          'import',       'return',       'var',
+      ]
+    bracket: ['(', '{', '[', ']', '}', ')']
+    operator: ['+',    '&',     '+=',    '&=',     '&&',    '==',    '!=',
+      '-',    '|',     '-=',    '|=',     '||',    '<',     '<=',
+      '*',    '^',     '*=',    '^=',     '<-',    '>',     '>=',
+      '/',    '<<',    '/=',    '<<=',    '++',    '=',     ':=',    ';',
+      '%',    '>>',    '%=',    '>>=',    '--',    '!',     '...',   ':',
+      '&^',          '&^='
+    ]
+
+    sub_rules: [
+      'Comment',
+      'MultiLineComment',
+      'SingleLineString',
+      'RawLiteral',
+      {type: CompositeRule, sub_rules: [
+        {type: SequenceRule, scope: bracket, sequence: ')'},
+        { type: ZeroOrMoreSpacesRule, scope: default},
+        { type: AnyWordRule, scope: method },
+        ]
+      }
+    ]
+
+file_extensions: [go]
+
+filename: []
+
+
+name: Go
+
+outline:
+  - {type: Scope, scope: [default, class], define: class}
+  - {type: Scope, scope: [default, method], define: method}
+  - {type: Scope, scope: [funcWithReceiver, method], define: method}
+  - {type: Regexp, scope: [singleLineComment], regexp: '//---.*', define: comment, group: 0}
+
+indent: {
+  type: braces, #Braces are used for indenting in Javascript
+  scope: default, #Only braces found in the default scope are considered
+  outline_scopes: [class, method], #Scopes are created where the outline defines a method.
+}
+
+auto_edit:
+  - {auto_close_scopes: [singleQuotedString, doubleQuotedString], scope: default} #To work, the scopes must be: SingleLineRule(sequence used for start/end)
+  - {auto_close_parens: ['(', '[', '{'], scope: default} #Will close the parens if it's not properly balanced
+  - {auto_skip_parens: [')', ']', '}'], scope: default} #Will skip the close parens if it's properly balanced
+
+comment: {type: singleLine, sequence: '//'}

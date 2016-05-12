@@ -1,0 +1,139 @@
+scope_to_color_name: {
+ #All types of strings map to the string color
+ doubleQuotedString: string,
+
+ multiLineContext2: foreground,
+ multiLineContext1: string,
+ singleLineContext: string,
+}
+
+
+rule_aliases: {
+  # Note: we need to add special support for coloring at this level so that ['true', 'false', 'import', 'default', 'key', 'group', 'implements', 'first', 'last',
+  # 'rest', 'trunc', 'strip', 'trim', 'length', 'strlen', 'reverse', 'if', 'else', 'elseif', 'endif', 'delimiters', 'default'] are colored diferently inside a Tag.
+  'TagRule': {type: MultiLineRuleRecursive, scope: number, start: '<', end: '>', escapeCharacter: '\0', skip_rules:[
+    {type: MultiLineRule, scope: ignored, start: '"', end: '"', escapeCharacter: '\0'}
+  ]},
+  'DoubleQuotedSingleLineRule': {type: SingleLineRule, scope: doubleQuotedString, sequence: '"', escapeCharacter: \, escapeContinuesLine: true},
+}
+
+scope_definition_rules:
+  - {type: MultiLineRule, scope: multiLineComment, start: '<!', end: '!>', escapeCharacter: '\0'}
+  - {type: MultiLineRule, scope: multiLineContext1, start: '<<', end: '>>', escapeCharacter: '\0'}
+  - {type: MultiLineRule, scope: multiLineContext2, start: '<%', end: '%>', escapeCharacter: '\0'}
+  - {type: MultiLineRule, scope: singleLineContext, start: '"', end: '"', escapeCharacter: '\0'}
+
+scope:
+  multiLineComment:
+    javadocTag: [TODO] #Any TODO inside a comment should have a different color
+
+  multiLineContext1: # context with << >>
+    number: ['true', 'false', 'import', 'default', 'key', 'group', 'implements', 'first', 'last',
+        'rest', 'trunc', 'strip', 'trim', 'length', 'strlen', 'reverse', 'if', 'else', 'elseif', 'endif',
+        'delimiters', 'default']
+
+    bracket: ['(', ')', '[', ']', '{', '}']
+    operator: ['=', '+', '-', '/', '*', '!', '&', '|', '%', '~', '^', ',', '>', '<']
+    sub_rules: [
+      {type: SequenceRule, scope: keyword, sequence: '<<'},
+      {type: SequenceRule, scope: keyword, sequence: '>>'},
+      'TagRule',
+      'DoubleQuotedSingleLineRule',
+    ]
+
+  multiLineContext2: # Very close to multiLineContext1 but with context <% %>
+    number: ['true', 'false', 'import', 'default', 'key', 'group', 'implements', 'first', 'last',
+        'rest', 'trunc', 'strip', 'trim', 'length', 'strlen', 'reverse', 'if', 'else', 'elseif', 'endif',
+        'delimiters', 'default']
+
+    bracket: ['(', ')', '[', ']', '{', '}']
+    operator: ['=', '+', '-', '/', '*', '!', '&', '|', '%', '~', '^', ',', '>', '<']
+    sub_rules: [
+      {type: SequenceRule, scope: keyword, sequence: '<%'},
+      {type: SequenceRule, scope: keyword, sequence: '%>'},
+      'TagRule',
+      'DoubleQuotedSingleLineRule',
+    ]
+
+  singleLineContext: # Very close to multiLineContext1 (just changes the start/end sequence)
+    number: ['true', 'false', 'import', 'default', 'key', 'group', 'implements', 'first', 'last',
+        'rest', 'trunc', 'strip', 'trim', 'length', 'strlen', 'reverse', 'if', 'else', 'elseif', 'endif',
+        'delimiters', 'default']
+
+    bracket: ['(', ')', '[', ']', '{', '}']
+    operator: ['=', '+', '-', '/', '*', '!', '&', '|', '%', '~', '^', ',', '>', '<']
+    sub_rules: [
+      'TagRule',
+    ]
+
+
+  default:
+    number: ['true', 'false', 'import', 'default', 'key', 'group', 'implements', 'first', 'last',
+        'rest', 'trunc', 'strip', 'trim', 'length', 'strlen', 'reverse', 'if', 'else', 'elseif', 'endif',
+        'delimiters', 'default']
+
+    staticField: ['::=']
+
+    sub_rules: [
+      {type: CompositeRule, sub_rules: [
+        { type: MatchLineStartRule, scope: start_line},
+        { type: OptionalSequenceRule, scope: keyword, sequence: '@'},
+        { type: AnyWordRule, scope: class },
+        { type: ZeroOrMoreSpacesRule, scope: default},
+
+        #Ok, here we have something that deserves some comment: when matching this rule, we're actually interested
+        #in the method being defined, where we need to get to the ::= but it can actually appear
+        #only at the next partition (i.e.: in 'init(v) ::= "<if(v)> = <import> nutoh uonth u <if> <v><endif>"', the ::= is only found
+        #after a string, but during the coloring, we don't know about that as we're restricted only to
+        #the current partition, so, in this case with the special scope 'OFF_PARTITION', we're able to
+        #check the full match even if it's outside the partition (but we can't assign different colors
+        #for those tokens).
+
+        { type: OptionalMultiLineRule, scope: OFF_PARTITION, start: '(', end: ')', escapeCharacter: \0},
+        { type: ZeroOrMoreSpacesRule, scope: OFF_PARTITION},
+        { type: SequencesRule, scope: OFF_PARTITION, sequences: ['::=']},
+      ]},
+    ]
+
+file_extensions: [st, stg]
+filename: []
+name: StringTemplate
+
+outline: #Note that we just specify 'flat' items here, the indent is later used to specify parent/children scopes.
+  - {type: Scope, scope: [default, class], define: class} #Show the definition in the outline
+
+indent: {
+  type: spaces, #We're putting spaces, but in reality, stringtemplate doesn't have an indentation scheme.
+  outline_scopes: [class], #We have to say which outline entries actually create a new scope (so, indent and outline work toghether to specify the tree).
+}
+
+# Specify the default comment action (Ctrl+/)
+comment: {type: multiLine, start: '<!', end: '!>', scope: multiLineComment}
+
+auto_edit:
+  - {after: '<<', trigger: '\n', action: indent, scope: multiLinesContext1} #in a new line, indent after '<<'
+  - {after: '<%', trigger: '\n', action: indent, scope: multiLineContext2} #in a new line, indent after '>>'
+
+
+templates: #Note: pressing ctrl+space twice will show only the templates
+- name: 'ifelse'
+  description: "ifelse"
+  pattern: |-
+    <if(${attr})>
+      ${subtemplate}
+    <else>
+      ${subtemplate2}
+    <endif>
+
+- name: 'ifelifelse'
+  description: "ifelifelse"
+  pattern: |-
+    <if(${attr})>
+      ${subtemplate}
+    <elseif(${attr2}))>
+      ${subtemplate2}
+    <else>
+      ${subtemplate3}
+    <endif>
+
+

@@ -1,0 +1,155 @@
+scope_to_color_name: {
+  singleQuotedString: string,
+  doubleQuotedString: string,
+  templateString: string,
+  default: foreground,
+  class: class,
+  regexp: string
+}
+scope_definition_rules:
+  - {type: MultiLineRule, scope: multiLineComment, start: /*, end: '*/', escapeCharacter: '\0'}
+  - {type: JSRegexRule, scope: regexp}
+  - {type: EndOfLineRule, scope: singleLineComment, start: //}
+  - {type: SingleLineRule, scope: singleQuotedString, sequence: '''', escapeCharacter: \, escapeContinuesLine: true}
+  - {type: SingleLineRule, scope: doubleQuotedString, sequence: '"', escapeCharacter: \, escapeContinuesLine: true}
+  - {type: MultiLineRuleWithSkip, scope: templateString, start: '`', end: '`', escapeCharacter: \, skip_rules:[
+      { type: MultiLineRuleRecursive, scope: templateString, start: '{', end: '}',  escapeCharacter: '\0', skip_rules:[] }
+    ]}
+
+rule_aliases: {
+  StringInterpolationRuleIdentifier: {
+    type: CompositeRule, sub_rules: [
+      { type: SequenceRule, scope: keyword, sequence: '$'},
+      { type: AnyWordRule, scope: keyword }]
+  },
+
+  StringInterpolationRule: {
+    type: CompositeRule, sub_rules: [
+      { type: SequenceRule, scope: keyword, sequence: '$'},
+      { type: MultiLineRuleRecursive, scope: keyword, start: '{', end: '}',  escapeCharacter: '\0', skip_rules:[] }]
+  }
+}
+scope:
+  templateString:
+    sub_rules: ['StringInterpolationRuleIdentifier','StringInterpolationRule']
+
+  default:
+    keyword: ["=>",  "abstract", "arguments", "await", "boolean", "break",
+      "byte", "case", "catch", "char", "class",
+      "const", "continue", "debugger", "default", "delete",
+      "do", "double", "else", "enum", "eval",
+      "export", "extends", "false", "final", "finally",
+      "float", "for", "from", "function", "goto",
+      "if", "implements", "import", "in", "instanceof",
+      "int", "interface", "let", "long", "native",
+      "new", "null", "package", "private", "protected",
+      "public", "reset", "return", "short", "static",
+      "super", "switch", "synchronized", "this", "throw",
+      "throws", "transient", "true", "try", "typeof",
+      "var", "void", "volatile", "while", "with",
+      "yield", ]
+    bracket: [(, '{', '[', ']', '}', )]
+    operator: ['!', $, '%', '&', '*', +, '-', //, /, ':', <, '=', '>', '?', ^, '|',
+      '~', is, new, sizeof, typeof, unchecked, ',', ;]
+
+    sub_rules: [
+      {type: CompositeRule, sub_rules: [
+        { type: SequenceRule, scope: keyword, sequence: 'class'}, #Define that 'class' is a keyword
+        { type: OneOrMoreSpacesRule, scope: default},
+        { type: AnyWordRule, scope: class }] #And any name after 'class' is the class we matched (we'll put it in the outline defining [default, class]).
+      },
+
+      # Match function name 1: function a
+      {type: CompositeRule, sub_rules: [
+        { type: SequenceRule, scope: keyword, sequence: 'function'},
+        { type: OneOrMoreSpacesRule, scope: default},
+        { type: AnyWordRule, scope: method }]
+      },
+
+      # Match function name 2: x = function
+      {type: CompositeRule, sub_rules: [
+        { type: AnyWordRule, scope: method },
+        { type: ZeroOrMoreSpacesRule, scope: default},
+        { type: SequenceRule, scope: operator, sequence: '='},
+        { type: ZeroOrMoreSpacesRule, scope: default},
+        { type: SequenceRule, scope: keyword, sequence: 'function'},
+        { type: WordSeparatorRule, scope: keyword},
+        ]
+      },
+      # Match function name 3: x = () =>
+      {type: CompositeRule, sub_rules: [
+        { type: AnyWordRule, scope: method },
+        { type: ZeroOrMoreSpacesRule, scope: default},
+        { type: SequenceRule, scope: operator, sequence: '='},
+        { type: ZeroOrMoreSpacesRule, scope: OFF_PARTITION},
+        { type: MultiLineRuleRecursive, scope: OFF_PARTITION, start: '(', end: ')', escapeCharacter: \0, skip_rules:[]},
+        { type: ZeroOrMoreSpacesRule, scope: OFF_PARTITION},
+        { type: SequenceRule, scope: OFF_PARTITION, sequence: '=>'}
+        ]
+      },
+      # Match function name 4 (inside a class): x() {}
+      {type: CompositeRule, sub_rules: [
+        { type: AnyWordRule, scope: method, except:[abstract, break, byte, case, catch, char, class, const, continue, default,
+          delete, do, double, else, export, extends, 'false', final, finally, float, for, from, function,
+          goto, if, implements, import, in, instanceof, int, interface, let, long, native,
+          'null', package, private, protected, public, reset, return, short, static, super,
+          switch, synchronized, this, throw, transient, 'true', try, var, void, while,
+          with] },
+        { type: ZeroOrMoreSpacesRule, scope: OFF_PARTITION},
+        { type: MultiLineRuleRecursive, scope: OFF_PARTITION, start: '(', end: ')', escapeCharacter: \0, skip_rules:[]},
+        { type: ZeroOrMoreSpacesRule, scope: OFF_PARTITION},
+        { type: SequenceRule, scope: OFF_PARTITION, sequence: '{'},
+        ]
+      },
+    ]
+
+file_extensions: [js]
+
+filename: []
+
+
+name: Javascript
+
+outline:
+  - {type: Scope, scope: [default, class], define: class}
+  - {type: Scope, scope: [default, method], define: method}
+  - {type: Regexp, scope: [singleLineComment], regexp: '//---.*', define: comment, group: 0}
+
+indent: {
+  type: braces, #Braces are used for indenting in Javascript
+  scope: default, #Only braces found in the default scope are considered
+  outline_scopes: [class, method], #Scopes are created where the outline defines a method.
+}
+
+auto_edit:
+  - {auto_close_scopes: [singleQuotedString, doubleQuotedString], scope: default} #To work, the scopes must be: SingleLineRule(sequence used for start/end)
+  - {auto_close_parens: ['(', '[', '{'], scope: default} #Will close the parens if it's not properly balanced
+  - {auto_skip_parens: [')', ']', '}'], scope: default} #Will skip the close parens if it's properly balanced
+
+comment: {type: singleLine, sequence: '//'}
+
+templates:
+- name: function
+  description: "anonymous function"
+  pattern: "function (${arguments}) {\n\t${cursor}\n}"
+
+- name: function
+  description: "named function"
+  pattern: "function ${func}(${arguments}) {\n\t${cursor}\n}"
+
+- name: for
+  description: "for (high-performance)"
+  pattern: |-
+    for(var ${i}=0,${len}=${arr}.length; ${i}<${len}; ${i}++){
+        var ${obj} = ${arr}[${i}];
+        ${cursor}
+    }
+
+- name: class
+  description: "class (ES6)"
+  pattern: |-
+    class ${name} {
+        constructor() {
+            ${cursor}
+        }
+    }

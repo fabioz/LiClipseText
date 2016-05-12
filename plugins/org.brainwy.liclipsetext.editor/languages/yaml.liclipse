@@ -1,0 +1,42 @@
+scope_to_color_name: {
+  singleQuotedString: string, doubleQuotedString: string, default: foreground}
+scope_definition_rules:
+  - {type: SingleLineRule, scope: singleQuotedString, sequence: '''', escapeCharacter: \,  escapeContinuesLine: true}
+  - {type: SingleLineRule, scope: doubleQuotedString, sequence: '"', escapeCharacter: \,  escapeContinuesLine: true}
+  - {type: EndOfLineRule, scope: singleLineComment, start: '#'}
+scope:
+  singleLineComment:
+    javadocTag: ['TODO']
+
+  default:
+    bracket: ['{', '[', ']', '}']
+    sub_rules: [
+      {type: CompositeRule, sub_rules: [
+        {type: MatchLineStartRule, scope: class},
+        {type: AnyWordRule, scope: class},
+        {type: SequenceRule, scope: operator, sequence: ':'}]
+      },
+    ]
+
+file_extensions: [yml, yaml, liclipseprefs]
+filename: []
+name: Yaml
+
+outline: #Icons: LiClipseParsedItem.getImage(): class, method, comment, attribute (based on 'define')
+  - {type: Scope, scope: [default, class], define: class} #scope is a list to identify sub-rule
+  - {type: Scope, scope: [default, method], define: method}
+  - {type: Regexp, scope: [singleLineComment], regexp: '#---.*', define: comment, group: 0}
+
+indent: {
+  type: spaces, #Space-based indentation
+  outline_scopes: [class, method], #Scopes are created where the outline defines a class or method.
+  spaces_for_tabs: true, #Note: for yaml we cannot use tabs.
+}
+
+comment: {type: singleLine, sequence: '#'}
+
+auto_edit:
+  - {auto_close_scopes: [singleQuotedString, doubleQuotedString], scope: default} #To work, the scopes must be: SingleLineRule(sequence used for start/end)
+  - {auto_close_parens: ['(', '[', '{'], scope: default} #Will close the parens if it's not properly balanced
+  - {auto_skip_parens: [')', ']', '}'], scope: default} #Will skip the close parens if it's properly balanced
+

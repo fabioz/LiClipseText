@@ -1,0 +1,63 @@
+scope_to_color_name: {
+  singleQuotedString: string,
+  doubleQuotedString: string,
+  default: foreground,
+}
+scope_definition_rules:
+  - {type: EndOfLineRule, scope: singleLineComment, start: '//'}
+  - {type: EndOfLineRule, scope: interface, start: '#'} #defines
+  - {type: MultiLineRule, scope: multiLineComment, start: '/*', end: '*/', escapeCharacter: '\0'}
+  - {type: SingleLineRule, scope: doubleQuotedString, sequence: '"', escapeCharacter: \, escapeContinuesLine: true}
+  - {type: SingleLineRule, scope: singleQuotedString, sequence: "'", escapeCharacter: \, escapeContinuesLine: true}
+scope:
+  default:
+    sub_rules: [
+      {type: CompositeRule, sub_rules: [
+        {type: AnyWordRule, scope: method},
+        {type: SequenceRule, scope: annotation, sequence: '::'}
+      ]},
+      {type: NumberRule, scope: number}
+    ]
+    
+    keyword: []
+    bracket: [(, '{', '[', ']', '}', ), '<', '>']
+    operator: ['!', $, '%', '&', '*', +, '-', ., //, /, ':', <, '=', '>', '?', ^,
+      '|', '~', ',', ';']
+
+    keyword: ['#define', '#elif', '#else', '#endif', '#error', '#if', '#ifdef', '#ifndef',
+      '#include', '#include_next', '#import', '#line', '#pragma', '#undef', __asm,
+      __based, __cdecl, __declspec, __except, __far, __fastcall, __finally, __fortran,
+      __huge, __inline, __int16, __int32, __int64, __int8, __interrupt, __leave, __loadds,
+      __near, __pascal, __saveregs, __segment, __segname, __self, __stdcall, __try,
+      __uuidof, alloc, auto, autorelease, bool, break, case, char, const, continue,
+      default, defined, do, double, else, enum, extern, float, for, goto, id, if,
+      init, int, long, register, release, retain, return, short, signed, sizeof, static,
+      struct, switch, typedef, union, unsigned, void, volatile, while,
+      __multiple_inheritance, __single_inheritance, __virtual_inheritance,
+      catch, class, const_cast, delete, dynamic_cast, explicit, export, 'false', friend,
+      inline, mutable, namespace, new, operator, private, protected, public, reinterpret_cast,
+      static_cast, template, this, throw, 'true', try, typeid, typename, using, virtual,
+      wchar_t, dllexport, dllimport, naked, thread, uuid]
+
+file_extensions: [cpp, h, hpp, c, cc, cxx]
+
+filename: []
+
+name: Cpp
+
+outline:
+  - {type: Ctags}
+  - {type: Regexp, scope: [singleLineComment], regexp: '//---.*', define: comment, group: 0}
+
+indent: {
+  type: braces, #Braces are used for indenting in Cpp
+  scope: default, #Only braces found in the default scope are considered
+  outline_scopes: [class, method], #Scopes are created where the outline defines a class or method.
+}
+
+comment: {type: singleLine, sequence: '//'}
+
+auto_edit:
+  - {auto_close_scopes: [doubleQuotedString], scope: default} #To work, the scopes must be: SingleLineRule(sequence used for start/end)
+  - {auto_close_parens: ['(', '[', '{'], scope: default} #Will close the parens if it's not properly balanced
+  - {auto_skip_parens: [')', ']', '}'], scope: default} #Will skip the close parens if it's properly balanced

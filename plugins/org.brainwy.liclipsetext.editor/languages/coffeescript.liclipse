@@ -1,0 +1,100 @@
+scope_to_color_name: {
+ doubleQuotedMultiLineString: string,
+ singleQuotedMultiLineString: string,
+ doubleQuotedString: string,
+ singleQuotedString: string,
+ default: foreground,
+ regexp: string,
+}
+scope_definition_rules:
+  # Note that the order of the  rules is actually important.
+  - {type: EndOfLineRule, scope: singleLineComment, start: '####'} #Gotcha: 4 means it's not multiline
+  - {type: MultiLineRule, scope: multiLineComment, start: "###", end: "###", escapeCharacter: \}
+  - {type: EndOfLineRule, scope: singleLineComment, start: '#'}
+  - {type: MultiLineRule, scope: singleQuotedMultiLineString, start: "'", end: "'", escapeCharacter: \}
+  - {type: MultiLineRule, scope: doubleQuotedMultiLineString, start: '"', end: '"', escapeCharacter: \}
+  - {type: MultiLineRule, scope: regexp, start: '///', end: '///', escapeCharacter: '\0'}
+scope:
+  doubleQuotedMultiLineString:
+    sub_rules: [
+      {type: CompositeRule, sub_rules: [
+        { type: SequenceRule, scope: javadocKeyword, sequence: '#'},
+        { type: MultiLineRule, scope: javadocKeyword, start: '{', end: '}', escapeCharacter: \},
+      ]},
+    ]
+
+  regexp:
+    sub_rules: [
+      {type: EndOfLineRule, scope: singleLineComment, start: '#'}
+    ]
+
+  default:
+    bracket: ['(', ')', '[', ']', '{', '}']
+
+    operator: [<, '>', '=', +, '-', /, '*', '!', '&', '|', '%', '~', ^, ',', '?']
+
+    #@ is an alias for 'this'
+    keyword: [this, '@', if, then, else, and, is, not, isnt, 'true', 'false', class, new, extends, super]
+
+    sub_rules: [
+      {type: CompositeRule, sub_rules: [
+        { type: OptionalSequenceRule, scope: field, sequence: '@' },
+        { type: AnyWordRule, scope: method },
+        { type: ZeroOrMoreSpacesRule, scope: default},
+        { type: SequencesRule, scope: operator, sequences: ['=', ':']},
+        { type: ZeroOrMoreSpacesRule, scope: default},
+
+        #Ok, here we have something that deserves some comment: when matching this rule, we're actually interested
+        #in the method being defined, where we need to get to the => or ->, but those can actually appear
+        #only at the next partition (i.e.: in "constructor: (name, gender='tt') ->", the -> is only found
+        #after a string, but during the coloring, we don't know about that as we're restricted only to
+        #the current partition, so, in this case with the special scope 'OFF_PARTITION', we're able to
+        #check the full match even if it's outside the partition (but we can't assign different colors
+        #for those tokens).
+
+        { type: OptionalMultiLineRule, scope: OFF_PARTITION, start: '(', end: ')', escapeCharacter: '\0'},
+        { type: ZeroOrMoreSpacesRule, scope: OFF_PARTITION},
+        { type: SequencesRule, scope: OFF_PARTITION, sequences: ['=>', '->']},
+      ]},
+      {type: CompositeRule, sub_rules: [
+        { type: SequenceRule, scope: field, sequence: '@'},
+        { type: AnyWordRule, scope: field },
+      ]},
+      {type: CompositeRule, sub_rules: [
+        { type: AnyWordRule, scope: field },
+        { type: SequenceRule, scope: field, sequence: '::'},
+      ]},
+      {type: CompositeRule, sub_rules: [
+        { type: SequenceRule, scope: keyword, sequence: 'class'},
+        { type: OneOrMoreSpacesRule, scope: default},
+        { type: AnyWordRule, scope: class }]
+      },
+
+
+      { type: NumberRule, scope: number},
+    ]
+
+file_extensions: [coffee]
+filename: []
+shebang: "^#!.*\\bcoffee\\b"
+name: CoffeeScript
+
+
+outline: #Icons: LiClipseParsedItem.getImage(): class, method, comment, attribute (based on 'define')
+  - {type: Scope, scope: [default, method], define: method}
+  - {type: Scope, scope: [default, class], define: class}
+  - {type: Regexp, scope: [singleLineComment], regexp: '#---.*', define: comment, group: 0}
+
+indent: {
+  type: spaces, #Spaces are used for indenting in Coffeescript
+  outline_scopes: [class, method], #Scopes are created where the outline defines a class or method.
+}
+
+auto_edit:
+  - {after: '->', trigger: '\n', action: indent, scope: default} #in a new line, indent after '->'
+  - {auto_close_scopes: [singleQuotedMultiLineString, doubleQuotedMultiLineString], scope: default} #To work, the scopes must be: SingleLineRule(sequence used for start/end) or MultiLineRule.
+  - {auto_close_parens: ['(', '[', '{'], scope: default} #Will close the parens if it's not properly balanced
+  - {auto_skip_parens: [')', ']', '}'], scope: default} #Will skip the close parens if it's properly balanced
+
+comment: {type: singleLine, sequence: '#'}
+

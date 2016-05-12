@@ -1,0 +1,23 @@
+inherit: XML # Signal that we want to start from xml.liclipse
+
+patch: # Only available if 'inherit' is defined: by default appends data to the specified items (to replace just declare in top-level scope).
+    - templates:
+        - name: 'ab'
+          pattern: ab
+          scope: tag
+          match_current_sub_scope: ['tag.class', '']
+          
+        - name: 'ac'
+          pattern: ac
+          scope: tag
+          match_current_sub_scope: ['tag.class', '*notempty*']
+          
+        - name: 'ad'
+          pattern: ad
+          scope: tag
+          match_current_sub_scope: ['tag.class', 'ab']
+
+
+file_extensions: [rararara]
+
+name: Test Scope

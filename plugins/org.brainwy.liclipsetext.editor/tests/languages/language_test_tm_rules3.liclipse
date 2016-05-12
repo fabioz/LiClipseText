@@ -1,0 +1,41 @@
+scope_to_color_name: {
+}
+scope_definition_rules:
+
+  - {
+       type: TmBeginEndRule,
+       begin: '(\bclass\b)\s+(?=[a-zA-Z_][a-zA-Z_0-9]*\s*\:)', #Note the lookahead (?=)
+       beginCaptures: {
+         1: 'storage.type.class.python'
+       },
+       scope: 'meta.class.old-style.python', # Note: scope is the name in textmate
+       end: '\s*(:)',
+       endCaptures: {
+         1: 'punctuation.section.class.begin.python'
+       },
+       contentScope: '', # Akin to contentName in textmate (i.e.: things inside -- without the regexp match).
+       patterns: [], # Note that in this case we also have to parse sub-rules (although they won't generate scopes in this parse).
+     }
+
+
+name: TmRulesTest3
+
+scope:
+
+  'meta.class.old-style.python':
+    sub_rules: [{
+      type: TmBeginEndRule,
+      begin: '(\bclass\b)\s+(?=[a-zA-Z_][a-zA-Z_0-9]*\s*\:)', #Note the lookahead (?=)
+      beginCaptures: {
+        1: 'storage.type.class.python'
+      },
+      scope: 'meta.class.old-style.python', # Note: scope is the name in textmate
+      end: '\s*(:)',
+      endCaptures: {
+        1: 'punctuation.section.class.begin.python'
+      },
+      contentScope: '', # Akin to contentName in textmate (i.e.: things inside -- without the regexp match).
+      patterns: [], # Note that in this case we also have to parse sub-rules (although they won't generate scopes in this parse).
+    }]
+
+file_extensions: [testmy3]

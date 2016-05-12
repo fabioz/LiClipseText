@@ -1,0 +1,118 @@
+#Note: this structure is very 'beta' right now... ReStructuredText seems to have many cases
+#which we still don't handle well and which may need special implementations.
+#Example of rst: http://docutils.sourceforge.net/docs/user/rst/demo.txt
+
+scope_to_color_name: {literalBlock: string, markup: class, title: class}
+scope_definition_rules:
+  #Literal Block (column -1 means it can start anywhere)
+  # literal block::
+  #    xxx xxx xxx
+  #    xxx xxx xxx
+  - {type: IndentedBlockRule, scope: literalBlock, start: '::', column: -1}
+
+  # Footnotes (no column implicitly states that it must start at column 0)
+  # .. [xx] xxxx
+  #    xxxx xxxx
+  - {type: IndentedBlockRule, scope: markup, start: '..', additional_start:[
+      { type: OneOrMoreSpacesRule, scope: unused},
+      { type: SequenceRule, scope: unused, sequence: '['},
+      { type: AnyWordRule, scope: unused },
+      { type: SequenceRule, scope: unused, sequence: ']'},
+    ]}
+
+  # Hyperlinks
+  # .. _ref: http://www.xxx.xxx/
+  - {type: IndentedBlockRule, scope: markup, start: '..', additional_start:[
+      { type: OneOrMoreSpacesRule, scope: unused},
+      { type: SequenceRule, scope: unused, sequence: '_'},
+    ]}
+
+  # Regular comments
+  # ..
+  #   comments
+  - {type: IndentedBlockRule, scope: multiLineComment, start: '..'}
+
+  # Title
+  # xxxx
+  # ---------
+  - {type: CompositeRule, sub_rules:[ #Note: when a composite rule is defined here, all the scopes in the inner parts must have the same type.
+    { type: MatchLineStartRule, scope: title},
+    { type: SkipLineRule, scope: title},
+    { type: RepeatCharToEolRule, scope: title, chars: ['-', '=', '_', '~', '`']},
+  ]}
+
+  # Fixed space ``xxx`` (inline literal)
+  - {type: MultiLineRule, scope: keyword, start: '``', end: '``', escapeCharacter: '\0'}
+
+  # Reference `xxx`
+  - {type: MultiLineRule, scope: keyword, start: '`', end: '`', escapeCharacter: '\0'}
+
+  # Reference `xxx`_
+  # Reference _`xxx`
+  - {type: MultiLineRule, scope: javadocLink, start: '_`', end: '`', escapeCharacter: '\0'}
+  - {type: MultiLineRule, scope: javadocLink, start: '`', end: '`_', escapeCharacter: '\0'}
+
+  # Bold **xxx**
+  - {type: SingleLineRule, scope: keyword, sequence: '**', escapeCharacter: '\0', escapeContinuesLine: false}
+
+  # Italic *xxx*
+  - {type: SingleLineRule, scope: keyword, sequence: '*', escapeCharacter: '\0', escapeContinuesLine: false}
+
+
+  # Reference [xxx]_
+  - {type: PatternRule, scope: javadocLink, startSequence: '[', endSequence: ']_', escapeCharacter: '\0', breaksOnEOL: true, breaksOnEOF: false, escapeContinuesLine: false}
+
+file_extensions: [rst]
+
+filename: []
+
+name: ReStructured Text
+
+outline:
+  - {type: Scope, scope: [title], define: class}
+
+spell_check: {
+  scope: [default, markup, title]
+}
+
+#This
+#comment: {type: multiLineIndented, start: '..', scope: multiLineComment}
+
+templates:
+- name: 'make selection bold'
+  description: "make selection bold"
+  pattern: '**${selection}${cursor}**'
+
+- name: 'make selection italic'
+  description: "make selection italic"
+  pattern: '*${selection}${cursor}*'
+
+- name: 'make selection a hyperlink'
+  description: "make selection a hyperlink"
+  pattern: '`${selection}`_ ${cursor}'
+
+- name: 'make selection target for hyperlink'
+  description: "make selection target for hyperlink"
+  pattern: '.. _`${selection}` ${cursor}'
+
+- name: 'make selection Title 1'
+  description: "make selection Title 1"
+  pattern: |-
+    ======================================
+    ${selection}
+    ======================================
+    ${cursor}
+
+- name: 'make selection Title 2'
+  description: "make selection Title 2"
+  pattern: |-
+    ${selection}
+    --------------------------------------
+    ${cursor}
+
+- name: 'make selection Title 3'
+  description: "make selection Title 3"
+  pattern: |-
+    ${selection}
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ${cursor}

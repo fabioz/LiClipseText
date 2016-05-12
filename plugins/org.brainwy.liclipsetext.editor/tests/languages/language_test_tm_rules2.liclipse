@@ -1,0 +1,26 @@
+scope_to_color_name: {
+  'invalid.error.test':class,
+  'invalid.error.test2': keyword,
+}
+scope_definition_rules:
+  - {
+      type: TmMatchRule,
+      match: '^\s*\b(anchor)\b',
+      captures: {},
+      scope: 'invalid.error.test'
+     }
+
+  # \G Means the end of the previous match, so,
+  # if we're not currently at the same place where
+  # the last match was found, we'll replace \G
+  # with the \0 char.
+  - {
+      type: TmMatchRule,
+      match: '\G\s*\b(test)\b',
+      captures: {},
+      scope: 'invalid.error.test2'
+     }
+
+name: TmRulesTest2
+
+file_extensions: [testmy2]

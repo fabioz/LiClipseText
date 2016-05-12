@@ -1,0 +1,16 @@
+name: BaseDefinitions
+
+rule_aliases: {
+  'HashCommentRule': {type: EndOfLineRule, scope: singleLineComment, start: '#'},
+  'PythonCommentRule': 'HashCommentRule',
+
+  'SingleQuotedTriMultiLineRule': {type: MultiLineRule, scope: singleQuotedMultiLineString, start: "'''", end: "'''", escapeCharacter: \},
+
+  'DoubleQuotedTriMultiLineRule': {type: MultiLineRule, scope: doubleQuotedMultiLineString, start: '"""', end: '"""', escapeCharacter: \},
+
+  'SingleQuotedSingleLineRule': {type: SingleLineRule, scope: singleQuotedString, sequence: "'", escapeCharacter: \, escapeContinuesLine: true},
+
+  'DoubleQuotedSingleLineRule': {type: SingleLineRule, scope: doubleQuotedString, sequence: '"', escapeCharacter: \, escapeContinuesLine: true},
+
+  'NumberRule': { type: NumberRule, scope: number},
+}

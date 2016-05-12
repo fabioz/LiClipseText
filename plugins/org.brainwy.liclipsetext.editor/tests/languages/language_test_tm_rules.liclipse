@@ -1,0 +1,51 @@
+scope_to_color_name: {
+  'support.ipython.cell-number.python':class,
+  'support.ipython.in.python':keyword,
+}
+scope_definition_rules:
+  # Note: use single-quoted (and not double-quoted) to have raw strings (i.e.: without escaping '\').
+  - {
+       type: TmMatchRule,
+       match: '(^In \[(\d+)\]\:)',
+
+       # Note: captures even if declared at this level will be ignored (the actual contents of the
+       # top-level scopes will only be needed when scanning it later -- in the scope declaration).
+       captures: {},
+
+       scope: 'support.ipython.in.python'
+     }
+
+
+  - {
+      type: TmBeginEndRule,
+      begin: "<<(\"|')(\\w+)\\1",
+      beginCaptures: {},
+      scope: 'string.unquoted', # Note: scope is the name in textmate
+      end: '^\2$',
+      endCaptures: {},
+      contentScope: 'string.unquoted.scope', # Akin to contentName in textmate (i.e.: things inside -- without the regexp match).
+      patterns: [], # Note that in this case we also have to parse sub-rules (although they won't generate scopes in this parse).
+    }
+
+name: TmRulesTest
+
+scope:
+  'support.ipython.in.python':
+    sub_rules: [
+      {type: TmMatchRule, match: '(^In \[(\d+)\]\:)', captures: {2: 'support.ipython.cell-number.python'}, scope: 'support.ipython.in.python'}
+    ]
+
+  'string.unquoted':
+    sub_rules: [{
+      type: TmBeginEndRule,
+      begin: "<<(\"|')(\\w+)\\1", #Note the lookahead (?=)
+      beginCaptures: {},
+      scope: 'string.unquoted', # Note: scope is the name in textmate
+      end: '^\2$',
+      endCaptures: {},
+      contentScope: 'string.unquoted.scope', # Akin to contentName in textmate (i.e.: things inside -- without the regexp match).
+      patterns: [], # Note that in this case we also have to parse sub-rules (although they won't generate scopes in this parse).
+    }]
+
+
+file_extensions: [testmy]

@@ -1,0 +1,39 @@
+scope_to_color_name: {
+}
+
+rule_aliases: {
+  'recurse': {
+    type: TmBeginEndRule,
+    begin: '\(',
+    beginCaptures: {
+    },
+    scope: 'recurse',
+    end: '\)',
+    endCaptures: {
+    },
+    contentScope: '',
+    patterns: [
+      {type: AnyWordRule, scope: decorator},
+      {
+        type: TmIncludeRule,
+        # include can have:
+        # "source.html": matches language with the given scope
+        # "$self": the whole grammar we're defining
+        # "#rule_name": a rule from the grammar repository (for .liclipse files, "rule_aliases")
+        include: '$self'
+      },
+    ],
+   }
+}
+
+scope_definition_rules:
+  - 'recurse'
+
+
+name: TmRulesTest5
+
+scope:
+  'recurse':
+    sub_rules: ['recurse']
+
+file_extensions: [testmy5]

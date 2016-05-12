@@ -1,0 +1,1836 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension-point id="liclipse_formatter" name="LiClipse Formatter" schema="schema/liclipse_formatter.exsd"/>
+   <extension-point id="liclipse_error_collector" name="LiClipse Error Collector" schema="schema/liclipse_error_collector.exsd"/>
+   <extension-point id="liclipse_color_cache_provider" name="LiClipse Color Cache Provider" schema="schema/liclipse_color_cache_provider.exsd"/>
+   <extension-point id="liclipse_editor_customizer" name="LiClipse Editor Customizer" schema="schema/liclipse_editor_customizer.exsd"/>
+
+   <!-- editor -->
+   <extension point="org.eclipse.ui.editors">
+      <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="true"
+            extensions="txt"
+            icon="icons/editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor"
+            name="Liclipse Editor">
+         <contentTypeBinding
+               contentTypeId="org.eclipse.core.runtime.text">
+         </contentTypeBinding>
+      </editor>
+   </extension>
+
+<extension point="org.eclipse.ui.views">
+   <category
+         id="com.brainwy.liclipse"
+         name="LiClipse">
+   </category>
+   <view
+        class="org.brainwy.liclipsetext.editor.views.partitioning.LiClipsePartitioningView"
+        icon="icons/partitions.png"
+        category="com.brainwy.liclipse"
+        name="LiClipse Partitions"
+        id="com.brainwy.liclipse.editor.views.partitioning.LiClipsePartitioningView"/>
+</extension>
+
+<extension point="org.eclipse.ui.views">
+   <category
+         id="com.brainwy.liclipse"
+         name="LiClipse">
+   </category>
+   <view
+        class="org.brainwy.liclipsetext.editor.views.languages.LiClipseLanguagesView"
+        icon="icons/langs.png"
+        category="com.brainwy.liclipse"
+        name="LiClipse Languages"
+        id="com.brainwy.liclipse.editor.views.languages.LiClipseLanguagesView"/>
+</extension>
+
+
+   <extension
+         id="com.brainwy.liclipse.editor.popupContribution"
+         point="org.eclipse.ui.popupMenus">
+      <viewerContribution
+            targetID="#LiClipseRulerContext"
+            id="com.brainwy.liclipse.ruler.context.actions">
+         <action
+               label="%AddTask.label"
+               helpContextId="org.eclipse.ui.AddTask_action_context"
+               class="org.eclipse.ui.texteditor.TaskRulerAction"
+               tooltip="%AddTask.tooltip"
+               menubarPath="additions"
+               id="org.eclipse.ui.texteditor.TaskRulerAction">
+         </action>
+         <action
+               label="%AddBookmark.label"
+               helpContextId="org.eclipse.ui.bookmark_action_context"
+               class="org.eclipse.ui.texteditor.BookmarkRulerAction"
+               tooltip="%AddBookmark.tooltip"
+               menubarPath="additions"
+               id="org.eclipse.ui.texteditor.BookmarkRulerAction">
+         </action>
+      </viewerContribution>
+   </extension>
+
+
+
+<!-- occurrences annotation-->
+<extension point="org.eclipse.ui.editors.annotationTypes">
+    <type name="com.brainwy.liclipse.occurrences"/>
+</extension>
+
+<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+      <specification
+            annotationType="com.brainwy.liclipse.occurrences"
+            label="Occurrences (LiClipse)"
+            icon="icons/searchm_obj.gif"
+            textPreferenceKey="liclipseOccurrenceIndication"
+            textPreferenceValue="false"
+            textStylePreferenceKey="liclipseOccurrenceIndicationTextStyle"
+            textStylePreferenceValue="NONE"
+            highlightPreferenceKey="liclipseOccurrenceHighlighting"
+            highlightPreferenceValue="true"
+            contributesToHeader="false"
+            overviewRulerPreferenceKey="liclipseOccurrenceIndicationInOverviewRuler"
+            overviewRulerPreferenceValue="true"
+            verticalRulerPreferenceKey="liclipseOccurrenceIndicationInVerticalRuler"
+            verticalRulerPreferenceValue="false"
+            colorPreferenceKey="liclipseOccurrenceIndicationColor"
+            colorPreferenceValue="212,212,212"
+            presentationLayer="4"
+            showInNextPrevDropdownToolbarActionKey="liclipseShowOccurrenceInNextPrevDropdownToolbarAction"
+            showInNextPrevDropdownToolbarAction="true"
+            isGoToNextNavigationTargetKey="liclipseIsOccurrenceGoToNextNavigationTarget"
+            isGoToNextNavigationTarget="true"
+            isGoToPreviousNavigationTargetKey="liclipseIsOccurrenceGoToPreviousNavigationTarget"
+            isGoToPreviousNavigationTarget="true">
+      </specification>
+</extension>
+
+    <!--[[[cog
+    template = '''<!-COMMENT->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="%(base_type)s"
+            file-extensions="%(ext)s" file-names="%(filenames)s"
+            id="com.brainwy.liclipse.%(kind)s" name="%(kind_upper)s File" priority="normal"/>
+    </extension>
+    <!-COMMENT->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:%(kind)s"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="%(ext)s" icon="icons/%(img)s_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.%(kind)s" name="Liclipse %(kind_upper)s Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.%(kind)s"/>
+        </editor>
+    </extension>
+    <!-COMMENT->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="%(ext)s"
+            class="org.brainwy.liclipsetext.editor.compare.%(kind_upper)sContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.%(kind_upper)sContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.%(kind)s"
+            contentViewerId="com.brainwy.liclipse.editor.compare.%(kind_upper)sContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="%(ext)s"
+            class="org.brainwy.liclipsetext.editor.compare.%(kind_upper)sMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.%(kind_upper)sMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.%(kind)s"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.%(kind_upper)sMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+    '''
+    template = template.replace('COMMENT', '- Note: run the install.py to regenerate the actions contents! -')
+    # Note: must change here and in install.py
+
+    # Note: see: com.brainwy.liclipse.editor.common.BaseLiClipseEditor.setInitializationData(IConfigurationElement, String, Object)
+    # for how we handle the language.
+
+    EDITORS_LST = [{'kind': 'html', 'ext': 'html,htm', 'img': 'html'}, {'kind': 'xml', 'base_type': 'org.eclipse.core.runtime.xml', 'ext': 'xml,xsd', 'img': 'xml', 'filenames': '.pydevproject,.project,.classpath'}, {'kind': 'javascript', 'ext': 'js', 'img': 'javascript'}, {'kind': 'java', 'ext': 'java', 'img': 'java'}, {'kind': 'liclipse', 'ext': 'liclipse', 'img': 'liclipse'}, {'kind': 'django', 'ext': 'djhtml', 'img': 'django'}, {'kind': 'python', 'ext': 'py,pyw', 'img': 'python', 'filenames': 'SConstruct,Sconstruct,sconstruct,SConscript'}, {'kind': 'cpp', 'ext': 'c,cpp,h,hpp', 'img': 'cpp'}, {'kind': 'source.css', 'ext': 'css', 'img': 'css'}, {'kind': 'source.scss', 'ext': 'scss', 'img': 'scss'}, {'kind': 'coffeescript', 'ext': 'coffee', 'img': 'coffee'}, {'kind': 'restructured text', 'ext': 'rst', 'img': 'rst'}, {'kind': 'dart', 'ext': 'dart', 'img': 'dart'}, {'kind': 'mako', 'ext': 'mako', 'img': 'mako'}, {'kind': 'xgui20', 'ext': 'xgui2,xgui2_', 'img': 'liclipse'}, {'kind': 'kivy', 'ext': 'kv', 'img': 'kivy'}, {'kind': 'julia', 'ext': 'jl', 'img': 'julia'}, {'kind': 'stringtemplate', 'ext': 'st,stg', 'img': 'stringtemplate'}, {'kind': 'yaml', 'ext': 'yml,yaml,liclipseprefs', 'img': 'yaml'}, {'kind': 'nim', 'ext': 'nim', 'img': 'nim'}, {'kind': 'go', 'ext': 'go', 'img': 'go'}, {'kind': 'jinja2', 'ext': 'jinja2', 'img': 'jinja2'}, {'kind': 'source.ruby', 'ext': 'rb,rbx,Rakefile,rake', 'img': 'source.ruby'}, {'kind': 'text.html.erb', 'ext': 'erb,rhtml,html.erb', 'img': 'text.html.erb'}, {'kind': 'text.html.php', 'ext': 'php,php3,php4,php5,phpt,phtml,aw,ctp', 'img': 'text.html.php'}, {'kind': 'text.html.markdown', 'ext': 'md,mdown,markdown,markdn', 'img': 'text.html.markdown'}, {'kind': 'source.swift', 'ext': 'swift', 'img': 'source.swift'}, {'kind': 'source.perl', 'ext': 'pl,pm,pod,t,PL,psgi', 'img': 'source.perl'}, {'kind': 'source.perl.6', 'ext': 'p6,pl6,pm6,nqp', 'img': 'source.perl.6'}, {'kind': 'source.dosbatch', 'ext': 'bat', 'img': 'source.dosbatch'}, {'kind': 'source.shell', 'ext': 'sh,bash,zsh,bashrc,bash_profile,bash_login,profile,bash_logout,textmate_init', 'img': 'source.shell'}, {'kind': 'source.raml', 'ext': 'raml', 'img': 'source.raml'}]
+    for x in EDITORS_LST:
+        if 'base_type' not in x:
+            x['base_type'] = 'org.eclipse.core.runtime.text'
+        x['kind_upper'] = x['kind'].title().replace(' ', '').replace('.', '')
+        if 'filenames' not in x:
+        	x['filenames'] = ''
+        cog.outl(template % x)
+
+    ]]]-->
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="html,htm" file-names=""
+            id="com.brainwy.liclipse.html" name="Html File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:html"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="html,htm" icon="icons/html_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.html" name="Liclipse Html Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.html"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="html,htm"
+            class="org.brainwy.liclipsetext.editor.compare.HtmlContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.HtmlContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.html"
+            contentViewerId="com.brainwy.liclipse.editor.compare.HtmlContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="html,htm"
+            class="org.brainwy.liclipsetext.editor.compare.HtmlMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.HtmlMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.html"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.HtmlMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.xml"
+            file-extensions="xml,xsd" file-names=".pydevproject,.project,.classpath"
+            id="com.brainwy.liclipse.xml" name="Xml File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:xml"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="xml,xsd" icon="icons/xml_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.xml" name="Liclipse Xml Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.xml"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="xml,xsd"
+            class="org.brainwy.liclipsetext.editor.compare.XmlContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.XmlContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.xml"
+            contentViewerId="com.brainwy.liclipse.editor.compare.XmlContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="xml,xsd"
+            class="org.brainwy.liclipsetext.editor.compare.XmlMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.XmlMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.xml"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.XmlMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="js" file-names=""
+            id="com.brainwy.liclipse.javascript" name="Javascript File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:javascript"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="js" icon="icons/javascript_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.javascript" name="Liclipse Javascript Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.javascript"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="js"
+            class="org.brainwy.liclipsetext.editor.compare.JavascriptContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.JavascriptContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.javascript"
+            contentViewerId="com.brainwy.liclipse.editor.compare.JavascriptContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="js"
+            class="org.brainwy.liclipsetext.editor.compare.JavascriptMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.JavascriptMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.javascript"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.JavascriptMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="java" file-names=""
+            id="com.brainwy.liclipse.java" name="Java File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:java"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="java" icon="icons/java_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.java" name="Liclipse Java Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.java"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="java"
+            class="org.brainwy.liclipsetext.editor.compare.JavaContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.JavaContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.java"
+            contentViewerId="com.brainwy.liclipse.editor.compare.JavaContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="java"
+            class="org.brainwy.liclipsetext.editor.compare.JavaMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.JavaMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.java"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.JavaMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="liclipse" file-names=""
+            id="com.brainwy.liclipse.liclipse" name="Liclipse File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:liclipse"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="liclipse" icon="icons/liclipse_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.liclipse" name="Liclipse Liclipse Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.liclipse"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="liclipse"
+            class="org.brainwy.liclipsetext.editor.compare.LiclipseContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.LiclipseContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.liclipse"
+            contentViewerId="com.brainwy.liclipse.editor.compare.LiclipseContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="liclipse"
+            class="org.brainwy.liclipsetext.editor.compare.LiclipseMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.LiclipseMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.liclipse"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.LiclipseMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="djhtml" file-names=""
+            id="com.brainwy.liclipse.django" name="Django File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:django"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="djhtml" icon="icons/django_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.django" name="Liclipse Django Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.django"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="djhtml"
+            class="org.brainwy.liclipsetext.editor.compare.DjangoContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.DjangoContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.django"
+            contentViewerId="com.brainwy.liclipse.editor.compare.DjangoContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="djhtml"
+            class="org.brainwy.liclipsetext.editor.compare.DjangoMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.DjangoMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.django"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.DjangoMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="py,pyw" file-names="SConstruct,Sconstruct,sconstruct,SConscript"
+            id="com.brainwy.liclipse.python" name="Python File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:python"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="py,pyw" icon="icons/python_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.python" name="Liclipse Python Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.python"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="py,pyw"
+            class="org.brainwy.liclipsetext.editor.compare.PythonContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.PythonContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.python"
+            contentViewerId="com.brainwy.liclipse.editor.compare.PythonContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="py,pyw"
+            class="org.brainwy.liclipsetext.editor.compare.PythonMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.PythonMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.python"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.PythonMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="c,cpp,h,hpp" file-names=""
+            id="com.brainwy.liclipse.cpp" name="Cpp File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:cpp"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="c,cpp,h,hpp" icon="icons/cpp_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.cpp" name="Liclipse Cpp Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.cpp"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="c,cpp,h,hpp"
+            class="org.brainwy.liclipsetext.editor.compare.CppContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.CppContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.cpp"
+            contentViewerId="com.brainwy.liclipse.editor.compare.CppContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="c,cpp,h,hpp"
+            class="org.brainwy.liclipsetext.editor.compare.CppMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.CppMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.cpp"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.CppMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="css" file-names=""
+            id="com.brainwy.liclipse.source.css" name="SourceCss File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:source.css"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="css" icon="icons/css_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.source.css" name="Liclipse SourceCss Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.source.css"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="css"
+            class="org.brainwy.liclipsetext.editor.compare.SourceCssContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.SourceCssContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.source.css"
+            contentViewerId="com.brainwy.liclipse.editor.compare.SourceCssContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="css"
+            class="org.brainwy.liclipsetext.editor.compare.SourceCssMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.SourceCssMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.source.css"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.SourceCssMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="scss" file-names=""
+            id="com.brainwy.liclipse.source.scss" name="SourceScss File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:source.scss"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="scss" icon="icons/scss_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.source.scss" name="Liclipse SourceScss Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.source.scss"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="scss"
+            class="org.brainwy.liclipsetext.editor.compare.SourceScssContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.SourceScssContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.source.scss"
+            contentViewerId="com.brainwy.liclipse.editor.compare.SourceScssContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="scss"
+            class="org.brainwy.liclipsetext.editor.compare.SourceScssMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.SourceScssMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.source.scss"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.SourceScssMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="coffee" file-names=""
+            id="com.brainwy.liclipse.coffeescript" name="Coffeescript File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:coffeescript"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="coffee" icon="icons/coffee_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.coffeescript" name="Liclipse Coffeescript Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.coffeescript"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="coffee"
+            class="org.brainwy.liclipsetext.editor.compare.CoffeescriptContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.CoffeescriptContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.coffeescript"
+            contentViewerId="com.brainwy.liclipse.editor.compare.CoffeescriptContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="coffee"
+            class="org.brainwy.liclipsetext.editor.compare.CoffeescriptMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.CoffeescriptMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.coffeescript"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.CoffeescriptMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="rst" file-names=""
+            id="com.brainwy.liclipse.restructured text" name="RestructuredText File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:restructured text"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="rst" icon="icons/rst_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.restructured text" name="Liclipse RestructuredText Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.restructured text"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="rst"
+            class="org.brainwy.liclipsetext.editor.compare.RestructuredTextContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.RestructuredTextContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.restructured text"
+            contentViewerId="com.brainwy.liclipse.editor.compare.RestructuredTextContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="rst"
+            class="org.brainwy.liclipsetext.editor.compare.RestructuredTextMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.RestructuredTextMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.restructured text"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.RestructuredTextMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="dart" file-names=""
+            id="com.brainwy.liclipse.dart" name="Dart File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:dart"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="dart" icon="icons/dart_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.dart" name="Liclipse Dart Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.dart"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="dart"
+            class="org.brainwy.liclipsetext.editor.compare.DartContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.DartContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.dart"
+            contentViewerId="com.brainwy.liclipse.editor.compare.DartContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="dart"
+            class="org.brainwy.liclipsetext.editor.compare.DartMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.DartMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.dart"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.DartMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="mako" file-names=""
+            id="com.brainwy.liclipse.mako" name="Mako File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:mako"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="mako" icon="icons/mako_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.mako" name="Liclipse Mako Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.mako"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="mako"
+            class="org.brainwy.liclipsetext.editor.compare.MakoContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.MakoContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.mako"
+            contentViewerId="com.brainwy.liclipse.editor.compare.MakoContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="mako"
+            class="org.brainwy.liclipsetext.editor.compare.MakoMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.MakoMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.mako"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.MakoMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="xgui2,xgui2_" file-names=""
+            id="com.brainwy.liclipse.xgui20" name="Xgui20 File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:xgui20"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="xgui2,xgui2_" icon="icons/liclipse_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.xgui20" name="Liclipse Xgui20 Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.xgui20"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="xgui2,xgui2_"
+            class="org.brainwy.liclipsetext.editor.compare.Xgui20ContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.Xgui20ContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.xgui20"
+            contentViewerId="com.brainwy.liclipse.editor.compare.Xgui20ContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="xgui2,xgui2_"
+            class="org.brainwy.liclipsetext.editor.compare.Xgui20MergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.Xgui20MergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.xgui20"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.Xgui20MergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="kv" file-names=""
+            id="com.brainwy.liclipse.kivy" name="Kivy File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:kivy"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="kv" icon="icons/kivy_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.kivy" name="Liclipse Kivy Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.kivy"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="kv"
+            class="org.brainwy.liclipsetext.editor.compare.KivyContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.KivyContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.kivy"
+            contentViewerId="com.brainwy.liclipse.editor.compare.KivyContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="kv"
+            class="org.brainwy.liclipsetext.editor.compare.KivyMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.KivyMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.kivy"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.KivyMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="jl" file-names=""
+            id="com.brainwy.liclipse.julia" name="Julia File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:julia"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="jl" icon="icons/julia_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.julia" name="Liclipse Julia Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.julia"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="jl"
+            class="org.brainwy.liclipsetext.editor.compare.JuliaContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.JuliaContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.julia"
+            contentViewerId="com.brainwy.liclipse.editor.compare.JuliaContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="jl"
+            class="org.brainwy.liclipsetext.editor.compare.JuliaMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.JuliaMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.julia"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.JuliaMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="st,stg" file-names=""
+            id="com.brainwy.liclipse.stringtemplate" name="Stringtemplate File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:stringtemplate"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="st,stg" icon="icons/stringtemplate_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.stringtemplate" name="Liclipse Stringtemplate Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.stringtemplate"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="st,stg"
+            class="org.brainwy.liclipsetext.editor.compare.StringtemplateContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.StringtemplateContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.stringtemplate"
+            contentViewerId="com.brainwy.liclipse.editor.compare.StringtemplateContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="st,stg"
+            class="org.brainwy.liclipsetext.editor.compare.StringtemplateMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.StringtemplateMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.stringtemplate"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.StringtemplateMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="yml,yaml,liclipseprefs" file-names=""
+            id="com.brainwy.liclipse.yaml" name="Yaml File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:yaml"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="yml,yaml,liclipseprefs" icon="icons/yaml_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.yaml" name="Liclipse Yaml Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.yaml"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="yml,yaml,liclipseprefs"
+            class="org.brainwy.liclipsetext.editor.compare.YamlContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.YamlContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.yaml"
+            contentViewerId="com.brainwy.liclipse.editor.compare.YamlContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="yml,yaml,liclipseprefs"
+            class="org.brainwy.liclipsetext.editor.compare.YamlMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.YamlMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.yaml"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.YamlMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="nim" file-names=""
+            id="com.brainwy.liclipse.nim" name="Nim File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:nim"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="nim" icon="icons/nim_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.nim" name="Liclipse Nim Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.nim"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="nim"
+            class="org.brainwy.liclipsetext.editor.compare.NimContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.NimContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.nim"
+            contentViewerId="com.brainwy.liclipse.editor.compare.NimContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="nim"
+            class="org.brainwy.liclipsetext.editor.compare.NimMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.NimMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.nim"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.NimMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="go" file-names=""
+            id="com.brainwy.liclipse.go" name="Go File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:go"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="go" icon="icons/go_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.go" name="Liclipse Go Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.go"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="go"
+            class="org.brainwy.liclipsetext.editor.compare.GoContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.GoContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.go"
+            contentViewerId="com.brainwy.liclipse.editor.compare.GoContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="go"
+            class="org.brainwy.liclipsetext.editor.compare.GoMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.GoMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.go"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.GoMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="jinja2" file-names=""
+            id="com.brainwy.liclipse.jinja2" name="Jinja2 File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:jinja2"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="jinja2" icon="icons/jinja2_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.jinja2" name="Liclipse Jinja2 Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.jinja2"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="jinja2"
+            class="org.brainwy.liclipsetext.editor.compare.Jinja2ContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.Jinja2ContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.jinja2"
+            contentViewerId="com.brainwy.liclipse.editor.compare.Jinja2ContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="jinja2"
+            class="org.brainwy.liclipsetext.editor.compare.Jinja2MergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.Jinja2MergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.jinja2"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.Jinja2MergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="rb,rbx,Rakefile,rake" file-names=""
+            id="com.brainwy.liclipse.source.ruby" name="SourceRuby File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:source.ruby"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="rb,rbx,Rakefile,rake" icon="icons/source.ruby_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.source.ruby" name="Liclipse SourceRuby Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.source.ruby"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="rb,rbx,Rakefile,rake"
+            class="org.brainwy.liclipsetext.editor.compare.SourceRubyContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.SourceRubyContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.source.ruby"
+            contentViewerId="com.brainwy.liclipse.editor.compare.SourceRubyContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="rb,rbx,Rakefile,rake"
+            class="org.brainwy.liclipsetext.editor.compare.SourceRubyMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.SourceRubyMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.source.ruby"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.SourceRubyMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="erb,rhtml,html.erb" file-names=""
+            id="com.brainwy.liclipse.text.html.erb" name="TextHtmlErb File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:text.html.erb"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="erb,rhtml,html.erb" icon="icons/text.html.erb_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.text.html.erb" name="Liclipse TextHtmlErb Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.text.html.erb"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="erb,rhtml,html.erb"
+            class="org.brainwy.liclipsetext.editor.compare.TextHtmlErbContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.TextHtmlErbContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.text.html.erb"
+            contentViewerId="com.brainwy.liclipse.editor.compare.TextHtmlErbContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="erb,rhtml,html.erb"
+            class="org.brainwy.liclipsetext.editor.compare.TextHtmlErbMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.TextHtmlErbMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.text.html.erb"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.TextHtmlErbMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="php,php3,php4,php5,phpt,phtml,aw,ctp" file-names=""
+            id="com.brainwy.liclipse.text.html.php" name="TextHtmlPhp File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:text.html.php"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="php,php3,php4,php5,phpt,phtml,aw,ctp" icon="icons/text.html.php_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.text.html.php" name="Liclipse TextHtmlPhp Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.text.html.php"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="php,php3,php4,php5,phpt,phtml,aw,ctp"
+            class="org.brainwy.liclipsetext.editor.compare.TextHtmlPhpContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.TextHtmlPhpContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.text.html.php"
+            contentViewerId="com.brainwy.liclipse.editor.compare.TextHtmlPhpContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="php,php3,php4,php5,phpt,phtml,aw,ctp"
+            class="org.brainwy.liclipsetext.editor.compare.TextHtmlPhpMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.TextHtmlPhpMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.text.html.php"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.TextHtmlPhpMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="md,mdown,markdown,markdn" file-names=""
+            id="com.brainwy.liclipse.text.html.markdown" name="TextHtmlMarkdown File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:text.html.markdown"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="md,mdown,markdown,markdn" icon="icons/text.html.markdown_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.text.html.markdown" name="Liclipse TextHtmlMarkdown Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.text.html.markdown"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="md,mdown,markdown,markdn"
+            class="org.brainwy.liclipsetext.editor.compare.TextHtmlMarkdownContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.TextHtmlMarkdownContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.text.html.markdown"
+            contentViewerId="com.brainwy.liclipse.editor.compare.TextHtmlMarkdownContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="md,mdown,markdown,markdn"
+            class="org.brainwy.liclipsetext.editor.compare.TextHtmlMarkdownMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.TextHtmlMarkdownMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.text.html.markdown"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.TextHtmlMarkdownMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="swift" file-names=""
+            id="com.brainwy.liclipse.source.swift" name="SourceSwift File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:source.swift"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="swift" icon="icons/source.swift_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.source.swift" name="Liclipse SourceSwift Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.source.swift"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="swift"
+            class="org.brainwy.liclipsetext.editor.compare.SourceSwiftContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.SourceSwiftContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.source.swift"
+            contentViewerId="com.brainwy.liclipse.editor.compare.SourceSwiftContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="swift"
+            class="org.brainwy.liclipsetext.editor.compare.SourceSwiftMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.SourceSwiftMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.source.swift"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.SourceSwiftMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="pl,pm,pod,t,PL,psgi" file-names=""
+            id="com.brainwy.liclipse.source.perl" name="SourcePerl File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:source.perl"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="pl,pm,pod,t,PL,psgi" icon="icons/source.perl_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.source.perl" name="Liclipse SourcePerl Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.source.perl"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="pl,pm,pod,t,PL,psgi"
+            class="org.brainwy.liclipsetext.editor.compare.SourcePerlContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.SourcePerlContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.source.perl"
+            contentViewerId="com.brainwy.liclipse.editor.compare.SourcePerlContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="pl,pm,pod,t,PL,psgi"
+            class="org.brainwy.liclipsetext.editor.compare.SourcePerlMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.SourcePerlMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.source.perl"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.SourcePerlMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="p6,pl6,pm6,nqp" file-names=""
+            id="com.brainwy.liclipse.source.perl.6" name="SourcePerl6 File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:source.perl.6"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="p6,pl6,pm6,nqp" icon="icons/source.perl.6_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.source.perl.6" name="Liclipse SourcePerl6 Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.source.perl.6"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="p6,pl6,pm6,nqp"
+            class="org.brainwy.liclipsetext.editor.compare.SourcePerl6ContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.SourcePerl6ContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.source.perl.6"
+            contentViewerId="com.brainwy.liclipse.editor.compare.SourcePerl6ContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="p6,pl6,pm6,nqp"
+            class="org.brainwy.liclipsetext.editor.compare.SourcePerl6MergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.SourcePerl6MergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.source.perl.6"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.SourcePerl6MergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="bat" file-names=""
+            id="com.brainwy.liclipse.source.dosbatch" name="SourceDosbatch File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:source.dosbatch"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="bat" icon="icons/source.dosbatch_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.source.dosbatch" name="Liclipse SourceDosbatch Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.source.dosbatch"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="bat"
+            class="org.brainwy.liclipsetext.editor.compare.SourceDosbatchContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.SourceDosbatchContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.source.dosbatch"
+            contentViewerId="com.brainwy.liclipse.editor.compare.SourceDosbatchContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="bat"
+            class="org.brainwy.liclipsetext.editor.compare.SourceDosbatchMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.SourceDosbatchMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.source.dosbatch"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.SourceDosbatchMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="sh,bash,zsh,bashrc,bash_profile,bash_login,profile,bash_logout,textmate_init" file-names=""
+            id="com.brainwy.liclipse.source.shell" name="SourceShell File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:source.shell"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="sh,bash,zsh,bashrc,bash_profile,bash_login,profile,bash_logout,textmate_init" icon="icons/source.shell_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.source.shell" name="Liclipse SourceShell Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.source.shell"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="sh,bash,zsh,bashrc,bash_profile,bash_login,profile,bash_logout,textmate_init"
+            class="org.brainwy.liclipsetext.editor.compare.SourceShellContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.SourceShellContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.source.shell"
+            contentViewerId="com.brainwy.liclipse.editor.compare.SourceShellContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="sh,bash,zsh,bashrc,bash_profile,bash_login,profile,bash_logout,textmate_init"
+            class="org.brainwy.liclipsetext.editor.compare.SourceShellMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.SourceShellMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.source.shell"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.SourceShellMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="raml" file-names=""
+            id="com.brainwy.liclipse.source.raml" name="SourceRaml File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:source.raml"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="raml" icon="icons/source.raml_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.source.raml" name="Liclipse SourceRaml Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.source.raml"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="raml"
+            class="org.brainwy.liclipsetext.editor.compare.SourceRamlContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.SourceRamlContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.source.raml"
+            contentViewerId="com.brainwy.liclipse.editor.compare.SourceRamlContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="raml"
+            class="org.brainwy.liclipsetext.editor.compare.SourceRamlMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.SourceRamlMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.source.raml"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.SourceRamlMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!--[[[end]]]-->
+
+
+   <!-- preferences -->
+   <extension point="org.eclipse.core.runtime.preferences">
+      <initializer class="org.brainwy.liclipsetext.editor.preferences.LiClipseTextPreferencesInitializer"/>
+   </extension>
+
+   <!-- context for keybinding (see: LiClipseEditor.initializeKeyBindingScopes) -->
+   <extension point="org.eclipse.ui.contexts">
+      <context
+            name="LiClipse editor"
+            parentId="org.eclipse.ui.textEditorScope"
+            description="LiClipse commands"
+            id="com.brainwy.liclipse.editor.context">
+      </context>
+    </extension>
+
+    <extension point="org.eclipse.ui.bindings">
+
+    <!-- see: IWorkbenchCommandConstants -->
+    <key commandId="org.eclipse.ui.window.nextEditor"
+            contextId="org.eclipse.ui.contexts.window"
+            sequence="M1+Tab"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+    </key>
+    <key commandId="org.eclipse.ui.window.previousEditor"
+            contextId="org.eclipse.ui.contexts.window"
+            sequence="M1+M2+Tab"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+    </key>
+
+    </extension>
+
+
+
+    <!--[[[cog
+    #Note: run the install.py to regenerate the actions contents!
+    #Actions below available only to LiClipse editors.
+    import cog
+
+    cog.outl('''
+    <extension point="org.eclipse.ui.commands">
+    <category name="LiClipse Actions" id="com.brainwy.liclipse.handlers.category"/>
+    ''')
+
+    generate = [
+        ('com.brainwy.liclipse.editor.handlers.NextElement', 'Next Element', 'M1+M2+Arrow_Down'),
+        ('com.brainwy.liclipse.editor.handlers.PrevElement', 'Previous Element', 'M1+M2+Arrow_Up'),
+        ('com.brainwy.liclipse.editor.handlers.ToggleComment', 'Toggle Comment', 'M1+/'),
+        ('com.brainwy.liclipse.editor.handlers.GoToMatchingBracket', 'Go to Matching Bracket', 'M1+M2+P'),
+        ('com.brainwy.liclipse.editor.handlers.Rename', 'Rename', ['M3+M2+R', 'M1+2 R']),
+        ('com.brainwy.liclipse.editor.handlers.QuickOutline', 'Quick Outline', 'M1+O'),
+        ('com.brainwy.liclipse.editor.handlers.Formatter', 'Code Format', 'M1+M2+F'),
+        ('com.brainwy.liclipse.editor.handlers.SelectEnclosingScope', 'Select Enclosing Scope', 'M2+M3+Arrow_Up'),
+        ('com.brainwy.liclipse.editor.handlers.DeselectEnclosingScope', 'Deselect Enclosing Scope', 'M2+M3+Arrow_Down'),
+        ('com.brainwy.liclipse.editor.handlers.ToggleMarkOccurrences', 'Toggle Mark Occurrences', 'M2+M3+O'),
+    ]
+    for class_, desc, binding in generate:
+        template = '''<!-COMMENT->
+        <command categoryId="com.brainwy.liclipse.handlers.category"
+        defaultHandler="%(class_)s"
+        id="%(class_)s"
+        name="%(desc)s">
+    </command>'''
+        template = template.replace('COMMENT', '- Note: run the install.py to regenerate the actions contents! -')
+        cog.outl(template % dict(class_=class_, desc=desc, binding=binding))
+
+
+    cog.outl('''
+    </extension>
+    ''')
+
+
+    cog.outl('''
+    <extension point="org.eclipse.ui.bindings">
+    ''')
+
+
+    for class_, desc, binding in generate:
+        if not isinstance(binding, list):
+            binding = [binding]
+        for b in binding:
+            template = '''<!-COMMENT->
+            <key commandId="%(class_)s"
+            contextId="com.brainwy.liclipse.editor.context"
+            sequence="%(binding)s"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+    </key>'''
+            template = template.replace('COMMENT', '- Note: run the install.py to regenerate the actions contents! -')
+            cog.outl(template % dict(class_=class_, desc=desc, binding=b))
+
+    cog.outl('''
+    </extension>
+    ''')
+    ]]]-->
+
+    <extension point="org.eclipse.ui.commands">
+    <category name="LiClipse Actions" id="com.brainwy.liclipse.handlers.category"/>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+        <command categoryId="com.brainwy.liclipse.handlers.category"
+        defaultHandler="org.brainwy.liclipsetext.editor.handlers.NextElement"
+        id="com.brainwy.liclipse.editor.handlers.NextElement"
+        name="Next Element">
+    </command>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+        <command categoryId="com.brainwy.liclipse.handlers.category"
+        defaultHandler="org.brainwy.liclipsetext.editor.handlers.PrevElement"
+        id="com.brainwy.liclipse.editor.handlers.PrevElement"
+        name="Previous Element">
+    </command>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+        <command categoryId="com.brainwy.liclipse.handlers.category"
+        defaultHandler="org.brainwy.liclipsetext.editor.handlers.ToggleComment"
+        id="com.brainwy.liclipse.editor.handlers.ToggleComment"
+        name="Toggle Comment">
+    </command>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+        <command categoryId="com.brainwy.liclipse.handlers.category"
+        defaultHandler="org.brainwy.liclipsetext.editor.handlers.GoToMatchingBracket"
+        id="com.brainwy.liclipse.editor.handlers.GoToMatchingBracket"
+        name="Go to Matching Bracket">
+    </command>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+        <command categoryId="com.brainwy.liclipse.handlers.category"
+        defaultHandler="org.brainwy.liclipsetext.editor.handlers.Rename"
+        id="com.brainwy.liclipse.editor.handlers.Rename"
+        name="Rename">
+    </command>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+        <command categoryId="com.brainwy.liclipse.handlers.category"
+        defaultHandler="org.brainwy.liclipsetext.editor.handlers.QuickOutline"
+        id="com.brainwy.liclipse.editor.handlers.QuickOutline"
+        name="Quick Outline">
+    </command>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+        <command categoryId="com.brainwy.liclipse.handlers.category"
+        defaultHandler="org.brainwy.liclipsetext.editor.handlers.Formatter"
+        id="com.brainwy.liclipse.editor.handlers.Formatter"
+        name="Code Format">
+    </command>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+        <command categoryId="com.brainwy.liclipse.handlers.category"
+        defaultHandler="org.brainwy.liclipsetext.editor.handlers.SelectEnclosingScope"
+        id="com.brainwy.liclipse.editor.handlers.SelectEnclosingScope"
+        name="Select Enclosing Scope">
+    </command>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+        <command categoryId="com.brainwy.liclipse.handlers.category"
+        defaultHandler="org.brainwy.liclipsetext.editor.handlers.DeselectEnclosingScope"
+        id="com.brainwy.liclipse.editor.handlers.DeselectEnclosingScope"
+        name="Deselect Enclosing Scope">
+    </command>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+        <command categoryId="com.brainwy.liclipse.handlers.category"
+        defaultHandler="org.brainwy.liclipsetext.editor.handlers.ToggleMarkOccurrences"
+        id="com.brainwy.liclipse.editor.handlers.ToggleMarkOccurrences"
+        name="Toggle Mark Occurrences">
+    </command>
+
+    </extension>
+
+
+    <extension point="org.eclipse.ui.bindings">
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+            <key commandId="com.brainwy.liclipse.editor.handlers.NextElement"
+            contextId="com.brainwy.liclipse.editor.context"
+            sequence="M1+M2+Arrow_Down"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+    </key>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+            <key commandId="com.brainwy.liclipse.editor.handlers.PrevElement"
+            contextId="com.brainwy.liclipse.editor.context"
+            sequence="M1+M2+Arrow_Up"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+    </key>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+            <key commandId="com.brainwy.liclipse.editor.handlers.ToggleComment"
+            contextId="com.brainwy.liclipse.editor.context"
+            sequence="M1+/"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+    </key>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+            <key commandId="com.brainwy.liclipse.editor.handlers.GoToMatchingBracket"
+            contextId="com.brainwy.liclipse.editor.context"
+            sequence="M1+M2+P"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+    </key>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+            <key commandId="com.brainwy.liclipse.editor.handlers.Rename"
+            contextId="com.brainwy.liclipse.editor.context"
+            sequence="M3+M2+R"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+    </key>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+            <key commandId="com.brainwy.liclipse.editor.handlers.Rename"
+            contextId="com.brainwy.liclipse.editor.context"
+            sequence="M1+2 R"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+    </key>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+            <key commandId="com.brainwy.liclipse.editor.handlers.QuickOutline"
+            contextId="com.brainwy.liclipse.editor.context"
+            sequence="M1+O"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+    </key>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+            <key commandId="com.brainwy.liclipse.editor.handlers.Formatter"
+            contextId="com.brainwy.liclipse.editor.context"
+            sequence="M1+M2+F"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+    </key>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+            <key commandId="com.brainwy.liclipse.editor.handlers.SelectEnclosingScope"
+            contextId="com.brainwy.liclipse.editor.context"
+            sequence="M2+M3+Arrow_Up"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+    </key>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+            <key commandId="com.brainwy.liclipse.editor.handlers.DeselectEnclosingScope"
+            contextId="com.brainwy.liclipse.editor.context"
+            sequence="M2+M3+Arrow_Down"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+    </key>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+            <key commandId="com.brainwy.liclipse.editor.handlers.ToggleMarkOccurrences"
+            contextId="com.brainwy.liclipse.editor.context"
+            sequence="M2+M3+O"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+    </key>
+
+    </extension>
+
+    <!--[[[end]]]-->
+
+
+
+   <!-- languages menu -->
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="false"
+            locationURI="popup:#LiClipseContext?after=additions">
+         <menu
+               label="Languages">
+            <dynamic
+                  class="org.brainwy.liclipsetext.editor.menu.LanguagesMenu"
+                  id="com.brainwy.liclipse.editor.menu">
+            </dynamic>
+         </menu>
+      </menuContribution>
+   </extension>
+
+   <!-- Preferences page -->
+   <extension point="org.eclipse.ui.preferencePages">
+      <page class="org.brainwy.liclipsetext.editor.preferences.RootPreferencesPage"
+            id="liclipse" name="LiClipse"/>
+   </extension>
+   <extension point="org.eclipse.ui.preferencePages">
+      <page class="org.brainwy.liclipsetext.editor.preferences.LiClipseCodeCompletionPreferencesPage"
+            id="liclipse.code_completion" name="Code Completion" category="liclipse"/>
+
+      <page class="org.brainwy.liclipsetext.editor.common.mark_occurrences.LiClipseMarkOccurrencesPreferencesPage"
+            id="liclipse.mark_occurrences" name="Mark Occurrences" category="liclipse" />
+   </extension>
+
+   <extension point="org.eclipse.ui.ide.editorAssociationOverride">
+     <editorAssociationOverride id="com.brainwy.liclipse.editor.LiClipseEditorOverride" class="org.brainwy.liclipsetext.editor.LiClipseEditorOverride">
+     </editorAssociationOverride>
+   </extension>
+
+   <extension
+         point="org.eclipse.e4.ui.css.swt.theme">
+      <stylesheet
+            uri="css/dark/dark_theme.css">
+         <themeid
+               refid="org.eclipse.e4.ui.css.theme.e4_dark">
+         </themeid>
+      </stylesheet>
+   </extension>
+
+    <extension point="org.brainwy.liclipsetext.editor.liclipse_error_collector">
+        <error_collector_participant class="org.brainwy.liclipsetext.editor.error_handling.LiClipseLanguageErrorCollector"/>
+    </extension>
+
+</plugin>

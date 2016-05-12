@@ -1,0 +1,142 @@
+scope_to_color_name: {
+  singleQuotedString: string,
+  doubleQuotedString: string,
+  default: foreground,
+}
+scope_definition_rules:
+  - {type: EndOfLineRule, scope: singleLineComment, start: '//'}
+  - {type: MultiLineRule, scope: multiLineComment, start: '/*', end: '*/', escapeCharacter: '\0'}
+  - {type: SingleLineRule, scope: doubleQuotedString, sequence: '"', escapeCharacter: \, escapeContinuesLine: true}
+  - {type: SingleLineRule, scope: singleQuotedString, sequence: "'", escapeCharacter: \, escapeContinuesLine: true}
+
+scope:
+  default:
+    sub_rules: [
+      {type: CompositeRule, sub_rules: [
+        {type: AnyWordRule, scope: method},
+        {type: SequenceRule, scope: annotation, sequence: '::'}
+      ]},
+      {type: NumberRule, scope: number}
+    ]
+    
+    bracket: [(, '{', '[', ']', '}', ), '<', '>']
+    operator: ['!', $, '%', '&', '*', +, '-', ., //, /, ':', <, '=', '>', '?', ^,
+      '|', '~', ',', ';']
+
+    keyword: ['abstract',   'continue',  'for',   'new',   'switch',    'assert',   'default',   'goto',   'package',   'synchronized',
+              'boolean',   'do',  'if',  'private',   'this',
+              'break',   'double',  'implements',  'protected',   'throw',
+              'byte',  'else',  'import',  'public',  'throws',
+              'case',  'enum',  'instanceof',  'return',  'transient',
+              'catch',   'extends',   'int',   'short',   'try',
+              'char',  'final',   'interface',   'static',  'void',
+              'class',   'finally',   'long',  'strictfp',  'volatile',
+              'const',  'float',   'native',  'super',  'while',
+              
+              #These are not 'real' keywords, but let's color them the same way.
+              'true', 'false', 'null',
+              ]
+
+
+
+file_extensions: [java]
+
+filename: []
+
+name: Java
+
+outline:
+  - {type: Ctags}
+  - {type: Regexp, scope: [singleLineComment], regexp: '//---.*', define: comment, group: 0}
+
+indent: {
+  type: braces, #Braces are used for indenting in Cpp
+  scope: default, #Only braces found in the default scope are considered
+  outline_scopes: [class, method], #Scopes are created where the outline defines a class or method.
+}
+
+comment: {type: singleLine, sequence: '//'}
+
+auto_edit:
+  - {auto_close_scopes: [doubleQuotedString], scope: default} #To work, the scopes must be: SingleLineRule(sequence used for start/end)
+  - {auto_close_parens: ['(', '[', '{'], scope: default} #Will close the parens if it's not properly balanced
+  - {auto_skip_parens: [')', ']', '}'], scope: default} #Will skip the close parens if it's properly balanced
+
+
+templates: #Note: pressing ctrl+space twice will show only the templates
+
+- name: 'new_module'
+  description: "Creates the basic structure for a module with a public class"
+  pattern: |-
+    package ${package};
+
+    public class ${Class} {
+        ${cursor}
+    }
+    
+- name: 'arrayadd'
+  description: "add an element to an array"
+  pattern: |-
+    ${array_type}[] ${newArray} = new ${array_type}[${array}.length + 1];
+    System.arraycopy(${array}, 0, ${newArray}, 0, ${array}.length);
+    ${newArray}[${array}.length]= ${var};
+
+- name: 'while'
+  description: "create while block"
+  pattern: |-
+    while (${condition}) {
+        ${cursor}
+    }
+    
+- name: 'for'
+  description: "iterate over array"
+  pattern: |-
+    for (int ${i} = 0; ${i} < ${array}.length; ${i}++) {
+        ${cursor}
+    }
+    
+- name: 'for'
+  description: "iterate with iterator"
+  pattern: |-
+    for (Iterator ${it} = ${collection}.iterator(); ${it}.hasNext();) {
+        ${type} ${var} = (${type}) ${it}.next();${cursor}
+    }
+
+- name: 'sysout'
+  description: "print to stdout"
+  pattern: System.out.println(${contents});${cursor}
+
+- name: 'syserr'
+  description: "print to stderr"
+  pattern: System.err.println(${contents});${cursor}
+  
+- name: 'main_method'
+  description: "creates main(String[] args) method"
+  pattern: |-
+    public static void main(String[] args) {
+        ${cursor}
+    }
+    
+- name: 'catch'
+  description: "catch block"
+  pattern: |-
+    catch (${Exception} ${e}) {
+        ${cursor}
+    }
+    
+- name: '' #Note: pressing ctrl+space twice will show only the templates
+  description: "surround with try..catch"
+  pattern: |-
+    try{
+    ${indented_block}
+    } catch (${Exception} ${e}) {
+        ${cursor}
+    }
+- name: ''
+  description: "surround with try..finally"
+  pattern: |-
+    try{
+    ${indented_block}
+    } finally {
+        ${cursor}
+    }

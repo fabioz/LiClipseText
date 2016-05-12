@@ -1,0 +1,42 @@
+.hg
+.hgignore
+.metadata
+git-kdiff3
+plugins/org.python.pydev.jython/cachedir
+plugins/**/bin/
+features/**/bin/
+plugins/**/indexcache/
+*.pyc
+*.idx
+*.orig
+CVS
+.svn
+v1_indexcache
+v1_astmanager
+*.pyc
+*.class
+*.astdelta
+Thumbs.db
+.cvsignore
+*.pydevinfo
+*.pydevsysteminfo
+*.pkc
+ProfileProject
+de.loskutov.anyedit.AnyEditTools.prefs
+*asthelper.completions
+external-sources
+data_temporary_for_testing
+*v1_projectinfodelta
+plugins/com.python.pydev.runalltests/New_configuration1.launch
+target/
+# Mac OS X stuff
+Desktop DF
+Desktop DB
+.Spotlight-V100
+.DS_Store
+.Trashes
+.com.apple.timemachine.supported
+.fseventsd
+.syncinfo
+.TemporaryItems
+**/v2_indexcache/**

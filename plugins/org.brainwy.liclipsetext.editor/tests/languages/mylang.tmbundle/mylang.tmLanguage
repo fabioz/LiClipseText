@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>comment</key>
+	<string>Grammar for testing</string>
+	<key>fileTypes</key>
+	<array>
+		<string>mylang</string>
+	</array>
+	<key>name</key>
+	<string>Testing grammar</string>
+	<key>patterns</key>
+	<array>
+		<dict>
+			<key>match</key>
+			<string>a</string>
+			<key>name</key>
+			<string>constant.a</string>
+		</dict>
+
+		<dict>
+			<key>include</key>
+			<string>source.testing2</string>
+		</dict>
+	</array>
+	<key>repository</key>
+	<dict></dict>
+	<key>scopeName</key>
+	<string>source.testing</string>
+	<key>uuid</key>
+	<string>62DA9AD6-36E1-4AB7-BB87-E933AD9FD1A6</string>
+</dict>
+</plist>

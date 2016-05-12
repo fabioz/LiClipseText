@@ -1,0 +1,86 @@
+scope_to_color_name: {
+  tag: foreground,
+  default: foreground,
+  doubleQuotedString: string,
+  singleQuotedString: string,
+  cdata: foreground,
+  close_class: class,
+  close_tag: bracket,
+  open_tag: bracket,
+  open_tag_close: bracket
+}
+scope_definition_rules:
+  # Note that the order of the  rules is actually important.
+  - {type: MultiLineRule, scope: multiLineComment, start: '<!--', end: '-->', escapeCharacter: '\0'}
+  - {type: MultiLineRule, scope: cdata, start: '<![CDATA[', end: ']]>', escapeCharacter: '\0'}
+  - {type: MultiLineRuleWithSkip, scope: tag, start: '<', end: '>', escapeCharacter: '\0',
+      skip_rules:[
+        #Needed because if we find the end sequence within a string, we want to skip it.
+        {type: MultiLineRule, scope: unused0, start: '"', end: '"', escapeCharacter: '\0'},
+        {type: MultiLineRule, scope: unused1, start: "'", end: "'",  escapeCharacter: '\0'},
+      ]
+    }
+scope:
+  tag:
+    operator: ['=']
+    bracket: ['<', '>', '/', '?'] # Note: the opening '<' is 'usually' matched in the CompositeRule below.
+    sub_rules: [
+
+      {type: CompositeRule, sub_rules: [
+        { type: SequenceRule, scope: open_tag, sequence: '<'},
+        { type: AnyWordRule, scope: class, additionalChars: '-' }]
+      },
+      # Closing </tag> (identify closing a tag that was previously opened)
+      {type: CompositeRule, sub_rules: [
+        { type: SequenceRule, scope: close_tag, sequence: '</'},
+        { type: AnyWordRule, scope: close_class, additionalChars: '-' }]
+      },
+      # Attributes
+      {type: AnyWordRule, scope: keyword, additionalChars: '-'},
+
+      # Note: we have no escape chars on xml.
+      {type: MultiLineRule, scope: doubleQuotedString, start: '"', end: '"',  escapeCharacter: '\0'},
+
+      {type: MultiLineRule, scope: singleQuotedString, start: "'", end: "'",  escapeCharacter: '\0'},
+
+      #closing /> (identify a 'full' tag)
+      { type: SequenceRule, scope: open_tag_close, sequence: '/>'},
+
+    ]
+
+file_extensions: [xml, xsd]
+
+shebang: "<\\?xml"
+
+filename: [.pydevproject, .project, .classpath]
+
+name: XML
+
+outline:
+  - {type: Scope, scope: [tag, class], define: class}
+
+indent: {
+  type: scopes, #scopes define increasing or decreasing a level
+  scope: tag, #Only 'see' tag scopes when parsing.
+  scope_start: [tag.open_tag], #on open tag raise the indent level
+  scope_end: [tag.close_tag, tag.open_tag_close], #on close tag lower the indent level
+  outline_scopes: [class], #Scopes are created where the outline defines a class
+}
+
+
+comment: {type: multiLine, start: '<!--', end: '-->', scope: multiLineComment}
+
+auto_edit:
+  - {auto_close_scopes: [tag], scope: default} #To work, the scopes must be: SingleLineRule(sequence used for start/end)
+  - {auto_close_parens: ['<'], scope: default} #Will close the parens if it's not properly balanced
+  - {auto_skip_parens: ['>'], scope: tag} #Will skip the close parens if it's properly balanced
+
+templates:
+- name: 'surround with tag'
+  description: "Surround with tag"
+  pattern: '<${tag}>${selection}${cursor}</${tag}>'
+
+- name: ''
+  description: "Convert previous word to a tag."
+  pattern: '<${previous_word}>${cursor}</${previous_word}>'
+

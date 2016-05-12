@@ -1,0 +1,180 @@
+Some reference:
+
+http://blog.macromates.com/2012/injection-grammars-project-variables/
+
+https://github.com/mads379/Whitespace.tmbundle/blob/master/Syntaxes/Trailing%20Whitespace.tmLanguage
+
+	<?xml version="1.0" encoding="UTF-8"?>
+	<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+	<plist version="1.0">
+	<dict>
+		<key>fileTypes</key>
+		<array/>
+		<key>injectionSelector</key>
+		<string>-source.diff</string>
+		<key>name</key>
+		<string>Trailing Whitespace</string>
+		<key>patterns</key>
+		<array>
+			<dict>
+				<key>captures</key>
+				<dict>
+					<key>3</key>
+					<dict>
+						<key>name</key>
+						<string>invalid.illegal.whitespace.trailing</string>
+					</dict>
+				</dict>
+				<key>match</key>
+				<string>((\S)([^\S\n\f\r]+)$)</string>
+			</dict>
+		</array>
+		<key>uuid</key>
+		<string>D65149ED-CC2B-4393-9084-2DA7C1B7B12B</string>
+	</dict>
+	</plist>
+
+https://github.com/mads379/Whitespace.tmbundle/blob/master/Syntaxes/Mixed%20Whitespace.tmLanguage
+
+	<?xml version="1.0" encoding="UTF-8"?>
+	<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+	<plist version="1.0">
+	<dict>
+		<key>fileTypes</key>
+		<array/>
+		<key>injectionSelector</key>
+		<string>*</string>
+		<key>name</key>
+		<string>Mixed Whitespace</string>
+		<key>patterns</key>
+		<array>
+			<dict>
+				<key>match</key>
+				<string>([^\S\n\f\r])\1*(?!\1)[^\S\n\f\r]+</string>
+				<key>name</key>
+				<string>invalid.illegal.whitespace.mixed</string>
+			</dict>
+		</array>
+		<key>uuid</key>
+		<string>0B249F99-FC38-49F4-AA15-3B7DFF9F8DFA</string>
+	</dict>
+	</plist>
+
+https://github.com/textmate/hyperlink-helper.tmbundle/blob/master/Syntaxes/Hyperlink.tmLanguage
+
+	<?xml version="1.0" encoding="UTF-8"?>
+	<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+	<plist version="1.0">
+	<dict>
+		<key>fileTypes</key>
+		<array/>
+		<key>injectionSelector</key>
+		<string>text, string, comment</string>
+		<key>name</key>
+		<string>Hyperlink</string>
+		<key>patterns</key>
+		<array>
+			<dict>
+				<key>match</key>
+				<string>(?x)
+					( (https?|s?ftp|ftps|file|smb|afp|nfs|(x-)?man(-page)?|gopher|txmt|issue)://|mailto:)
+					[-:@a-zA-Z0-9_.,~%+/?=&amp;#;]+(?&lt;![-.,?:#;])
+				</string>
+				<key>name</key>
+				<string>markup.underline.link.$2.hyperlink</string>
+			</dict>
+			<dict>
+				<key>match</key>
+				<string>(?i)\bRFC(?: |(?&lt;= RFC))(\d+)\b</string>
+				<key>name</key>
+				<string>markup.underline.link.rfc.$1.hyperlink</string>
+			</dict>
+		</array>
+		<key>scopeName</key>
+		<string>text.hyperlink</string>
+		<key>uuid</key>
+		<string>40FCD8FB-8FA6-4966-9B27-F18663188851</string>
+	</dict>
+	</plist>
+
+
+
+Bundled erb language
+
+	<?xml version="1.0" encoding="UTF-8"?>
+	<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+	<plist version="1.0">
+	<dict>
+		<key>fileTypes</key>
+		<array>
+			<string>erb</string>
+			<string>rhtml</string>
+			<string>html.erb</string>
+		</array>
+		<key>injections</key>
+		<dict>
+			NOTE: we're adding the rules below to text.html.erb (which is our current scope).
+			NOTE: also, the scope could be prefixed with L: or R: (L: means before existing rules, R: means after existing rules)
+
+			<key>text.html.erb - (meta.embedded.block.erb | meta.embedded.line.erb | comment)</key>
+			<dict>
+				<key>patterns</key>
+				<array>
+					<dict>
+						...
+					</dict>
+				</array>
+			</dict>
+		</dict>
+		<key>keyEquivalent</key>
+		<string>^~H</string>
+		<key>name</key>
+		<string>HTML (Ruby - ERB)</string>
+		<key>patterns</key>
+		<array>
+			<dict>
+				<key>include</key>
+				<string>text.html.basic</string>
+			</dict>
+		</array>
+		<key>repository</key>
+		<dict>
+			<key>comment</key>
+			<dict>
+				...
+			</dict>
+			...
+			<key>tags</key>
+			<dict>
+				...
+			</dict>
+			...
+		</dict>
+		<key>scopeName</key> <-- NOTE: This is the scope of this language
+		<string>text.html.erb</string>
+		<key>uuid</key>
+		<string>13FF9439-15D0-4E74-9A8E-83ABF0BAA5E7</string>
+	</dict>
+	</plist>
+
+
+
+Bundled HTML language:
+
+	<key>injections</key>
+	<dict>
+		<key>R:text.html - comment.block</key>
+		<dict>
+			<key>comment</key>
+			<string>Use R: to ensure this matches after any other injections.</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>match</key>
+					<string>&lt;</string>
+					<key>name</key>
+					<string>invalid.illegal.bad-angle-bracket.html</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>

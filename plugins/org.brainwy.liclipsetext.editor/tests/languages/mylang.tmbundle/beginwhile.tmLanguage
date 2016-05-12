@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>comment</key>
+	<string>Grammar for testing begin/while</string>
+	<key>name</key>
+	<string>Grammar for testing begin/while</string>
+	<key>patterns</key>
+	<array>
+		<dict>
+			<key>begin</key>
+			<string>(^|\G)(&gt;)</string>
+			
+			<key>captures</key>
+			<dict>
+				<key>2</key>
+				<dict>
+					<key>name</key>
+					<string>punctuation.definition.quote.markdown</string>
+				</dict>
+			</dict>
+			
+			<key>while</key>
+			<string>(^|\G)(&gt;)</string>
+			
+			<key>name</key>
+			<string>constant.character</string>
+			
+			<key>patterns</key>
+			<array>
+			<dict>
+				<key>match</key>
+				<string>a</string>
+				<key>name</key>
+				<string>comment.a</string>
+			</dict>
+			</array>
+		</dict>
+	</array>
+	<key>scopeName</key>
+	<string>source.beginwhile</string>
+	<key>uuid</key>
+	<string>62DA9AD6-36E1-4AB7-BB87-E933AD9FD1B6</string>
+</dict>
+</plist>

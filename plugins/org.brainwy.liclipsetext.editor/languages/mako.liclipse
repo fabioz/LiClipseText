@@ -1,0 +1,151 @@
+inherit: HTML # Signal that we want to start from html.liclipse
+
+# Unfortunately mako usually specifies html and htm as regular mako, but this conflicts with the regular editor, so,
+# we have to provide a way to solve this conflict properly later on.
+file_extensions: [mako]
+
+name: Mako
+
+outline:
+  - {type: Scope, scope: [tag, class], define: class}
+
+  #The ones below are generated in a sub-rule (default must be language&__dftl_partition_content_type)
+  #And if it's a sub-language for the current language, language must be == 'this'
+  - {type: Scope, scope: [python&__dftl_partition_content_type, method], define: method}
+  - {type: Scope, scope: [python&__dftl_partition_content_type, class], define: class}
+  - {type: Scope, scope: [this&class], define: method}
+
+  # We could use the types below, but they'd appear in the outline without the name
+  # so, we're skipping them for now.
+  # - {type: Scope, scope: [this&python_block], define: attribute}
+  # - {type: Scope, scope: [this&python_escaping], define: attribute}
+
+comment: {type: singleLine, sequence: '##'}
+
+patch:
+    # Note: 'patch' is Only available if 'inherit' is defined.
+    # Items inside patch append data to the specified items.
+    # If some item should completely override the entry, it should be declared in the top-level scope.
+    - scope_to_color_name: {
+        #Used in python
+        doubleQuotedMultiLineString: string,
+        singleQuotedMultiLineString: string,
+        doubleQuotedString: string,
+        singleQuotedString: string,
+        default: foreground,
+        decorator: annotation,
+        builtins: annotation,
+        python_block: constant,
+        python_escaping: constant,
+        python_block2: foreground,
+        multiLineString: string,
+    }
+
+    - scope_definition_rules:
+      # Note that the order of the  rules is actually important.
+
+      - {type: MultiLineRule, scope: multiLineComment, start: '<%doc>', end: '</%doc>', escapeCharacter: '\0'}
+      - {type: MultiLineRule, scope: multiLineString, start: '<%text', end: '</%text>', escapeCharacter: '\0'}
+
+      - {type: MultiLineRuleWithSkip, scope: mako_tag,
+          start: [
+            {type: SequenceRule, scope: unused, sequence: '<'},
+            {type: OptionalSequenceRule, scope: unused, sequence: '/'},
+            {type: SequenceRule, scope: unused, sequence: '%'},
+            {type: AnyWordRule, scope: unused},
+          ],
+          end: '>',
+          escapeCharacter: '\0',
+          skip_rules:[
+            #Needed because if we find the end sequence within a string, we want to skip it.
+            {type: MultiLineRule, scope: unused, start: '"', end: '"', escapeCharacter: '\0'},
+            {type: MultiLineRule, scope: unused, start: "'", end: "'",  escapeCharacter: '\0'},
+          ]
+        }
+
+      - {type: SwitchLanguageRule, scope: python_block, start: '<%', end: '%>', language: python}
+
+      - {type: SwitchLanguageRule, scope: python_escaping, start: '${', end: '}', language: python}
+
+      - {type: EndOfLineRule, scope: singleLineComment, start: '##'}
+
+      - {type: CompositeRule, sub_rules: [
+          {type: MatchLineStartRule, scope: python_block2},
+          {type: ZeroOrMoreSpacesRule, scope: unused},
+          {type: SequenceRule, scope: unused, sequence: '%'},
+          {type: ZeroOrMoreSpacesRule, scope: unused},
+          {type: SequencesRule, scope: unused, sequences: [
+            "if", "for", "except", "def", "class", "else", "elif", "while",
+            "try", "with", "finally",
+
+            "endif", "endfor", "endexcept", "enddef", "endclass", "endelse", "endelif", "endwhile",
+            "endtry", "endwith", "endfinally",
+            ]},
+          {type: SkipLineRule, scope: unused},
+        ]}
+
+
+    - scope:
+        python_block2:
+          keyword: [
+            "if", "for", "except", "def", "class", "else", "elif", "while",
+            "try", "with", "finally",
+
+            "endif", "endfor", "endexcept", "enddef", "endclass", "endelse", "endelif", "endwhile",
+            "endtry", "endwith", "endfinally",
+
+            and, as, assert, break, continue, del, exec,
+            from, global, import, in, is, lambda, nonlocal, not, or, pass, print,
+            raise, return, self, yield, 'False', None, 'True',
+          ]
+
+          bracket: ['(', ')', '[', ']', '{', '}']
+
+          operator: [<, '>', '=', +, '-', /, '*', '!', '&', '|', '%', '~', ^, ',']
+
+          sub_rules: [
+            {type: CompositeRule, sub_rules: [
+              {type: MatchLineStartRule, scope: python_block2},
+              {type: ZeroOrMoreSpacesRule, scope: python_block2},
+              {type: SequenceRule, scope: constant, sequence: '%'},
+            ]},
+            #It's important that the multi-line comes before the single-line (otherwise the single line would always match first
+            #and would never allow the multi-line to work).
+            {type: MultiLineRule, scope: singleQuotedMultiLineString, start: "'''", end: "'''", escapeCharacter: \},
+            {type: MultiLineRule, scope: doubleQuotedMultiLineString, start: '"""', end: '"""', escapeCharacter: \},
+
+            {type: SingleLineRule, scope: doubleQuotedString, sequence: '"', escapeCharacter: \, escapeContinuesLine: true},
+            {type: SingleLineRule, scope: singleQuotedString, sequence: "'", escapeCharacter: \, escapeContinuesLine: true},
+
+            {type: EndOfLineRule, scope: singleLineComment, start: '#'},
+          ]
+
+        mako_tag:
+          operator: ['=']
+          bracket: ['<', '>', '/', '?'] # Note: the opening '<' is 'usually' matched in the CompositeRule below.
+          sub_rules: [
+            {type: CompositeRule, sub_rules: [
+              { type: SequenceRule, scope: open_tag, sequence: '<%'},
+              { type: AnyWordRule, scope: class }]
+            },
+            # Closing </tag> (identify closing a tag that was previously opened)
+            {type: CompositeRule, sub_rules: [
+              { type: SequenceRule, scope: close_tag, sequence: '</%'},
+              { type: AnyWordRule, scope: close_class }]
+            },
+            # Attributes
+            {type: AnyWordRule, scope: keyword},
+
+            # Note: we have no escape chars on xml.
+            {type: MultiLineRule, scope: doubleQuotedString, start: '"', end: '"',  escapeCharacter: '\0'},
+
+            {type: MultiLineRule, scope: singleQuotedString, start: "'", end: "'",  escapeCharacter: '\0'},
+
+            #closing /> (identify a 'full' tag)
+            { type: SequenceRule, scope: open_tag_close, sequence: '/>'},
+
+          ]
+
+    - auto_edit:
+        - {auto_close_parens: ['{'], scope: default} #Will close the parens if it's not properly balanced
+        - {auto_skip_parens: ['}'], scope: mako_filter} #Will skip the close parens if it's properly balanced

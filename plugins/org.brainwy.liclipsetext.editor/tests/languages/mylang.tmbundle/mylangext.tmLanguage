@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>comment</key>
+	<string>Grammar for testing2</string>
+	<key>name</key>
+	<string>Testing grammar 2</string>
+
+	<key>injections</key>
+	<dict>
+		<key>source.testing2 - (meta.embedded.block.erb | meta.embedded.line.erb | comment)</key>
+		<dict>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>match</key>
+					<string>c</string>
+					<key>name</key>
+					<string>constant.c</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
+
+	<key>patterns</key>
+	<array>
+		<dict>
+			<key>match</key>
+			<string>b</string>
+			<key>name</key>
+			<string>constant.b</string>
+		</dict>
+	</array>
+	<key>scopeName</key>
+	<string>source.testing2</string>
+	<key>uuid</key>
+	<string>62DA9AD6-36E1-4AB7-BB87-E933AD9FD1A6</string>
+</dict>
+</plist>

@@ -1,0 +1,182 @@
+scope_to_color_name: {
+ #All types of strings map to the string color
+ doubleQuotedMultiLineString: string,
+ singleQuotedMultiLineString: string,
+ doubleQuotedString: string,
+ singleQuotedString: string,
+ typeScope: constant,
+ eval: constant,
+}
+
+scope_definition_rules:
+  #Comments
+  #singleLineComment is also the name of the color (no translation required in scope_to_color_name)
+  - {type: MultiLineRule, scope: multiLineComment, start: '#=', end: '=#', escapeCharacter: '\0'}
+  - {type: EndOfLineRule, scope: singleLineComment, start: '#'}
+
+  # Multi Line Strings
+  # julia has only """ multi-line strings, not '''
+  #- {type: MultiLineRule, scope: singleQuotedMultiLineString, start: "'''", end: "'''", escapeCharacter: \}
+  - {type: MultiLineRule, scope: doubleQuotedMultiLineString, start: '"""', end: '"""', escapeCharacter: \}
+
+  # Single Line Strings
+  - {type: SingleLineRule, scope: doubleQuotedString, sequence: '"', escapeCharacter: \, escapeContinuesLine: true}
+  # Julia has only ' single line string, not "
+  # - {type: SingleLineRule, scope: singleQuotedString, sequence: "'", escapeCharacter: \, escapeContinuesLine: true}
+
+scope:
+  singleLineComment:
+    javadocTag: [TODO] #Any TODO inside a comment should have a different color.
+
+  default:
+    sub_rules: [
+      {type: CompositeRule, sub_rules: [
+        { type: SequenceRule, scope: keyword, sequence: 'type'}, #Define that 'type' is a keyword
+        { type: OneOrMoreSpacesRule, scope: default},
+        #And any name after 'class' is the class we matched (we'll put it in the outline defining [default, class]).
+        { type: AnyWordRule, scope: class, additionalChars: '.' }
+        ]
+      },
+      {type: CompositeRule, sub_rules: [
+        { type: SequenceRule, scope: keyword, sequence: 'function'}, #Define that 'function' is a keyword
+        { type: OneOrMoreSpacesRule, scope: default},
+        #And any name after 'class' is the class we matched (we'll put it in the outline defining [default, class]).
+        { type: AnyWordRule, scope: method, additionalChars: '.' }
+        ]
+      },
+      {type: CompositeRule, sub_rules: [
+        { type: SequenceRule, scope: typeScope, sequence: '::'}, #Define ::Type
+        #And any name after 'class' is the class we matched (we'll put it in the outline defining [default, class]).
+        { type: AnyWordRule, scope: typeScope, additionalChars: '.{},0123456798' }
+        ]
+      },
+      {type: CompositeRule, sub_rules: [
+        { type: SequenceRule, scope: eval, sequence: '@'},
+        { type: AnyWordRule, scope: eval }
+        ]
+      },
+      {type: NumberRule, scope: number}
+    ]
+
+    keyword: [
+              abstract,
+              quote,
+              for, in,
+              while,
+              begin, end,
+              typeof, type,
+              global,
+              import,
+              function,
+              const,
+              immutable,
+              if, elseif, else,
+              try, catch, finally, error, throw,
+              yieldto,
+              do,
+              bitstype,
+              'true',
+              'false',
+              C_NULL,
+              ccall,
+              return,
+              typealias,
+              macro,
+              export,
+              module,
+              include,
+              ]
+
+    bracket: ['(', ')', '[', ']', '{', '}']
+
+    operator: [<, '>', '=', +, '-', /, '*', '!', '&', '|', '%', '~', ^, ',', ';']
+
+
+file_extensions: [jl] #TODO: Fill with the file extension to match
+filename: []
+name: julia
+
+# The launch is composed of: ${executable} ${vm_args} ${file_to_run_from_selection} ${arguments}
+# ${file_to_run_from_selection} is usually filled based on the current selection (F9 on active editor)
+# ${arguments} must be filled later on in the run configuration (run > run configurations)
+launch: {
+  command: julia, #Note: 'julia' must be in the PATH for the launch to work
+  vm_args: '',
+  environment: {},
+  hyperlink: [{
+    #Used for julia 0.2.1
+    regexp: '.*(at) ([^\"]*):(\d*).*',
+    start: 1, #i.e.: start the hyperlink on 'File' (group 1 of the hyperlink -- group 0 is "all").
+    filename: 2, #i.e.: group 2 of the regexp has the filename
+    line: 3, #i.e.: group 1 of the regexp has the line in the file where we should go to
+  },{
+    #Used for julia 0.3 (prerelease)
+    regexp: '.*(while loading) ([^\"]*), in expression starting on line (\d*).*',
+    start: 1, #i.e.: start the hyperlink on 'File' (group 1 of the hyperlink -- group 0 is "all").
+    filename: 2, #i.e.: group 2 of the regexp has the filename
+    line: 3, #i.e.: group 1 of the regexp has the line in the file where we should go to
+  }]
+}
+
+outline: #Icons: LiClipseParsedItem.getImage(): class, method, comment, attribute (based on 'define')
+  - {type: Scope, scope: [default, class], define: class} #scope is a list to identify sub-rule
+  - {type: Scope, scope: [default, method], define: method}
+  - {type: Regexp, scope: [singleLineComment], regexp: '#---.*', define: comment, group: 0}
+
+indent: {
+  type: spaces, #Spaces are used for indenting in Python
+  outline_scopes: [class, method], #Scopes are created where the outline defines a class or method.
+  spaces_for_tabs: true, #Python folks recommend it.
+  tab_width: 4, #Note: optional (default is based on preferences for text editors in the eclipse preferences)
+}
+
+auto_edit:
+  - {auto_close_scopes: [doubleQuotedString, doubleQuotedMultiLineString], scope: default} #To work, the scopes must be: SingleLineRule(sequence used for start/end) or MultiLineRule.
+  - {auto_close_parens: ['(', '[', '{'], scope: default} #Will close the parens if it's not properly balanced
+  - {auto_skip_parens: [')', ']', '}'], scope: default} #Will skip the close parens if it's properly balanced
+
+# Specify that the default comment action (Ctrl+/) deals with creating '#' at the start of the line
+comment: {type: singleLine, sequence: '#'}
+
+# Number types: Int8, Uint8, Int16, Uint16, Int32, Uint32, Int64, Uint64, Int128, Uint128, Bool, Char, Float16, Float32, Float64
+
+# Special: Inf16, Inf32, Inf, -Inf16, -Inf32, -Inf, NaN16, NaN32, NaN
+
+# Others: BigInt, typemax, typemin
+
+# funcs: zero(type), one(type), typeof(x), eps(type), println(), sizeof()
+
+# Make more templates based on: http://docs.julialang.org/en/release-0.2/stdlib/base/
+
+templates: #Note: pressing ctrl+space twice will show only the templates
+- name: ''
+  description: "Surround with try..catch"
+  pattern: |-
+    try
+    ${indented_block}
+    catch
+        ${cursor}
+    end
+
+- name: ''
+  description: "Surround with try..finally"
+  pattern: |-
+    try
+    ${indented_block}
+    finally
+        ${cursor}
+    end
+
+- name: 'function'
+  description: "function"
+  pattern: |-
+    function(${params})
+        ${cursor}
+    end
+
+- name: 'type'
+  description: "type"
+  pattern: |-
+    type ${Type}
+        ${cursor}
+    end

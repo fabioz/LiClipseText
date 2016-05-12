@@ -1,0 +1,21 @@
+scope_to_color_name: {literalBlock: string, markup: class, title: class}
+scope_definition_rules:
+  #Title:
+  - {type: CompositeRule, sub_rules:[ #Note: when a composite rule is defined here, all the scopes in the inner parts must have the same type.
+    { type: MatchLineStartRule, scope: title},
+    { type: SkipLineRule, scope: title},
+    { type: RepeatCharToEolRule, scope: title, chars: ['-', '=']},
+  ]}
+
+
+file_extensions: []
+
+filename: []
+
+name: Markdown
+
+outline:
+  - {type: Scope, scope: [title], define: class}
+
+#This
+#comment: {type: multiLineIndented, start: '..', scope: multiLineComment}

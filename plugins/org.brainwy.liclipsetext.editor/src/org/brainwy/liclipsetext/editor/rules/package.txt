@@ -1,0 +1,1 @@
+Refactoring of the EPL rule-based scanners from Eclipse itself. 

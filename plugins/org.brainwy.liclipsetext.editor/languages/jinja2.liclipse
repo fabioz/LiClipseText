@@ -1,0 +1,166 @@
+inherit: HTML # Signal that we want to start from html.liclipse
+
+# Unfortunately jinja2 usually specifies html and htm as regular jinja2, but this conflicts with the regular editor, so,
+# we have to provide a way to solve this conflict properly later on.
+file_extensions: [jinja2]
+
+name: Jinja2
+
+
+patch:
+    # Note: 'patch' is Only available if 'inherit' is defined.
+    # Items inside patch append data to the specified items.
+    # If some item should completely override the entry, it should be declared in the top-level scope.
+    - scope_to_color_name: {
+      jinja2_tag: foreground,
+      jinja2_filter: foreground,
+      jinja2_comment: multiLineComment,
+      jinja2_comment2: multiLineComment,
+      line_statement: foreground,
+      cmd: keyword,
+      filter: string,
+    }
+
+    - scope_definition_rules:
+        - {type: MultiLineRule, scope: jinja2_tag, start: '{%', end: '%}', escapeCharacter: '\0'}
+        - {type: MultiLineRule, scope: jinja2_comment, start: '{#', end: '#}', escapeCharacter: '\0'}
+        - {type: MultiLineRule, scope: jinja2_filter, start: '{{', end: '}}', escapeCharacter: '\0'}
+        - {type: EndOfLineRule, scope: jinja2_comment2, start: '##'}
+
+        # Support for line statement:
+        # If line statements are enabled by the application, it’s possible to mark a line as a statement. For example, if the line statement prefix is configured to #, the following two examples are equivalent:
+
+        # {% for item in seq %}
+        #   <li>{{ item }}</li>
+        # {% endfor %}
+        #
+        # # for item in seq:
+        #     ...
+        # # endfor
+        - {type: CompositeRule, sub_rules: [
+          {type: MatchLineStartRule, scope: line_statement},
+          {type: SingleLineRuleWithSkip, scope: unused, start: '#', escapeCharacter: '\0', escapeContinuesLine: false, skipRules:[
+              {type: MultiLineRule, scope: unused, start: '(', end: ')', escapeCharacter: '\0'},
+              {type: MultiLineRule, scope: unused, start: '[', end: ']', escapeCharacter: '\0'},
+              {type: MultiLineRule, scope: unused, start: '{', end: '}', escapeCharacter: '\0'},
+          ]}
+        ]}
+
+    - scope:
+        jinja2_tag: # Almost the same as the line_statement -- but changing # to {%
+          string: ['{%', '%}']
+
+          keyword: [
+            "and", "as", "context", "else", "if", "import", "in",
+            "not", "or", "recursive", "with", "without",
+          ]
+
+          bracket: ['(', ')', '[', ']', '{', '}']
+
+          operator: [<, '>', '=', +, '-', /, '*', '!', '&', '|', '%', '~', ^, ',']
+
+          sub_rules: [
+            # Something as # x = 10 or # a + 10
+            {type: CompositeRule, sub_rules: [
+              {type: MatchLineStartRule, scope: default},
+              { type: SequenceRule, scope: jinja2_tag, sequence: '{%' },
+              { type: ZeroOrMoreSpacesRule, scope: default },
+              { type: AnyWordRule, scope: default },
+              { type: ZeroOrMoreSpacesRule, scope: default },
+              { type: SequencesRule, scope: operator, sequences: ['<', '>', '=', '+', '-', '/', '*', '!', '&', '%', '~', '^', ',']}
+              ]
+            },
+
+            # Something as {% for a in ...
+            {type: CompositeRule, sub_rules: [
+              { type: SequenceRule, scope: jinja2_tag, sequence: '{%' },
+              { type: ZeroOrMoreSpacesRule, scope: default },
+              { type: AnyWordRule, scope: cmd }]
+            },
+
+            #It's important that the multi-line comes before the single-line (otherwise the single line would always match first
+            #and would never allow the multi-line to work).
+            {type: MultiLineRule, scope: singleQuotedMultiLineString, start: "'''", end: "'''", escapeCharacter: \},
+            {type: MultiLineRule, scope: doubleQuotedMultiLineString, start: '"""', end: '"""', escapeCharacter: \},
+
+            {type: SingleLineRule, scope: doubleQuotedString, sequence: '"', escapeCharacter: \, escapeContinuesLine: true},
+            {type: SingleLineRule, scope: singleQuotedString, sequence: "'", escapeCharacter: \, escapeContinuesLine: true},
+          ]
+
+        line_statement: # Almost the same as the jinja2_tag -- but changing {% to #
+          string: ['#']
+
+          keyword: [
+            "and", "as", "context", "else", "if", "import", "in",
+            "not", "or", "recursive", "with", "without",
+          ]
+
+          bracket: ['(', ')', '[', ']', '{', '}']
+
+          operator: ['<', '>', '=', '+', '-', '/', '*', '!', '&', '|', '%', '~', '^', ',']
+
+          sub_rules: [
+            # Something as # x = 10 or # a + 10
+            {type: CompositeRule, sub_rules: [
+              { type: SequenceRule, scope: string, sequence: '#' }, # Difference from jinja2_tag
+              { type: ZeroOrMoreSpacesRule, scope: default },
+              { type: AnyWordRule, scope: default },
+              { type: ZeroOrMoreSpacesRule, scope: default },
+              { type: SequencesRule, scope: operator, sequences: ['<', '>', '=', '+', '-', '/', '*', '!', '&', '%', '~', '^', ',']}
+              ]
+            },
+
+            # Something as # for a in ...
+            {type: CompositeRule, sub_rules: [
+              { type: SequenceRule, scope: string, sequence: '#' }, # Difference from jinja2_tag
+              { type: ZeroOrMoreSpacesRule, scope: default },
+              { type: AnyWordRule, scope: cmd }]
+            },
+
+            #It's important that the multi-line comes before the single-line (otherwise the single line would always match first
+            #and would never allow the multi-line to work).
+            {type: MultiLineRule, scope: singleQuotedMultiLineString, start: "'''", end: "'''", escapeCharacter: \},
+            {type: MultiLineRule, scope: doubleQuotedMultiLineString, start: '"""', end: '"""', escapeCharacter: \},
+
+            {type: SingleLineRule, scope: doubleQuotedString, sequence: '"', escapeCharacter: \, escapeContinuesLine: true},
+            {type: SingleLineRule, scope: singleQuotedString, sequence: "'", escapeCharacter: \, escapeContinuesLine: true},
+          ]
+
+
+        jinja2_filter:
+          bracket: ['(', ')', '[', ']', '{', '}']
+
+          operator: ['{{', '}}']
+
+          # From: https://github.com/mitsuhiko/jinja2/blob/master/jinja2/filters.py
+          string: ['abs', 'attr', 'batch', 'capitalize', 'center', 'count', 'd', 'default', 'dictsort',
+            'e', 'escape', 'filesizeformat', 'first', 'float', 'forceescape', 'format', 'groupby', 'indent',
+            'int', 'join', 'last', 'length', 'list', 'lower', 'map', 'pprint', 'random', 'reject',
+            'rejectattr', 'replace', 'reverse', 'round', 'safe', 'select', 'selectattr', 'slice', 'sort',
+            'string', 'striptags', 'sum', 'title', 'trim', 'truncate', 'upper', 'urlencode', 'urlize',
+            'wordcount', 'wordwrap', 'xmlattr'
+          ]
+
+          sub_rules: [
+            {type: CompositeRule, sub_rules: [
+              { type: SequenceRule, scope: constant, sequence: '|' },
+              { type: ZeroOrMoreSpacesRule, scope: default },
+              { type: AnyWordRule, scope: filter }]
+            },
+          ]
+
+    - auto_edit:
+        - {auto_close_scopes: [jinja2_comment], scope: default}
+        - {auto_close_scopes: [jinja2_tag], scope: default}
+        - {auto_close_scopes: [jinja2_filter], scope: default}
+        - {auto_close_parens: ['{'], scope: default} #Will close the parens if it's not properly balanced
+        - {auto_skip_parens: ['}'], scope: jinja2_filter} #Will skip the close parens if it's properly balanced
+
+#     - comment: {type: multiLine, start: '{#', end: '#}', scope: jinja2_comment} # What's better?
+    - comment: {type: singleLine, sequence: '##'}
+
+
+    - outline:
+      - {type: Scope, scope: [jinja2_tag, cmd], define: method}
+      - {type: Scope, scope: [line_statement, cmd], define: method}
+

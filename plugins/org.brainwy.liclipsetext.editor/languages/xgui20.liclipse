@@ -1,0 +1,5535 @@
+inherit: BaseDefinitions # Signal that we want to start from base.liclipse
+
+scope_to_color_name: {
+ #All types of strings map to the string color
+ doubleQuotedMultiLineString: string,
+ singleQuotedMultiLineString: string,
+ doubleQuotedString: string,
+ singleQuotedString: string,
+}
+
+scope_definition_rules:
+  #Comments (inherited from base.liclipse)
+  - 'HashCommentRule'
+
+  #Multi Line Strings (inherited from base.liclipse)
+  #It's important that the multi-line comes before the single-line (otherwise the single line would always match first
+  #and would never allow the multi-line to work).
+  - 'SingleQuotedTriMultiLineRule'
+  - 'DoubleQuotedTriMultiLineRule'
+
+  # Single Line Strings (inherited from base.liclipse)
+  - 'SingleQuotedSingleLineRule'
+  - 'DoubleQuotedSingleLineRule'
+
+scope:
+  singleLineComment:
+    javadocTag: [TODO] #Any TODO inside a comment should have a different color.
+
+  default:
+    sub_rules: [
+      {type: CompositeRule, sub_rules: [
+        { type: MatchLineStartRule, scope: default},
+        { type: ZeroOrMoreSpacesRule, scope: default},
+        { type: AnyWordRule, scope: class}, #Anything before '=' (i.e.: editor = Widget) -- but does not match when there's a '.' in the start.
+        { type: OneOrMoreSpacesRule, scope: default},
+        { type: SequenceRule, scope: operator, sequence: '='}
+        ]
+      },
+      'NumberRule',
+    ]
+
+    keyword: ['BoolColumn', 'Boolean', 'CheckGroup', 'ColorButton', 'ColorColumn', 'Command', 'DateTime', 'DateTimeColumn', 'Dialog', 'Dict', 'DynamicTable', 'Editors', 'Filename', 'FixedArray', 'Float', 'FloatColumn', 'FloatQuantityColumn', 'FontButton', 'FractionColumn', 'FractionScalar', 'Group', 'HorizontalContainer', 'Image', 'Import', 'IntColumn', 'Integer', 'MultiDataChoice', 'MultiDataChoiceItem', 'Page', 'Pages', 'Scalar', 'ScalarColumn', 'Select1', 'Select1Column', 'SelectN', 'Splitter', 'SplitterPage', 'StringColumn', 'SubjectTable', 'Tab', 'Table', 'TableColumn', 'TableToolBar', 'TableView', 'Tabs', 'Text', 'ToolBar', 'ToolButton', 'Tree', 'TreeView', 'TreeWidget', 'TupleTable', 'Widget']
+
+    method: ['add_spacer', 'align', 'alignment', 'alternate_row_colors', 'auto_default', 'auto_fit', 'auto_raise', 'background_color_expr', 'background_color_refresh', 'base_class', 'buttons', 'calendar', 'caption', 'caption_cmd', 'caption_color_expr', 'caption_position', 'caption_refresh', 'captions_cmd', 'captions_refresh', 'category', 'check_cmd', 'checkable', 'class_name', 'cmd', 'columns_hidden_cmd', 'columns_hidden_refresh', 'context_menu_callback', 'controller', 'create_caption', 'create_page_cmd', 'data', 'data_refresh', 'decimals', 'default_unit', 'dimension', 'double_click_cmd', 'double_clicked_cmd', 'editing_status_cmd', 'enable_expr', 'enable_refresh', 'entity_orientation', 'expanded_expr', 'expanded_refresh', 'file_type', 'file_types_cmd', 'filename', 'float_format', 'format_expr', 'frame_shape', 'height', 'hidden_subject_indexes_cmd', 'hidden_subject_indexes_refresh', 'horizontal_header', 'horizontal_size_policy', 'horizontal_size_type', 'horizontal_stretchable', 'horstreth', 'img', 'indent', 'initial_dir_cmd', 'initial_filter_cmd', 'io_mode', 'is_main', 'item_captions', 'keep_state', 'key', 'layout_margin', 'layout_spacing', 'left_margin', 'margin_indent', 'margin_width', 'max_value_expr', 'min_max_refresh', 'min_value_expr', 'normalized', 'obtain_data_cmd', 'obtain_editor_id_cmd', 'one_based_index_expr', 'only_fraction_part', 'orientation', 'read_only_expr', 'read_only_refresh', 'refresh_on', 'resize_columns_automatically', 'root_is_decorated', 'searchable', 'selected_cell_cmd', 'selection_cmd', 'selection_mode', 'should_trigger_modify_while_import', 'should_validate_by_category', 'show_buttons', 'show_unit', 'show_vertical_header', 'show_whats_this', 'single_step', 'size_adjust_policy', 'sorting_enabled', 'spacer_policy', 'spacer_resize_policy', 'stretchable', 'style', 'sub_fields', 'text_alignment', 'tool_tip_expr', 'tool_tip_refresh', 'tooltip_callback', 'top_layout_margin', 'top_layout_spacing', 'unit_row_enabled', 'unit_style', 'unit_width', 'use_apply_on_request', 'use_child_headers', 'validation_callback', 'validation_expr', 'value', 'value_type', 'values', 'values_cmd', 'values_refresh', 'values_sorted', 'vertical_header', 'vertical_size_policy', 'vertical_size_type', 'visible_count', 'visible_expr', 'visible_refresh', 'whats_this', 'width']
+
+    number: ['False', 'True']
+
+    bracket: ['(', ')', '[', ']', '{', '}']
+
+    operator: [<, '>', '=', +, '-', /, '*', '!', '&', '|', '%', '~', ^, ',']
+
+
+file_extensions: [xgui2, xgui2_]
+filename: []
+name: Xgui20
+
+outline: #Note that we just specify 'flat' items here, the indent is later used to specify parent/children scopes.
+  - {type: Scope, scope: [default, class], define: class} #Wherever we have a class inside the default scope we'll show a class icon in the outline.
+
+indent: {
+  type: spaces, #Our example language uses spaces for indenting
+  outline_scopes: [class], #We have to say which outline entries actually create a new scope (so, indent and outline work toghether to specify the tree).
+  spaces_for_tabs: true, #Python folks recommend it.
+  tab_width: 4, #Note: optional (default is based on preferences for text editors in the eclipse preferences)
+}
+
+# Specify that the default comment action (Ctrl+/) deals with creating '#' at the start of the line
+comment: {type: singleLine, sequence: '#'}
+
+auto_edit:
+  - {auto_close_scopes: [doubleQuotedString, singleQuotedString, singleQuotedMultiLineString, doubleQuotedMultiLineString], scope: default} #To work, the scopes must be: SingleLineRule(sequence used for start/end) or MultiLineRule.
+  - {auto_close_parens: ['(', '[', '{'], scope: default} #Will close the parens if it's not properly balanced
+  - {auto_skip_parens: [')', ']', '}'], scope: default} #Will skip the close parens if it's properly balanced
+
+
+# Ok, basic structure in place, now, just config code-completion / templates for the language.
+code_completion: {
+  use_only_templates: true,
+}
+
+template_variables: {'DateTimeColumn_style': ["'datetime'", "'date'", "'time'"],
+ 'Dialog_style': ["'fixed'", "'scrollable'"],
+ 'FixedArray_style': ["'edit'", "'readonly'"],
+ 'Float_style': ["'edit'", "'label'", "'spin'"],
+ 'FractionScalar_style': ["'edit'", "'readonly'"],
+ 'Group_spacer_resize_policy': ["'Expanding'",
+                                "'MinimumExpanding'",
+                                "'Minimum'",
+                                "'Maximum'"],
+ 'Group_style': ["'groupbox'", "'indent'", "'invisible'"],
+ 'IntColumn_style': ["'edit'", "'spin'"],
+ 'Integer_style': ["'edit'",
+                   "'spin'",
+                   "'range'",
+                   "'range_span_and_spin'",
+                   "'slider_and_spin'"],
+ 'MultiDataChoiceItem_spacer_resize_policy': ["'MinimumExpanding'",
+                                              "'Minimum'"],
+ 'MultiDataChoice_spacer_resize_policy': ["'MinimumExpanding'", "'Minimum'"],
+ 'Page_spacer_resize_policy': ["'MinimumExpanding'",
+                               "'Minimum'",
+                               "'Maximum'",
+                               "'NoSpacer'"],
+ 'Scalar_style': ["'edit'", "'readonly'"],
+ 'Select1_style': ["'combo_box'",
+                   "'list_box'",
+                   "'check_combo_box'",
+                   "'radio_buttons'"],
+ 'SelectN_style': ["'check_list'",
+                   "'multi_selection'",
+                   "'check_list_with_toolbar'",
+                   "'two_lists'"],
+ 'Table_selection_mode': ["'single'",
+                          "'multi'",
+                          "'noselection'",
+                          "'single_row'",
+                          "'multi_row'"],
+ 'Text_style': ["'edit'",
+                "'label'",
+                "'passwd'",
+                "'multiline'",
+                "'python-code'",
+                "'direct-python-code'",
+                "'direct-multiline'",
+                "'html'"],
+ 'Tree_selection_mode': ["'single'", "'multiple'"],
+ 'Widget_style': ["'fixed'", "'scrollable'"],
+ 'align': ["'left'", "'right'"],
+ 'alignment': ["'AlignLeft'", "'AlignRight'", "'AlignCenter'"],
+ 'bool': ['True', 'False'],
+ 'buttons': ["'ok'"],
+ 'caption_position': ["'left'", "'right'"],
+ 'create_caption': ["'True'", "'False'"],
+ 'entity_orientation': ["'vertical'", "'horizontal'"],
+ 'file_type': ["'file'", "'directory'"],
+ 'frame_shape': ["'StyledPanel'", "'NoFrame'"],
+ 'horizontal_size_policy': ["'Minimum'", "'Fixed'"],
+ 'horizontal_size_type': ["'Preferred'", "'Fixed'", "'Expanding'"],
+ 'io_mode': ["'load'", "'save'"],
+ 'item_captions': [],
+ 'orientation': ["'horizontal'", "'vertical'"],
+ 'selection_mode': ["'single_cell'",
+                    "'multi_cell'",
+                    "'single_row'",
+                    "'multi_row'"],
+ 'size_adjust_policy': ["'ajust_to_contents_on_first_view'",
+                        "'ajust_to_contents'",
+                        "'ajust_to_minimum_contents_length'",
+                        "'ajust_to_minimum_contents_length_with_icon'"],
+ 'spacer_policy': ["'NoSpacer'", "'LeftSpacer'", "'RightSpacer'"],
+ 'spacer_resize_policy': ["'MinimumExpanding'", "'Minimum'", "'Maximum'"],
+ 'style': ["'date'", "'datetime'", "'time'"],
+ 'text_alignment': [],
+ 'unit_style': ["'none'", "'combo'", "'label'"],
+ 'value': ["'255'", "'0'", "'0'"],
+ 'value_type': ["'str'", "'int'", "'float'", "'bool'", '"select1"'],
+ 'values': [],
+ 'vertical_size_policy': ["'Expanding'", "'Fixed'", "'Preferred'"],
+ 'vertical_size_type': ["'Fixed'", "'Expanding'", "'Preferred'"]}
+
+
+
+
+templates: #Note: pressing ctrl+space twice will show only the templates
+- name: 'new_widget'
+  description: "Widget"
+  pattern: |-
+    editor = Widget
+        .class_name = '${MyXGuiWidget}'
+        .caption = ''
+        .controller = '${ControllerClass}'
+        .spacer_resize_policy = 'Minimum'
+
+# class_to_members = \
+# {
+# 'BoolColumn':[('caption', ''), ('caption_cmd', ''), ('cmd', ''), ('read_only_expr', ''), ('read_only_refresh', ''), ('stretchable', False), ('validation_expr', ''), ('visible_expr', ''), ('width', 75)],
+# 'Boolean':[('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('caption_position', ('left', 'right')), ('cmd', ''), ('create_caption', (True, False)), ('enable_expr', ''), ('horizontal_size_policy', ('Minimum', 'Fixed')), ('orientation', ('horizontal', 'vertical')), ('refresh_on', ''), ('tool_tip_expr', ''), ('value', False), ('visible_expr', '')],
+# 'CheckGroup':[('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('caption_refresh', ''), ('cmd', ''), ('create_caption', (True, False)), ('enable_expr', ''), ('enable_refresh', ''), ('expanded_expr', ''), ('expanded_refresh', ''), ('orientation', ('horizontal', 'vertical')), ('tool_tip_expr', ''), ('tool_tip_refresh', ''), ('visible_expr', ''), ('visible_refresh', '')],
+# 'ColorButton':[('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('cmd', ''), ('create_caption', (True, False)), ('enable_expr', ''), ('normalized', False), ('orientation', ('horizontal', 'vertical')), ('refresh_on', ''), ('tool_tip_expr', ''), ('value', (255, 0, 0)), ('visible_expr', '')],
+# 'ColorColumn':[('caption', ''), ('caption_cmd', ''), ('cmd', ''), ('read_only_expr', ''), ('read_only_refresh', ''), ('stretchable', False), ('validation_expr', ''), ('visible_expr', ''), ('width', 75)],
+# 'Command':[('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('cmd', ''), ('create_caption', (True, False)), ('enable_expr', ''), ('orientation', ('horizontal', 'vertical')), ('refresh_on', ''), ('tool_tip_expr', ''), ('visible_expr', '')],
+# 'DateTime':[('calendar', False), ('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('cmd', ''), ('create_caption', (True, False)), ('enable_expr', ''), ('max_value_expr', ''), ('min_value_expr', ''), ('orientation', ('horizontal', 'vertical')), ('refresh_on', ''), ('style', ['date', 'datetime', 'time']), ('tool_tip_expr', ''), ('visible_expr', '')],
+# 'DateTimeColumn':[('caption', ''), ('caption_cmd', ''), ('cmd', ''), ('format_expr', ''), ('read_only_expr', ''), ('read_only_refresh', ''), ('stretchable', False), ('style', ['datetime', 'date', 'time']), ('validation_expr', ''), ('visible_expr', ''), ('width', 75)],
+# 'Dialog':[('auto_default', False), ('base_class', 'QDialog'), ('buttons', ['ok']), ('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('class_name', 'MyDialog'), ('cmd', ''), ('controller', ''), ('enable_expr', ''), ('height', 480), ('layout_margin', 5), ('layout_spacing', 5), ('margin_indent', -1), ('margin_width', 110), ('refresh_on', ''), ('show_whats_this', False), ('spacer_resize_policy', ('MinimumExpanding', 'Minimum', 'Maximum')), ('style', ('fixed', 'scrollable')), ('tool_tip_expr', ''), ('top_layout_margin', 5), ('top_layout_spacing', 5), ('visible_expr', ''), ('width', 600)],
+# 'Dict':[('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('cmd', ''), ('create_caption', (True, False)), ('enable_expr', ''), ('orientation', ('horizontal', 'vertical')), ('refresh_on', ''), ('tool_tip_expr', ''), ('values_cmd', ''), ('visible_expr', '')],
+# 'DynamicTable':[('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('caption_refresh', ''), ('cmd', ''), ('create_caption', (True, False)), ('enable_expr', ''), ('enable_refresh', ''), ('horizontal_header', ''), ('horizontal_stretchable', False), ('orientation', ('horizontal', 'vertical')), ('refresh_on', ''), ('selection_cmd', ''), ('selection_mode', ('single_cell', 'multi_cell', 'single_row', 'multi_row')), ('tool_tip_expr', ''), ('tool_tip_refresh', ''), ('vertical_header', ''), ('visible_expr', ''), ('visible_refresh', '')],
+# 'Editors':[('caption', ''), ('cmd', ''), ('create_caption', (True, False)), ('create_page_cmd', ''), ('indent', True), ('obtain_data_cmd', ''), ('obtain_editor_id_cmd', ''), ('orientation', ('horizontal', 'vertical')), ('vertical_size_policy', ('Expanding', 'Fixed', 'Preferred'))],
+# 'Filename':[('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('cmd', ''), ('create_caption', (True, False)), ('enable_expr', ''), ('file_type', ('file', 'directory')), ('file_types_cmd', ''), ('initial_dir_cmd', ''), ('initial_filter_cmd', ''), ('io_mode', ('load', 'save')), ('orientation', ('horizontal', 'vertical')), ('refresh_on', ''), ('tool_tip_expr', ''), ('value', ''), ('visible_expr', '')],
+# 'FixedArray':[('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('caption_refresh', ''), ('cmd', ''), ('create_caption', (True, False)), ('enable_expr', ''), ('enable_refresh', ''), ('float_format', '%g'), ('max_value_expr', ''), ('min_max_refresh', ''), ('min_value_expr', ''), ('orientation', ('horizontal', 'vertical')), ('should_validate_by_category', True), ('show_unit', True), ('style', ('edit', 'readonly')), ('tool_tip_expr', ''), ('tool_tip_refresh', ''), ('visible_expr', ''), ('visible_refresh', '')],
+# 'Float':[('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('check_cmd', ''), ('cmd', ''), ('create_caption', (True, False)), ('decimals', 2), ('dimension', 1), ('enable_expr', ''), ('format_expr', '%g'), ('horstreth', 255), ('max_value_expr', ''), ('min_value_expr', ''), ('orientation', ('horizontal', 'vertical')), ('refresh_on', ''), ('single_step', 1.0), ('style', ('edit', 'label', 'spin')), ('tool_tip_expr', ''), ('unit_style', ('none', 'combo', 'label')), ('unit_width', 70), ('visible_expr', '')],
+# 'FloatColumn':[('caption', ''), ('caption_cmd', ''), ('cmd', ''), ('float_format', '%g'), ('read_only_expr', ''), ('read_only_refresh', ''), ('stretchable', False), ('validation_expr', ''), ('visible_expr', ''), ('width', 75)],
+# 'FloatQuantityColumn':[('caption', ''), ('caption_cmd', ''), ('category', ''), ('cmd', ''), ('default_unit', ''), ('float_format', '%g'), ('read_only_expr', ''), ('read_only_refresh', ''), ('show_unit', True), ('stretchable', False), ('unit_row_enabled', True), ('validation_expr', ''), ('visible_expr', ''), ('width', 75)],
+# 'FontButton':[('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('cmd', ''), ('create_caption', (True, False)), ('enable_expr', ''), ('orientation', ('horizontal', 'vertical')), ('refresh_on', ''), ('tool_tip_expr', ''), ('visible_expr', '')],
+# 'FractionColumn':[('caption', ''), ('caption_cmd', ''), ('category', ''), ('cmd', ''), ('float_format', '%g'), ('only_fraction_part', False), ('read_only_expr', ''), ('read_only_refresh', ''), ('show_unit', True), ('stretchable', False), ('unit_row_enabled', True), ('validation_expr', ''), ('visible_expr', ''), ('width', 75)],
+# 'FractionScalar':[('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('caption_refresh', ''), ('cmd', ''), ('create_caption', (True, False)), ('enable_expr', ''), ('enable_refresh', ''), ('float_format', '%g'), ('max_value_expr', ''), ('min_max_refresh', ''), ('min_value_expr', ''), ('orientation', ('horizontal', 'vertical')), ('should_validate_by_category', True), ('show_unit', True), ('style', ('edit', 'readonly')), ('tool_tip_expr', ''), ('tool_tip_refresh', ''), ('visible_expr', ''), ('visible_refresh', '')],
+# 'Group':[('add_spacer', False), ('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('checkable', False), ('cmd', ''), ('enable_expr', ''), ('horizontal_size_type', ('Preferred', 'Fixed', 'Expanding')), ('refresh_on', ''), ('spacer_resize_policy', ('Expanding', 'MinimumExpanding', 'Minimum', 'Maximum')), ('style', ('groupbox', 'indent', 'invisible')), ('tool_tip_expr', ''), ('vertical_size_type', ('Fixed', 'Expanding', 'Preferred')), ('visible_expr', '')],
+# 'HorizontalContainer':[('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('cmd', ''), ('create_caption', (True, False)), ('enable_expr', ''), ('orientation', ('horizontal', 'vertical')), ('refresh_on', ''), ('spacer_policy', ('NoSpacer', 'LeftSpacer', 'RightSpacer')), ('tool_tip_expr', ''), ('use_child_headers', False), ('visible_expr', '')],
+# 'Image':[('alignment', ('AlignLeft', 'AlignRight', 'AlignCenter')), ('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('cmd', ''), ('create_caption', (True, False)), ('enable_expr', ''), ('orientation', ('horizontal', 'vertical')), ('refresh_on', ''), ('tool_tip_expr', ''), ('visible_expr', '')],
+# 'Import':[('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('cmd', ''), ('data', ''), ('enable_expr', ''), ('filename', ''), ('refresh_on', ''), ('tool_tip_expr', ''), ('visible_expr', '')],
+# 'IntColumn':[('caption', ''), ('caption_cmd', ''), ('cmd', ''), ('float_format', '%g'), ('read_only_expr', ''), ('read_only_refresh', ''), ('stretchable', False), ('style', ('edit', 'spin')), ('validation_expr', ''), ('visible_expr', ''), ('width', 75)],
+# 'Integer':[('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('check_cmd', ''), ('cmd', ''), ('create_caption', (True, False)), ('dimension', 1), ('enable_expr', ''), ('format_expr', ''), ('max_value_expr', ''), ('min_value_expr', ''), ('one_based_index_expr', 'False'), ('orientation', ('horizontal', 'vertical')), ('read_only_expr', ''), ('refresh_on', ''), ('style', ('edit', 'spin', 'range', 'range_span_and_spin', 'slider_and_spin')), ('tool_tip_expr', ''), ('visible_expr', '')],
+# 'MultiDataChoice':[('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('cmd', ''), ('enable_expr', ''), ('item_captions', []), ('layout_margin', 30), ('layout_spacing', 60), ('refresh_on', ''), ('spacer_resize_policy', ('MinimumExpanding', 'Minimum')), ('tool_tip_expr', ''), ('visible_expr', '')],
+# 'MultiDataChoiceItem':[('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('cmd', ''), ('enable_expr', ''), ('key', ''), ('layout_margin', 0), ('layout_spacing', 0), ('refresh_on', ''), ('spacer_resize_policy', ('MinimumExpanding', 'Minimum')), ('tool_tip_expr', ''), ('visible_expr', '')],
+# 'Page':[('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('cmd', ''), ('enable_expr', ''), ('layout_margin', 5), ('layout_spacing', 5), ('refresh_on', ''), ('spacer_resize_policy', ('MinimumExpanding', 'Minimum', 'Maximum', 'NoSpacer')), ('tool_tip_expr', ''), ('value', None), ('visible_expr', '')],
+# 'Pages':[('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('cmd', ''), ('enable_expr', ''), ('layout_margin', 5), ('left_margin', 15), ('refresh_on', ''), ('spacer_resize_policy', ('MinimumExpanding', 'Minimum', 'Maximum')), ('tool_tip_expr', ''), ('visible_expr', '')],
+# 'Scalar':[('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('caption_refresh', ''), ('cmd', ''), ('create_caption', (True, False)), ('enable_expr', ''), ('enable_refresh', ''), ('float_format', '%g'), ('max_value_expr', ''), ('min_max_refresh', ''), ('min_value_expr', ''), ('orientation', ('horizontal', 'vertical')), ('should_validate_by_category', True), ('show_unit', True), ('style', ('edit', 'readonly')), ('tool_tip_expr', ''), ('tool_tip_refresh', ''), ('visible_expr', ''), ('visible_refresh', '')],
+# 'ScalarColumn':[('caption', ''), ('caption_cmd', ''), ('category', ''), ('cmd', ''), ('float_format', '%g'), ('read_only_expr', ''), ('read_only_refresh', ''), ('show_unit', True), ('stretchable', False), ('unit_row_enabled', True), ('validation_expr', ''), ('visible_expr', ''), ('width', 75)],
+# 'Select1':[('auto_fit', False), ('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('cmd', ''), ('create_caption', (True, False)), ('enable_expr', ''), ('orientation', ('horizontal', 'vertical')), ('refresh_on', ''), ('searchable', True), ('size_adjust_policy', ('ajust_to_contents_on_first_view', 'ajust_to_contents', 'ajust_to_minimum_contents_length', 'ajust_to_minimum_contents_length_with_icon')), ('style', ('combo_box', 'list_box', 'check_combo_box', 'radio_buttons')), ('tool_tip_expr', ''), ('values', []), ('values_cmd', ''), ('visible_count', 0), ('visible_expr', '')],
+# 'Select1Column':[('caption', ''), ('caption_cmd', ''), ('cmd', ''), ('read_only_expr', ''), ('read_only_refresh', ''), ('stretchable', False), ('validation_expr', ''), ('values_cmd', ''), ('visible_expr', ''), ('width', 75)],
+# 'SelectN':[('auto_fit', False), ('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('cmd', ''), ('create_caption', (True, False)), ('enable_expr', ''), ('orientation', ('horizontal', 'vertical')), ('refresh_on', ''), ('style', ('check_list', 'multi_selection', 'check_list_with_toolbar', 'two_lists')), ('tool_tip_expr', ''), ('values', []), ('values_cmd', ''), ('visible_count', 0), ('visible_expr', '')],
+# 'Splitter':[],
+# 'SplitterPage':[('enable_expr', ''), ('visible_expr', ''), ('visible_refresh', '')],
+# 'StringColumn':[('caption', ''), ('caption_cmd', ''), ('cmd', ''), ('read_only_expr', ''), ('read_only_refresh', ''), ('stretchable', False), ('validation_expr', ''), ('visible_expr', ''), ('width', 75)],
+# 'SubjectTable':[('alternate_row_colors', False), ('background_color_expr', ''), ('background_color_refresh', ''), ('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('caption_refresh', ''), ('cmd', ''), ('create_caption', (True, False)), ('editing_status_cmd', ''), ('enable_expr', ''), ('enable_refresh', ''), ('hidden_subject_indexes_cmd', ''), ('hidden_subject_indexes_refresh', ''), ('orientation', ('horizontal', 'vertical')), ('resize_columns_automatically', True), ('selected_cell_cmd', ''), ('selection_cmd', ''), ('selection_mode', ('single_cell', 'multi_cell', 'single_row', 'multi_row')), ('should_trigger_modify_while_import', False), ('show_vertical_header', False), ('sorting_enabled', False), ('tool_tip_expr', ''), ('tool_tip_refresh', ''), ('visible_expr', ''), ('visible_refresh', '')],
+# 'Tab':[('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('caption_refresh', ''), ('cmd', ''), ('create_caption', (True, False)), ('enable_expr', ''), ('enable_refresh', ''), ('orientation', ('horizontal', 'vertical')), ('spacer_resize_policy', ('MinimumExpanding', 'Minimum', 'Maximum')), ('tool_tip_expr', ''), ('tool_tip_refresh', ''), ('visible_expr', ''), ('visible_refresh', '')],
+# 'Table':[('alternate_row_colors', False), ('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('cmd', ''), ('double_clicked_cmd', ''), ('enable_expr', ''), ('entity_orientation', ('vertical', 'horizontal')), ('refresh_on', ''), ('selected_cell_cmd', ''), ('selection_mode', ('single', 'multi', 'noselection', 'single_row', 'multi_row')), ('show_vertical_header', False), ('tool_tip_expr', ''), ('vertical_header', ''), ('visible_expr', '')],
+# 'TableColumn':[('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('cmd', ''), ('enable_expr', ''), ('read_only_expr', ''), ('refresh_on', ''), ('stretchable', False), ('text_alignment', []), ('tool_tip_expr', ''), ('value_type', ('str', 'int', 'float', 'bool', '"select1"')), ('values', []), ('visible_expr', ''), ('width', 75)],
+# 'TableToolBar':[('enable_expr', ''), ('enable_refresh', ''), ('show_buttons', None), ('visible_expr', ''), ('visible_refresh', '')],
+# 'TableView':[('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('cmd', ''), ('create_caption', (True, False)), ('enable_expr', ''), ('orientation', ('horizontal', 'vertical')), ('refresh_on', ''), ('tool_tip_expr', ''), ('visible_expr', '')],
+# 'Tabs':[('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('cmd', ''), ('create_page_cmd', ''), ('enable_expr', ''), ('refresh_on', ''), ('tool_tip_expr', ''), ('values', []), ('values_cmd', ''), ('visible_expr', '')],
+# 'Text':[('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('cmd', ''), ('create_caption', (True, False)), ('enable_expr', ''), ('format_expr', ''), ('orientation', ('horizontal', 'vertical')), ('read_only_expr', ''), ('refresh_on', ''), ('style', ('edit', 'label', 'passwd', 'multiline', 'python-code', 'direct-python-code', 'direct-multiline', 'html')), ('tool_tip_expr', ''), ('validation_callback', None), ('value', ''), ('visible_expr', '')],
+# 'ToolBar':[('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('cmd', ''), ('enable_expr', ''), ('frame_shape', ('StyledPanel', 'NoFrame')), ('refresh_on', ''), ('spacer_resize_policy', ('MinimumExpanding', 'Minimum', 'Maximum')), ('tool_tip_expr', ''), ('visible_expr', '')],
+# 'ToolButton':[('align', ('left', 'right')), ('auto_raise', False), ('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('checkable', False), ('cmd', ''), ('enable_expr', ''), ('height', 20), ('img', ''), ('refresh_on', ''), ('tool_tip_expr', ''), ('visible_expr', ''), ('whats_this', ''), ('width', 20)],
+# 'Tree':[('caption', ''), ('captions_cmd', ''), ('captions_refresh', ''), ('cmd', ''), ('columns_hidden_cmd', ''), ('columns_hidden_refresh', ''), ('context_menu_callback', ''), ('create_caption', (True, False)), ('double_click_cmd', ''), ('enable_expr', ''), ('enable_refresh', ''), ('keep_state', False), ('orientation', ('horizontal', 'vertical')), ('root_is_decorated', False), ('selection_mode', ('single', 'multiple')), ('tooltip_callback', ''), ('values_cmd', ''), ('values_refresh', ''), ('values_sorted', False), ('visible_expr', ''), ('visible_refresh', '')],
+# 'TreeView':[('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('cmd', ''), ('create_caption', (True, False)), ('enable_expr', ''), ('orientation', ('horizontal', 'vertical')), ('refresh_on', ''), ('tool_tip_expr', ''), ('visible_expr', '')],
+# 'TreeWidget':[('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('cmd', ''), ('create_caption', (True, False)), ('enable_expr', ''), ('orientation', ('horizontal', 'vertical')), ('refresh_on', ''), ('tool_tip_expr', ''), ('visible_expr', '')],
+# 'TupleTable':[('alternate_row_colors', False), ('background_color_expr', ''), ('background_color_refresh', ''), ('caption', ''), ('caption_cmd', ''), ('caption_color_expr', ''), ('caption_refresh', ''), ('cmd', ''), ('create_caption', (True, False)), ('data_refresh', ''), ('editing_status_cmd', ''), ('enable_expr', ''), ('enable_refresh', ''), ('hidden_subject_indexes_cmd', ''), ('hidden_subject_indexes_refresh', ''), ('orientation', ('horizontal', 'vertical')), ('resize_columns_automatically', True), ('selected_cell_cmd', ''), ('selection_cmd', ''), ('selection_mode', ('single_cell', 'multi_cell', 'single_row', 'multi_row')), ('should_trigger_modify_while_import', False), ('show_vertical_header', False), ('sorting_enabled', False), ('tool_tip_expr', ''), ('tool_tip_refresh', ''), ('visible_expr', ''), ('visible_refresh', '')],
+# 'Widget':[('base_class', 'QWidget'), ('caption', ''), ('class_name', 'MyWidget'), ('controller', ''), ('height', None), ('is_main', False), ('layout_margin', 5), ('layout_spacing', 0), ('margin_indent', -1), ('margin_width', 110), ('show_whats_this', False), ('spacer_resize_policy', ('MinimumExpanding', 'Minimum', 'Maximum')), ('style', ('fixed', 'scrollable')), ('top_layout_margin', 5), ('top_layout_spacing', 0), ('use_apply_on_request', False), ('width', None)]
+# }
+
+
+
+
+
+
+- name: 'BoolColumn'
+  description: ""
+  pattern: "BoolColumn"
+  icon: class
+
+
+- name: 'Boolean'
+  description: ""
+  pattern: "Boolean"
+  icon: class
+
+
+- name: 'CheckGroup'
+  description: ""
+  pattern: "CheckGroup"
+  icon: class
+
+
+- name: 'ColorButton'
+  description: ""
+  pattern: "ColorButton"
+  icon: class
+
+
+- name: 'ColorColumn'
+  description: ""
+  pattern: "ColorColumn"
+  icon: class
+
+
+- name: 'Command'
+  description: ""
+  pattern: "Command"
+  icon: class
+
+
+- name: 'DateTime'
+  description: ""
+  pattern: "DateTime"
+  icon: class
+
+
+- name: 'DateTimeColumn'
+  description: ""
+  pattern: "DateTimeColumn"
+  icon: class
+
+
+- name: 'Dialog'
+  description: ""
+  pattern: "Dialog"
+  icon: class
+
+
+- name: 'Dict'
+  description: ""
+  pattern: "Dict"
+  icon: class
+
+
+- name: 'DynamicTable'
+  description: ""
+  pattern: "DynamicTable"
+  icon: class
+
+
+- name: 'Editors'
+  description: ""
+  pattern: "Editors"
+  icon: class
+
+
+- name: 'Filename'
+  description: ""
+  pattern: "Filename"
+  icon: class
+
+
+- name: 'FixedArray'
+  description: ""
+  pattern: "FixedArray"
+  icon: class
+
+
+- name: 'Float'
+  description: ""
+  pattern: "Float"
+  icon: class
+
+
+- name: 'FloatColumn'
+  description: ""
+  pattern: "FloatColumn"
+  icon: class
+
+
+- name: 'FloatQuantityColumn'
+  description: ""
+  pattern: "FloatQuantityColumn"
+  icon: class
+
+
+- name: 'FontButton'
+  description: ""
+  pattern: "FontButton"
+  icon: class
+
+
+- name: 'FractionColumn'
+  description: ""
+  pattern: "FractionColumn"
+  icon: class
+
+
+- name: 'FractionScalar'
+  description: ""
+  pattern: "FractionScalar"
+  icon: class
+
+
+- name: 'Group'
+  description: ""
+  pattern: "Group"
+  icon: class
+
+
+- name: 'HorizontalContainer'
+  description: ""
+  pattern: "HorizontalContainer"
+  icon: class
+
+
+- name: 'Image'
+  description: ""
+  pattern: "Image"
+  icon: class
+
+
+- name: 'Import'
+  description: ""
+  pattern: "Import"
+  icon: class
+
+
+- name: 'IntColumn'
+  description: ""
+  pattern: "IntColumn"
+  icon: class
+
+
+- name: 'Integer'
+  description: ""
+  pattern: "Integer"
+  icon: class
+
+
+- name: 'MultiDataChoice'
+  description: ""
+  pattern: "MultiDataChoice"
+  icon: class
+
+
+- name: 'MultiDataChoiceItem'
+  description: ""
+  pattern: "MultiDataChoiceItem"
+  icon: class
+
+
+- name: 'Page'
+  description: ""
+  pattern: "Page"
+  icon: class
+
+
+- name: 'Pages'
+  description: ""
+  pattern: "Pages"
+  icon: class
+
+
+- name: 'Scalar'
+  description: ""
+  pattern: "Scalar"
+  icon: class
+
+
+- name: 'ScalarColumn'
+  description: ""
+  pattern: "ScalarColumn"
+  icon: class
+
+
+- name: 'Select1'
+  description: ""
+  pattern: "Select1"
+  icon: class
+
+
+- name: 'Select1Column'
+  description: ""
+  pattern: "Select1Column"
+  icon: class
+
+
+- name: 'SelectN'
+  description: ""
+  pattern: "SelectN"
+  icon: class
+
+
+- name: 'Splitter'
+  description: ""
+  pattern: "Splitter"
+  icon: class
+
+
+- name: 'SplitterPage'
+  description: ""
+  pattern: "SplitterPage"
+  icon: class
+
+
+- name: 'StringColumn'
+  description: ""
+  pattern: "StringColumn"
+  icon: class
+
+
+- name: 'SubjectTable'
+  description: ""
+  pattern: "SubjectTable"
+  icon: class
+
+
+- name: 'Tab'
+  description: ""
+  pattern: "Tab"
+  icon: class
+
+
+- name: 'Table'
+  description: ""
+  pattern: "Table"
+  icon: class
+
+
+- name: 'TableColumn'
+  description: ""
+  pattern: "TableColumn"
+  icon: class
+
+
+- name: 'TableToolBar'
+  description: ""
+  pattern: "TableToolBar"
+  icon: class
+
+
+- name: 'TableView'
+  description: ""
+  pattern: "TableView"
+  icon: class
+
+
+- name: 'Tabs'
+  description: ""
+  pattern: "Tabs"
+  icon: class
+
+
+- name: 'Text'
+  description: ""
+  pattern: "Text"
+  icon: class
+
+
+- name: 'ToolBar'
+  description: ""
+  pattern: "ToolBar"
+  icon: class
+
+
+- name: 'ToolButton'
+  description: ""
+  pattern: "ToolButton"
+  icon: class
+
+
+- name: 'Tree'
+  description: ""
+  pattern: "Tree"
+  icon: class
+
+
+- name: 'TreeView'
+  description: ""
+  pattern: "TreeView"
+  icon: class
+
+
+- name: 'TreeWidget'
+  description: ""
+  pattern: "TreeWidget"
+  icon: class
+
+
+- name: 'TupleTable'
+  description: ""
+  pattern: "TupleTable"
+  icon: class
+
+
+- name: 'Widget'
+  description: ""
+  pattern: "Widget"
+  icon: class
+
+
+
+
+
+
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'BoolColumn']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'BoolColumn']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'BoolColumn']
+
+
+- name: '.read_only_expr'
+  description: "= "
+  pattern: ".read_only_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'BoolColumn']
+
+
+- name: '.read_only_refresh'
+  description: "= "
+  pattern: ".read_only_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'BoolColumn']
+
+
+- name: '.stretchable'
+  description: "= ${bool} (default:False)"
+  pattern: ".stretchable = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'BoolColumn']
+
+
+- name: '.validation_expr'
+  description: "= "
+  pattern: ".validation_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'BoolColumn']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'BoolColumn']
+
+
+- name: '.width'
+  description: "= '75'"
+  pattern: ".width = '75'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'BoolColumn']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Boolean']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Boolean']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Boolean']
+
+
+- name: '.caption_position'
+  description: "= ${caption_position} (default:'left')"
+  pattern: ".caption_position = ${caption_position}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Boolean']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Boolean']
+
+
+- name: '.create_caption'
+  description: "= ${create_caption} (default:'True')"
+  pattern: ".create_caption = ${create_caption}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Boolean']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Boolean']
+
+
+- name: '.horizontal_size_policy'
+  description: "= ${horizontal_size_policy} (default:'Minimum')"
+  pattern: ".horizontal_size_policy = ${horizontal_size_policy}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Boolean']
+
+
+- name: '.orientation'
+  description: "= ${orientation} (default:'horizontal')"
+  pattern: ".orientation = ${orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Boolean']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Boolean']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Boolean']
+
+
+- name: '.value'
+  description: "= ${bool} (default:False)"
+  pattern: ".value = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Boolean']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Boolean']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'CheckGroup']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'CheckGroup']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'CheckGroup']
+
+
+- name: '.caption_refresh'
+  description: "= "
+  pattern: ".caption_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'CheckGroup']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'CheckGroup']
+
+
+- name: '.create_caption'
+  description: "= ${create_caption} (default:'True')"
+  pattern: ".create_caption = ${create_caption}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'CheckGroup']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'CheckGroup']
+
+
+- name: '.enable_refresh'
+  description: "= "
+  pattern: ".enable_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'CheckGroup']
+
+
+- name: '.expanded_expr'
+  description: "= "
+  pattern: ".expanded_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'CheckGroup']
+
+
+- name: '.expanded_refresh'
+  description: "= "
+  pattern: ".expanded_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'CheckGroup']
+
+
+- name: '.orientation'
+  description: "= ${orientation} (default:'horizontal')"
+  pattern: ".orientation = ${orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'CheckGroup']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'CheckGroup']
+
+
+- name: '.tool_tip_refresh'
+  description: "= "
+  pattern: ".tool_tip_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'CheckGroup']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'CheckGroup']
+
+
+- name: '.visible_refresh'
+  description: "= "
+  pattern: ".visible_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'CheckGroup']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ColorButton']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ColorButton']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ColorButton']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ColorButton']
+
+
+- name: '.create_caption'
+  description: "= ${create_caption} (default:'True')"
+  pattern: ".create_caption = ${create_caption}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ColorButton']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ColorButton']
+
+
+- name: '.normalized'
+  description: "= ${bool} (default:False)"
+  pattern: ".normalized = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ColorButton']
+
+
+- name: '.orientation'
+  description: "= ${orientation} (default:'horizontal')"
+  pattern: ".orientation = ${orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ColorButton']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ColorButton']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ColorButton']
+
+
+- name: '.value'
+  description: "= ${value} (default:'255')"
+  pattern: ".value = ${value}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ColorButton']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ColorButton']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ColorColumn']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ColorColumn']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ColorColumn']
+
+
+- name: '.read_only_expr'
+  description: "= "
+  pattern: ".read_only_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ColorColumn']
+
+
+- name: '.read_only_refresh'
+  description: "= "
+  pattern: ".read_only_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ColorColumn']
+
+
+- name: '.stretchable'
+  description: "= ${bool} (default:False)"
+  pattern: ".stretchable = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ColorColumn']
+
+
+- name: '.validation_expr'
+  description: "= "
+  pattern: ".validation_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ColorColumn']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ColorColumn']
+
+
+- name: '.width'
+  description: "= '75'"
+  pattern: ".width = '75'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ColorColumn']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Command']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Command']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Command']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Command']
+
+
+- name: '.create_caption'
+  description: "= ${create_caption} (default:'True')"
+  pattern: ".create_caption = ${create_caption}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Command']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Command']
+
+
+- name: '.orientation'
+  description: "= ${orientation} (default:'horizontal')"
+  pattern: ".orientation = ${orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Command']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Command']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Command']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Command']
+
+
+- name: '.calendar'
+  description: "= ${bool} (default:False)"
+  pattern: ".calendar = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DateTime']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DateTime']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DateTime']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DateTime']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DateTime']
+
+
+- name: '.create_caption'
+  description: "= ${create_caption} (default:'True')"
+  pattern: ".create_caption = ${create_caption}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DateTime']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DateTime']
+
+
+- name: '.max_value_expr'
+  description: "= "
+  pattern: ".max_value_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DateTime']
+
+
+- name: '.min_value_expr'
+  description: "= "
+  pattern: ".min_value_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DateTime']
+
+
+- name: '.orientation'
+  description: "= ${orientation} (default:'horizontal')"
+  pattern: ".orientation = ${orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DateTime']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DateTime']
+
+
+- name: '.style'
+  description: "= ${style} (default:'date')"
+  pattern: ".style = ${style}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DateTime']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DateTime']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DateTime']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DateTimeColumn']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DateTimeColumn']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DateTimeColumn']
+
+
+- name: '.format_expr'
+  description: "= "
+  pattern: ".format_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DateTimeColumn']
+
+
+- name: '.read_only_expr'
+  description: "= "
+  pattern: ".read_only_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DateTimeColumn']
+
+
+- name: '.read_only_refresh'
+  description: "= "
+  pattern: ".read_only_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DateTimeColumn']
+
+
+- name: '.stretchable'
+  description: "= ${bool} (default:False)"
+  pattern: ".stretchable = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DateTimeColumn']
+
+
+- name: '.style'
+  description: "= ${DateTimeColumn_style} (default:'datetime')"
+  pattern: ".style = ${DateTimeColumn_style}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DateTimeColumn']
+
+
+- name: '.validation_expr'
+  description: "= "
+  pattern: ".validation_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DateTimeColumn']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DateTimeColumn']
+
+
+- name: '.width'
+  description: "= '75'"
+  pattern: ".width = '75'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DateTimeColumn']
+
+
+- name: '.auto_default'
+  description: "= ${bool} (default:False)"
+  pattern: ".auto_default = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dialog']
+
+
+- name: '.base_class'
+  description: "= 'QDialog'"
+  pattern: ".base_class = 'QDialog'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dialog']
+
+
+- name: '.buttons'
+  description: "= ${buttons} (default:'ok')"
+  pattern: ".buttons = ${buttons}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dialog']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dialog']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dialog']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dialog']
+
+
+- name: '.class_name'
+  description: "= 'MyDialog'"
+  pattern: ".class_name = 'MyDialog'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dialog']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dialog']
+
+
+- name: '.controller'
+  description: "= "
+  pattern: ".controller = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dialog']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dialog']
+
+
+- name: '.height'
+  description: "= '480'"
+  pattern: ".height = '480'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dialog']
+
+
+- name: '.layout_margin'
+  description: "= '5'"
+  pattern: ".layout_margin = '5'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dialog']
+
+
+- name: '.layout_spacing'
+  description: "= '5'"
+  pattern: ".layout_spacing = '5'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dialog']
+
+
+- name: '.margin_indent'
+  description: "= '-1'"
+  pattern: ".margin_indent = '-1'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dialog']
+
+
+- name: '.margin_width'
+  description: "= '110'"
+  pattern: ".margin_width = '110'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dialog']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dialog']
+
+
+- name: '.show_whats_this'
+  description: "= ${bool} (default:False)"
+  pattern: ".show_whats_this = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dialog']
+
+
+- name: '.spacer_resize_policy'
+  description: "= ${spacer_resize_policy} (default:'MinimumExpanding')"
+  pattern: ".spacer_resize_policy = ${spacer_resize_policy}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dialog']
+
+
+- name: '.style'
+  description: "= ${Dialog_style} (default:'fixed')"
+  pattern: ".style = ${Dialog_style}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dialog']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dialog']
+
+
+- name: '.top_layout_margin'
+  description: "= '5'"
+  pattern: ".top_layout_margin = '5'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dialog']
+
+
+- name: '.top_layout_spacing'
+  description: "= '5'"
+  pattern: ".top_layout_spacing = '5'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dialog']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dialog']
+
+
+- name: '.width'
+  description: "= '600'"
+  pattern: ".width = '600'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dialog']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dict']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dict']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dict']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dict']
+
+
+- name: '.create_caption'
+  description: "= ${create_caption} (default:'True')"
+  pattern: ".create_caption = ${create_caption}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dict']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dict']
+
+
+- name: '.orientation'
+  description: "= ${orientation} (default:'horizontal')"
+  pattern: ".orientation = ${orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dict']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dict']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dict']
+
+
+- name: '.values_cmd'
+  description: "= "
+  pattern: ".values_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dict']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Dict']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DynamicTable']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DynamicTable']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DynamicTable']
+
+
+- name: '.caption_refresh'
+  description: "= "
+  pattern: ".caption_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DynamicTable']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DynamicTable']
+
+
+- name: '.create_caption'
+  description: "= ${create_caption} (default:'True')"
+  pattern: ".create_caption = ${create_caption}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DynamicTable']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DynamicTable']
+
+
+- name: '.enable_refresh'
+  description: "= "
+  pattern: ".enable_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DynamicTable']
+
+
+- name: '.horizontal_header'
+  description: "= "
+  pattern: ".horizontal_header = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DynamicTable']
+
+
+- name: '.horizontal_stretchable'
+  description: "= ${bool} (default:False)"
+  pattern: ".horizontal_stretchable = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DynamicTable']
+
+
+- name: '.orientation'
+  description: "= ${orientation} (default:'horizontal')"
+  pattern: ".orientation = ${orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DynamicTable']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DynamicTable']
+
+
+- name: '.selection_cmd'
+  description: "= "
+  pattern: ".selection_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DynamicTable']
+
+
+- name: '.selection_mode'
+  description: "= ${selection_mode} (default:'single_cell')"
+  pattern: ".selection_mode = ${selection_mode}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DynamicTable']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DynamicTable']
+
+
+- name: '.tool_tip_refresh'
+  description: "= "
+  pattern: ".tool_tip_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DynamicTable']
+
+
+- name: '.vertical_header'
+  description: "= "
+  pattern: ".vertical_header = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DynamicTable']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DynamicTable']
+
+
+- name: '.visible_refresh'
+  description: "= "
+  pattern: ".visible_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'DynamicTable']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Editors']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Editors']
+
+
+- name: '.create_caption'
+  description: "= ${create_caption} (default:'True')"
+  pattern: ".create_caption = ${create_caption}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Editors']
+
+
+- name: '.create_page_cmd'
+  description: "= "
+  pattern: ".create_page_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Editors']
+
+
+- name: '.indent'
+  description: "= ${bool} (default:True)"
+  pattern: ".indent = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Editors']
+
+
+- name: '.obtain_data_cmd'
+  description: "= "
+  pattern: ".obtain_data_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Editors']
+
+
+- name: '.obtain_editor_id_cmd'
+  description: "= "
+  pattern: ".obtain_editor_id_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Editors']
+
+
+- name: '.orientation'
+  description: "= ${orientation} (default:'horizontal')"
+  pattern: ".orientation = ${orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Editors']
+
+
+- name: '.vertical_size_policy'
+  description: "= ${vertical_size_policy} (default:'Expanding')"
+  pattern: ".vertical_size_policy = ${vertical_size_policy}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Editors']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Filename']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Filename']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Filename']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Filename']
+
+
+- name: '.create_caption'
+  description: "= ${create_caption} (default:'True')"
+  pattern: ".create_caption = ${create_caption}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Filename']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Filename']
+
+
+- name: '.file_type'
+  description: "= ${file_type} (default:'file')"
+  pattern: ".file_type = ${file_type}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Filename']
+
+
+- name: '.file_types_cmd'
+  description: "= "
+  pattern: ".file_types_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Filename']
+
+
+- name: '.initial_dir_cmd'
+  description: "= "
+  pattern: ".initial_dir_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Filename']
+
+
+- name: '.initial_filter_cmd'
+  description: "= "
+  pattern: ".initial_filter_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Filename']
+
+
+- name: '.io_mode'
+  description: "= ${io_mode} (default:'load')"
+  pattern: ".io_mode = ${io_mode}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Filename']
+
+
+- name: '.orientation'
+  description: "= ${orientation} (default:'horizontal')"
+  pattern: ".orientation = ${orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Filename']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Filename']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Filename']
+
+
+- name: '.value'
+  description: "= "
+  pattern: ".value = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Filename']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Filename']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FixedArray']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FixedArray']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FixedArray']
+
+
+- name: '.caption_refresh'
+  description: "= "
+  pattern: ".caption_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FixedArray']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FixedArray']
+
+
+- name: '.create_caption'
+  description: "= ${create_caption} (default:'True')"
+  pattern: ".create_caption = ${create_caption}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FixedArray']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FixedArray']
+
+
+- name: '.enable_refresh'
+  description: "= "
+  pattern: ".enable_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FixedArray']
+
+
+- name: '.float_format'
+  description: "= '%g'"
+  pattern: ".float_format = '%g'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FixedArray']
+
+
+- name: '.max_value_expr'
+  description: "= "
+  pattern: ".max_value_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FixedArray']
+
+
+- name: '.min_max_refresh'
+  description: "= "
+  pattern: ".min_max_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FixedArray']
+
+
+- name: '.min_value_expr'
+  description: "= "
+  pattern: ".min_value_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FixedArray']
+
+
+- name: '.orientation'
+  description: "= ${orientation} (default:'horizontal')"
+  pattern: ".orientation = ${orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FixedArray']
+
+
+- name: '.should_validate_by_category'
+  description: "= ${bool} (default:True)"
+  pattern: ".should_validate_by_category = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FixedArray']
+
+
+- name: '.show_unit'
+  description: "= ${bool} (default:True)"
+  pattern: ".show_unit = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FixedArray']
+
+
+- name: '.style'
+  description: "= ${FixedArray_style} (default:'edit')"
+  pattern: ".style = ${FixedArray_style}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FixedArray']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FixedArray']
+
+
+- name: '.tool_tip_refresh'
+  description: "= "
+  pattern: ".tool_tip_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FixedArray']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FixedArray']
+
+
+- name: '.visible_refresh'
+  description: "= "
+  pattern: ".visible_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FixedArray']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Float']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Float']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Float']
+
+
+- name: '.check_cmd'
+  description: "= "
+  pattern: ".check_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Float']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Float']
+
+
+- name: '.create_caption'
+  description: "= ${create_caption} (default:'True')"
+  pattern: ".create_caption = ${create_caption}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Float']
+
+
+- name: '.decimals'
+  description: "= '2'"
+  pattern: ".decimals = '2'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Float']
+
+
+- name: '.dimension'
+  description: "= '1'"
+  pattern: ".dimension = '1'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Float']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Float']
+
+
+- name: '.format_expr'
+  description: "= '%g'"
+  pattern: ".format_expr = '%g'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Float']
+
+
+- name: '.horstreth'
+  description: "= '255'"
+  pattern: ".horstreth = '255'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Float']
+
+
+- name: '.max_value_expr'
+  description: "= "
+  pattern: ".max_value_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Float']
+
+
+- name: '.min_value_expr'
+  description: "= "
+  pattern: ".min_value_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Float']
+
+
+- name: '.orientation'
+  description: "= ${orientation} (default:'horizontal')"
+  pattern: ".orientation = ${orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Float']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Float']
+
+
+- name: '.single_step'
+  description: "= '1.0'"
+  pattern: ".single_step = '1.0'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Float']
+
+
+- name: '.style'
+  description: "= ${Float_style} (default:'edit')"
+  pattern: ".style = ${Float_style}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Float']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Float']
+
+
+- name: '.unit_style'
+  description: "= ${unit_style} (default:'none')"
+  pattern: ".unit_style = ${unit_style}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Float']
+
+
+- name: '.unit_width'
+  description: "= '70'"
+  pattern: ".unit_width = '70'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Float']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Float']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FloatColumn']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FloatColumn']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FloatColumn']
+
+
+- name: '.float_format'
+  description: "= '%g'"
+  pattern: ".float_format = '%g'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FloatColumn']
+
+
+- name: '.read_only_expr'
+  description: "= "
+  pattern: ".read_only_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FloatColumn']
+
+
+- name: '.read_only_refresh'
+  description: "= "
+  pattern: ".read_only_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FloatColumn']
+
+
+- name: '.stretchable'
+  description: "= ${bool} (default:False)"
+  pattern: ".stretchable = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FloatColumn']
+
+
+- name: '.validation_expr'
+  description: "= "
+  pattern: ".validation_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FloatColumn']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FloatColumn']
+
+
+- name: '.width'
+  description: "= '75'"
+  pattern: ".width = '75'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FloatColumn']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FloatQuantityColumn']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FloatQuantityColumn']
+
+
+- name: '.category'
+  description: "= "
+  pattern: ".category = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FloatQuantityColumn']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FloatQuantityColumn']
+
+
+- name: '.default_unit'
+  description: "= "
+  pattern: ".default_unit = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FloatQuantityColumn']
+
+
+- name: '.float_format'
+  description: "= '%g'"
+  pattern: ".float_format = '%g'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FloatQuantityColumn']
+
+
+- name: '.read_only_expr'
+  description: "= "
+  pattern: ".read_only_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FloatQuantityColumn']
+
+
+- name: '.read_only_refresh'
+  description: "= "
+  pattern: ".read_only_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FloatQuantityColumn']
+
+
+- name: '.show_unit'
+  description: "= ${bool} (default:True)"
+  pattern: ".show_unit = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FloatQuantityColumn']
+
+
+- name: '.stretchable'
+  description: "= ${bool} (default:False)"
+  pattern: ".stretchable = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FloatQuantityColumn']
+
+
+- name: '.unit_row_enabled'
+  description: "= ${bool} (default:True)"
+  pattern: ".unit_row_enabled = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FloatQuantityColumn']
+
+
+- name: '.validation_expr'
+  description: "= "
+  pattern: ".validation_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FloatQuantityColumn']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FloatQuantityColumn']
+
+
+- name: '.width'
+  description: "= '75'"
+  pattern: ".width = '75'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FloatQuantityColumn']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FontButton']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FontButton']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FontButton']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FontButton']
+
+
+- name: '.create_caption'
+  description: "= ${create_caption} (default:'True')"
+  pattern: ".create_caption = ${create_caption}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FontButton']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FontButton']
+
+
+- name: '.orientation'
+  description: "= ${orientation} (default:'horizontal')"
+  pattern: ".orientation = ${orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FontButton']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FontButton']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FontButton']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FontButton']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionColumn']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionColumn']
+
+
+- name: '.category'
+  description: "= "
+  pattern: ".category = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionColumn']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionColumn']
+
+
+- name: '.float_format'
+  description: "= '%g'"
+  pattern: ".float_format = '%g'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionColumn']
+
+
+- name: '.only_fraction_part'
+  description: "= ${bool} (default:False)"
+  pattern: ".only_fraction_part = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionColumn']
+
+
+- name: '.read_only_expr'
+  description: "= "
+  pattern: ".read_only_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionColumn']
+
+
+- name: '.read_only_refresh'
+  description: "= "
+  pattern: ".read_only_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionColumn']
+
+
+- name: '.show_unit'
+  description: "= ${bool} (default:True)"
+  pattern: ".show_unit = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionColumn']
+
+
+- name: '.stretchable'
+  description: "= ${bool} (default:False)"
+  pattern: ".stretchable = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionColumn']
+
+
+- name: '.unit_row_enabled'
+  description: "= ${bool} (default:True)"
+  pattern: ".unit_row_enabled = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionColumn']
+
+
+- name: '.validation_expr'
+  description: "= "
+  pattern: ".validation_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionColumn']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionColumn']
+
+
+- name: '.width'
+  description: "= '75'"
+  pattern: ".width = '75'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionColumn']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionScalar']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionScalar']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionScalar']
+
+
+- name: '.caption_refresh'
+  description: "= "
+  pattern: ".caption_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionScalar']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionScalar']
+
+
+- name: '.create_caption'
+  description: "= ${create_caption} (default:'True')"
+  pattern: ".create_caption = ${create_caption}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionScalar']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionScalar']
+
+
+- name: '.enable_refresh'
+  description: "= "
+  pattern: ".enable_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionScalar']
+
+
+- name: '.float_format'
+  description: "= '%g'"
+  pattern: ".float_format = '%g'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionScalar']
+
+
+- name: '.max_value_expr'
+  description: "= "
+  pattern: ".max_value_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionScalar']
+
+
+- name: '.min_max_refresh'
+  description: "= "
+  pattern: ".min_max_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionScalar']
+
+
+- name: '.min_value_expr'
+  description: "= "
+  pattern: ".min_value_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionScalar']
+
+
+- name: '.orientation'
+  description: "= ${orientation} (default:'horizontal')"
+  pattern: ".orientation = ${orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionScalar']
+
+
+- name: '.should_validate_by_category'
+  description: "= ${bool} (default:True)"
+  pattern: ".should_validate_by_category = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionScalar']
+
+
+- name: '.show_unit'
+  description: "= ${bool} (default:True)"
+  pattern: ".show_unit = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionScalar']
+
+
+- name: '.style'
+  description: "= ${FractionScalar_style} (default:'edit')"
+  pattern: ".style = ${FractionScalar_style}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionScalar']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionScalar']
+
+
+- name: '.tool_tip_refresh'
+  description: "= "
+  pattern: ".tool_tip_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionScalar']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionScalar']
+
+
+- name: '.visible_refresh'
+  description: "= "
+  pattern: ".visible_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'FractionScalar']
+
+
+- name: '.add_spacer'
+  description: "= ${bool} (default:False)"
+  pattern: ".add_spacer = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Group']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Group']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Group']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Group']
+
+
+- name: '.checkable'
+  description: "= ${bool} (default:False)"
+  pattern: ".checkable = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Group']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Group']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Group']
+
+
+- name: '.horizontal_size_type'
+  description: "= ${horizontal_size_type} (default:'Preferred')"
+  pattern: ".horizontal_size_type = ${horizontal_size_type}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Group']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Group']
+
+
+- name: '.spacer_resize_policy'
+  description: "= ${Group_spacer_resize_policy} (default:'Expanding')"
+  pattern: ".spacer_resize_policy = ${Group_spacer_resize_policy}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Group']
+
+
+- name: '.style'
+  description: "= ${Group_style} (default:'groupbox')"
+  pattern: ".style = ${Group_style}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Group']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Group']
+
+
+- name: '.vertical_size_type'
+  description: "= ${vertical_size_type} (default:'Fixed')"
+  pattern: ".vertical_size_type = ${vertical_size_type}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Group']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Group']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'HorizontalContainer']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'HorizontalContainer']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'HorizontalContainer']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'HorizontalContainer']
+
+
+- name: '.create_caption'
+  description: "= ${create_caption} (default:'True')"
+  pattern: ".create_caption = ${create_caption}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'HorizontalContainer']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'HorizontalContainer']
+
+
+- name: '.orientation'
+  description: "= ${orientation} (default:'horizontal')"
+  pattern: ".orientation = ${orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'HorizontalContainer']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'HorizontalContainer']
+
+
+- name: '.spacer_policy'
+  description: "= ${spacer_policy} (default:'NoSpacer')"
+  pattern: ".spacer_policy = ${spacer_policy}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'HorizontalContainer']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'HorizontalContainer']
+
+
+- name: '.use_child_headers'
+  description: "= ${bool} (default:False)"
+  pattern: ".use_child_headers = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'HorizontalContainer']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'HorizontalContainer']
+
+
+- name: '.alignment'
+  description: "= ${alignment} (default:'AlignLeft')"
+  pattern: ".alignment = ${alignment}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Image']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Image']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Image']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Image']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Image']
+
+
+- name: '.create_caption'
+  description: "= ${create_caption} (default:'True')"
+  pattern: ".create_caption = ${create_caption}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Image']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Image']
+
+
+- name: '.orientation'
+  description: "= ${orientation} (default:'horizontal')"
+  pattern: ".orientation = ${orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Image']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Image']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Image']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Image']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Import']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Import']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Import']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Import']
+
+
+- name: '.data'
+  description: "= "
+  pattern: ".data = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Import']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Import']
+
+
+- name: '.filename'
+  description: "= "
+  pattern: ".filename = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Import']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Import']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Import']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Import']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'IntColumn']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'IntColumn']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'IntColumn']
+
+
+- name: '.float_format'
+  description: "= '%g'"
+  pattern: ".float_format = '%g'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'IntColumn']
+
+
+- name: '.read_only_expr'
+  description: "= "
+  pattern: ".read_only_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'IntColumn']
+
+
+- name: '.read_only_refresh'
+  description: "= "
+  pattern: ".read_only_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'IntColumn']
+
+
+- name: '.stretchable'
+  description: "= ${bool} (default:False)"
+  pattern: ".stretchable = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'IntColumn']
+
+
+- name: '.style'
+  description: "= ${IntColumn_style} (default:'edit')"
+  pattern: ".style = ${IntColumn_style}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'IntColumn']
+
+
+- name: '.validation_expr'
+  description: "= "
+  pattern: ".validation_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'IntColumn']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'IntColumn']
+
+
+- name: '.width'
+  description: "= '75'"
+  pattern: ".width = '75'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'IntColumn']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Integer']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Integer']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Integer']
+
+
+- name: '.check_cmd'
+  description: "= "
+  pattern: ".check_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Integer']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Integer']
+
+
+- name: '.create_caption'
+  description: "= ${create_caption} (default:'True')"
+  pattern: ".create_caption = ${create_caption}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Integer']
+
+
+- name: '.dimension'
+  description: "= '1'"
+  pattern: ".dimension = '1'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Integer']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Integer']
+
+
+- name: '.format_expr'
+  description: "= "
+  pattern: ".format_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Integer']
+
+
+- name: '.max_value_expr'
+  description: "= "
+  pattern: ".max_value_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Integer']
+
+
+- name: '.min_value_expr'
+  description: "= "
+  pattern: ".min_value_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Integer']
+
+
+- name: '.one_based_index_expr'
+  description: "= 'False'"
+  pattern: ".one_based_index_expr = 'False'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Integer']
+
+
+- name: '.orientation'
+  description: "= ${orientation} (default:'horizontal')"
+  pattern: ".orientation = ${orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Integer']
+
+
+- name: '.read_only_expr'
+  description: "= "
+  pattern: ".read_only_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Integer']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Integer']
+
+
+- name: '.style'
+  description: "= ${Integer_style} (default:'edit')"
+  pattern: ".style = ${Integer_style}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Integer']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Integer']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Integer']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'MultiDataChoice']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'MultiDataChoice']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'MultiDataChoice']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'MultiDataChoice']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'MultiDataChoice']
+
+
+- name: '.item_captions'
+  description: "= ${item_captions}"
+  pattern: ".item_captions = ${item_captions}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'MultiDataChoice']
+
+
+- name: '.layout_margin'
+  description: "= '30'"
+  pattern: ".layout_margin = '30'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'MultiDataChoice']
+
+
+- name: '.layout_spacing'
+  description: "= '60'"
+  pattern: ".layout_spacing = '60'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'MultiDataChoice']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'MultiDataChoice']
+
+
+- name: '.spacer_resize_policy'
+  description: "= ${MultiDataChoice_spacer_resize_policy} (default:'MinimumExpanding')"
+  pattern: ".spacer_resize_policy = ${MultiDataChoice_spacer_resize_policy}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'MultiDataChoice']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'MultiDataChoice']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'MultiDataChoice']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'MultiDataChoiceItem']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'MultiDataChoiceItem']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'MultiDataChoiceItem']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'MultiDataChoiceItem']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'MultiDataChoiceItem']
+
+
+- name: '.key'
+  description: "= "
+  pattern: ".key = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'MultiDataChoiceItem']
+
+
+- name: '.layout_margin'
+  description: "= '0'"
+  pattern: ".layout_margin = '0'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'MultiDataChoiceItem']
+
+
+- name: '.layout_spacing'
+  description: "= '0'"
+  pattern: ".layout_spacing = '0'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'MultiDataChoiceItem']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'MultiDataChoiceItem']
+
+
+- name: '.spacer_resize_policy'
+  description: "= ${MultiDataChoiceItem_spacer_resize_policy} (default:'MinimumExpanding')"
+  pattern: ".spacer_resize_policy = ${MultiDataChoiceItem_spacer_resize_policy}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'MultiDataChoiceItem']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'MultiDataChoiceItem']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'MultiDataChoiceItem']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Page']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Page']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Page']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Page']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Page']
+
+
+- name: '.layout_margin'
+  description: "= '5'"
+  pattern: ".layout_margin = '5'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Page']
+
+
+- name: '.layout_spacing'
+  description: "= '5'"
+  pattern: ".layout_spacing = '5'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Page']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Page']
+
+
+- name: '.spacer_resize_policy'
+  description: "= ${Page_spacer_resize_policy} (default:'MinimumExpanding')"
+  pattern: ".spacer_resize_policy = ${Page_spacer_resize_policy}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Page']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Page']
+
+
+- name: '.value'
+  description: "= "
+  pattern: ".value = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Page']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Page']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Pages']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Pages']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Pages']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Pages']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Pages']
+
+
+- name: '.layout_margin'
+  description: "= '5'"
+  pattern: ".layout_margin = '5'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Pages']
+
+
+- name: '.left_margin'
+  description: "= '15'"
+  pattern: ".left_margin = '15'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Pages']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Pages']
+
+
+- name: '.spacer_resize_policy'
+  description: "= ${spacer_resize_policy} (default:'MinimumExpanding')"
+  pattern: ".spacer_resize_policy = ${spacer_resize_policy}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Pages']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Pages']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Pages']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Scalar']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Scalar']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Scalar']
+
+
+- name: '.caption_refresh'
+  description: "= "
+  pattern: ".caption_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Scalar']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Scalar']
+
+
+- name: '.create_caption'
+  description: "= ${create_caption} (default:'True')"
+  pattern: ".create_caption = ${create_caption}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Scalar']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Scalar']
+
+
+- name: '.enable_refresh'
+  description: "= "
+  pattern: ".enable_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Scalar']
+
+
+- name: '.float_format'
+  description: "= '%g'"
+  pattern: ".float_format = '%g'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Scalar']
+
+
+- name: '.max_value_expr'
+  description: "= "
+  pattern: ".max_value_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Scalar']
+
+
+- name: '.min_max_refresh'
+  description: "= "
+  pattern: ".min_max_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Scalar']
+
+
+- name: '.min_value_expr'
+  description: "= "
+  pattern: ".min_value_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Scalar']
+
+
+- name: '.orientation'
+  description: "= ${orientation} (default:'horizontal')"
+  pattern: ".orientation = ${orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Scalar']
+
+
+- name: '.should_validate_by_category'
+  description: "= ${bool} (default:True)"
+  pattern: ".should_validate_by_category = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Scalar']
+
+
+- name: '.show_unit'
+  description: "= ${bool} (default:True)"
+  pattern: ".show_unit = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Scalar']
+
+
+- name: '.style'
+  description: "= ${Scalar_style} (default:'edit')"
+  pattern: ".style = ${Scalar_style}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Scalar']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Scalar']
+
+
+- name: '.tool_tip_refresh'
+  description: "= "
+  pattern: ".tool_tip_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Scalar']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Scalar']
+
+
+- name: '.visible_refresh'
+  description: "= "
+  pattern: ".visible_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Scalar']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ScalarColumn']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ScalarColumn']
+
+
+- name: '.category'
+  description: "= "
+  pattern: ".category = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ScalarColumn']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ScalarColumn']
+
+
+- name: '.float_format'
+  description: "= '%g'"
+  pattern: ".float_format = '%g'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ScalarColumn']
+
+
+- name: '.read_only_expr'
+  description: "= "
+  pattern: ".read_only_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ScalarColumn']
+
+
+- name: '.read_only_refresh'
+  description: "= "
+  pattern: ".read_only_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ScalarColumn']
+
+
+- name: '.show_unit'
+  description: "= ${bool} (default:True)"
+  pattern: ".show_unit = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ScalarColumn']
+
+
+- name: '.stretchable'
+  description: "= ${bool} (default:False)"
+  pattern: ".stretchable = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ScalarColumn']
+
+
+- name: '.unit_row_enabled'
+  description: "= ${bool} (default:True)"
+  pattern: ".unit_row_enabled = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ScalarColumn']
+
+
+- name: '.validation_expr'
+  description: "= "
+  pattern: ".validation_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ScalarColumn']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ScalarColumn']
+
+
+- name: '.width'
+  description: "= '75'"
+  pattern: ".width = '75'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ScalarColumn']
+
+
+- name: '.auto_fit'
+  description: "= ${bool} (default:False)"
+  pattern: ".auto_fit = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Select1']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Select1']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Select1']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Select1']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Select1']
+
+
+- name: '.create_caption'
+  description: "= ${create_caption} (default:'True')"
+  pattern: ".create_caption = ${create_caption}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Select1']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Select1']
+
+
+- name: '.orientation'
+  description: "= ${orientation} (default:'horizontal')"
+  pattern: ".orientation = ${orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Select1']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Select1']
+
+
+- name: '.searchable'
+  description: "= ${bool} (default:True)"
+  pattern: ".searchable = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Select1']
+
+
+- name: '.size_adjust_policy'
+  description: "= ${size_adjust_policy} (default:'ajust_to_contents_on_first_view')"
+  pattern: ".size_adjust_policy = ${size_adjust_policy}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Select1']
+
+
+- name: '.style'
+  description: "= ${Select1_style} (default:'combo_box')"
+  pattern: ".style = ${Select1_style}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Select1']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Select1']
+
+
+- name: '.values'
+  description: "= ${values}"
+  pattern: ".values = ${values}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Select1']
+
+
+- name: '.values_cmd'
+  description: "= "
+  pattern: ".values_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Select1']
+
+
+- name: '.visible_count'
+  description: "= '0'"
+  pattern: ".visible_count = '0'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Select1']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Select1']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Select1Column']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Select1Column']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Select1Column']
+
+
+- name: '.read_only_expr'
+  description: "= "
+  pattern: ".read_only_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Select1Column']
+
+
+- name: '.read_only_refresh'
+  description: "= "
+  pattern: ".read_only_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Select1Column']
+
+
+- name: '.stretchable'
+  description: "= ${bool} (default:False)"
+  pattern: ".stretchable = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Select1Column']
+
+
+- name: '.validation_expr'
+  description: "= "
+  pattern: ".validation_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Select1Column']
+
+
+- name: '.values_cmd'
+  description: "= "
+  pattern: ".values_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Select1Column']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Select1Column']
+
+
+- name: '.width'
+  description: "= '75'"
+  pattern: ".width = '75'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Select1Column']
+
+
+- name: '.auto_fit'
+  description: "= ${bool} (default:False)"
+  pattern: ".auto_fit = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SelectN']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SelectN']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SelectN']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SelectN']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SelectN']
+
+
+- name: '.create_caption'
+  description: "= ${create_caption} (default:'True')"
+  pattern: ".create_caption = ${create_caption}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SelectN']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SelectN']
+
+
+- name: '.orientation'
+  description: "= ${orientation} (default:'horizontal')"
+  pattern: ".orientation = ${orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SelectN']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SelectN']
+
+
+- name: '.style'
+  description: "= ${SelectN_style} (default:'check_list')"
+  pattern: ".style = ${SelectN_style}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SelectN']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SelectN']
+
+
+- name: '.values'
+  description: "= ${values}"
+  pattern: ".values = ${values}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SelectN']
+
+
+- name: '.values_cmd'
+  description: "= "
+  pattern: ".values_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SelectN']
+
+
+- name: '.visible_count'
+  description: "= '0'"
+  pattern: ".visible_count = '0'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SelectN']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SelectN']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SplitterPage']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SplitterPage']
+
+
+- name: '.visible_refresh'
+  description: "= "
+  pattern: ".visible_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SplitterPage']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'StringColumn']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'StringColumn']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'StringColumn']
+
+
+- name: '.read_only_expr'
+  description: "= "
+  pattern: ".read_only_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'StringColumn']
+
+
+- name: '.read_only_refresh'
+  description: "= "
+  pattern: ".read_only_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'StringColumn']
+
+
+- name: '.stretchable'
+  description: "= ${bool} (default:False)"
+  pattern: ".stretchable = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'StringColumn']
+
+
+- name: '.validation_expr'
+  description: "= "
+  pattern: ".validation_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'StringColumn']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'StringColumn']
+
+
+- name: '.width'
+  description: "= '75'"
+  pattern: ".width = '75'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'StringColumn']
+
+
+- name: '.alternate_row_colors'
+  description: "= ${bool} (default:False)"
+  pattern: ".alternate_row_colors = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SubjectTable']
+
+
+- name: '.background_color_expr'
+  description: "= "
+  pattern: ".background_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SubjectTable']
+
+
+- name: '.background_color_refresh'
+  description: "= "
+  pattern: ".background_color_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SubjectTable']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SubjectTable']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SubjectTable']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SubjectTable']
+
+
+- name: '.caption_refresh'
+  description: "= "
+  pattern: ".caption_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SubjectTable']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SubjectTable']
+
+
+- name: '.create_caption'
+  description: "= ${create_caption} (default:'True')"
+  pattern: ".create_caption = ${create_caption}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SubjectTable']
+
+
+- name: '.editing_status_cmd'
+  description: "= "
+  pattern: ".editing_status_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SubjectTable']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SubjectTable']
+
+
+- name: '.enable_refresh'
+  description: "= "
+  pattern: ".enable_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SubjectTable']
+
+
+- name: '.hidden_subject_indexes_cmd'
+  description: "= "
+  pattern: ".hidden_subject_indexes_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SubjectTable']
+
+
+- name: '.hidden_subject_indexes_refresh'
+  description: "= "
+  pattern: ".hidden_subject_indexes_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SubjectTable']
+
+
+- name: '.orientation'
+  description: "= ${orientation} (default:'horizontal')"
+  pattern: ".orientation = ${orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SubjectTable']
+
+
+- name: '.resize_columns_automatically'
+  description: "= ${bool} (default:True)"
+  pattern: ".resize_columns_automatically = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SubjectTable']
+
+
+- name: '.selected_cell_cmd'
+  description: "= "
+  pattern: ".selected_cell_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SubjectTable']
+
+
+- name: '.selection_cmd'
+  description: "= "
+  pattern: ".selection_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SubjectTable']
+
+
+- name: '.selection_mode'
+  description: "= ${selection_mode} (default:'single_cell')"
+  pattern: ".selection_mode = ${selection_mode}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SubjectTable']
+
+
+- name: '.should_trigger_modify_while_import'
+  description: "= ${bool} (default:False)"
+  pattern: ".should_trigger_modify_while_import = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SubjectTable']
+
+
+- name: '.show_vertical_header'
+  description: "= ${bool} (default:False)"
+  pattern: ".show_vertical_header = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SubjectTable']
+
+
+- name: '.sorting_enabled'
+  description: "= ${bool} (default:False)"
+  pattern: ".sorting_enabled = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SubjectTable']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SubjectTable']
+
+
+- name: '.tool_tip_refresh'
+  description: "= "
+  pattern: ".tool_tip_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SubjectTable']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SubjectTable']
+
+
+- name: '.visible_refresh'
+  description: "= "
+  pattern: ".visible_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'SubjectTable']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tab']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tab']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tab']
+
+
+- name: '.caption_refresh'
+  description: "= "
+  pattern: ".caption_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tab']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tab']
+
+
+- name: '.create_caption'
+  description: "= ${create_caption} (default:'True')"
+  pattern: ".create_caption = ${create_caption}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tab']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tab']
+
+
+- name: '.enable_refresh'
+  description: "= "
+  pattern: ".enable_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tab']
+
+
+- name: '.orientation'
+  description: "= ${orientation} (default:'horizontal')"
+  pattern: ".orientation = ${orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tab']
+
+
+- name: '.spacer_resize_policy'
+  description: "= ${spacer_resize_policy} (default:'MinimumExpanding')"
+  pattern: ".spacer_resize_policy = ${spacer_resize_policy}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tab']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tab']
+
+
+- name: '.tool_tip_refresh'
+  description: "= "
+  pattern: ".tool_tip_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tab']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tab']
+
+
+- name: '.visible_refresh'
+  description: "= "
+  pattern: ".visible_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tab']
+
+
+- name: '.alternate_row_colors'
+  description: "= ${bool} (default:False)"
+  pattern: ".alternate_row_colors = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Table']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Table']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Table']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Table']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Table']
+
+
+- name: '.double_clicked_cmd'
+  description: "= "
+  pattern: ".double_clicked_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Table']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Table']
+
+
+- name: '.entity_orientation'
+  description: "= ${entity_orientation} (default:'vertical')"
+  pattern: ".entity_orientation = ${entity_orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Table']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Table']
+
+
+- name: '.selected_cell_cmd'
+  description: "= "
+  pattern: ".selected_cell_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Table']
+
+
+- name: '.selection_mode'
+  description: "= ${Table_selection_mode} (default:'single')"
+  pattern: ".selection_mode = ${Table_selection_mode}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Table']
+
+
+- name: '.show_vertical_header'
+  description: "= ${bool} (default:False)"
+  pattern: ".show_vertical_header = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Table']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Table']
+
+
+- name: '.vertical_header'
+  description: "= "
+  pattern: ".vertical_header = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Table']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Table']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableColumn']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableColumn']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableColumn']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableColumn']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableColumn']
+
+
+- name: '.read_only_expr'
+  description: "= "
+  pattern: ".read_only_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableColumn']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableColumn']
+
+
+- name: '.stretchable'
+  description: "= ${bool} (default:False)"
+  pattern: ".stretchable = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableColumn']
+
+
+- name: '.text_alignment'
+  description: "= ${text_alignment}"
+  pattern: ".text_alignment = ${text_alignment}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableColumn']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableColumn']
+
+
+- name: '.value_type'
+  description: "= ${value_type} (default:'str')"
+  pattern: ".value_type = ${value_type}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableColumn']
+
+
+- name: '.values'
+  description: "= ${values}"
+  pattern: ".values = ${values}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableColumn']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableColumn']
+
+
+- name: '.width'
+  description: "= '75'"
+  pattern: ".width = '75'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableColumn']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableToolBar']
+
+
+- name: '.enable_refresh'
+  description: "= "
+  pattern: ".enable_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableToolBar']
+
+
+- name: '.show_buttons'
+  description: "= "
+  pattern: ".show_buttons = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableToolBar']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableToolBar']
+
+
+- name: '.visible_refresh'
+  description: "= "
+  pattern: ".visible_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableToolBar']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableView']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableView']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableView']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableView']
+
+
+- name: '.create_caption'
+  description: "= ${create_caption} (default:'True')"
+  pattern: ".create_caption = ${create_caption}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableView']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableView']
+
+
+- name: '.orientation'
+  description: "= ${orientation} (default:'horizontal')"
+  pattern: ".orientation = ${orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableView']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableView']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableView']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TableView']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tabs']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tabs']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tabs']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tabs']
+
+
+- name: '.create_page_cmd'
+  description: "= "
+  pattern: ".create_page_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tabs']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tabs']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tabs']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tabs']
+
+
+- name: '.values'
+  description: "= ${values}"
+  pattern: ".values = ${values}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tabs']
+
+
+- name: '.values_cmd'
+  description: "= "
+  pattern: ".values_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tabs']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tabs']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Text']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Text']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Text']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Text']
+
+
+- name: '.create_caption'
+  description: "= ${create_caption} (default:'True')"
+  pattern: ".create_caption = ${create_caption}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Text']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Text']
+
+
+- name: '.format_expr'
+  description: "= "
+  pattern: ".format_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Text']
+
+
+- name: '.orientation'
+  description: "= ${orientation} (default:'horizontal')"
+  pattern: ".orientation = ${orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Text']
+
+
+- name: '.read_only_expr'
+  description: "= "
+  pattern: ".read_only_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Text']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Text']
+
+
+- name: '.style'
+  description: "= ${Text_style} (default:'edit')"
+  pattern: ".style = ${Text_style}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Text']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Text']
+
+
+- name: '.validation_callback'
+  description: "= "
+  pattern: ".validation_callback = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Text']
+
+
+- name: '.value'
+  description: "= "
+  pattern: ".value = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Text']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Text']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ToolBar']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ToolBar']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ToolBar']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ToolBar']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ToolBar']
+
+
+- name: '.frame_shape'
+  description: "= ${frame_shape} (default:'StyledPanel')"
+  pattern: ".frame_shape = ${frame_shape}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ToolBar']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ToolBar']
+
+
+- name: '.spacer_resize_policy'
+  description: "= ${spacer_resize_policy} (default:'MinimumExpanding')"
+  pattern: ".spacer_resize_policy = ${spacer_resize_policy}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ToolBar']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ToolBar']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ToolBar']
+
+
+- name: '.align'
+  description: "= ${align} (default:'left')"
+  pattern: ".align = ${align}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ToolButton']
+
+
+- name: '.auto_raise'
+  description: "= ${bool} (default:False)"
+  pattern: ".auto_raise = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ToolButton']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ToolButton']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ToolButton']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ToolButton']
+
+
+- name: '.checkable'
+  description: "= ${bool} (default:False)"
+  pattern: ".checkable = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ToolButton']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ToolButton']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ToolButton']
+
+
+- name: '.height'
+  description: "= '20'"
+  pattern: ".height = '20'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ToolButton']
+
+
+- name: '.img'
+  description: "= "
+  pattern: ".img = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ToolButton']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ToolButton']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ToolButton']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ToolButton']
+
+
+- name: '.whats_this'
+  description: "= "
+  pattern: ".whats_this = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ToolButton']
+
+
+- name: '.width'
+  description: "= '20'"
+  pattern: ".width = '20'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'ToolButton']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tree']
+
+
+- name: '.captions_cmd'
+  description: "= "
+  pattern: ".captions_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tree']
+
+
+- name: '.captions_refresh'
+  description: "= "
+  pattern: ".captions_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tree']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tree']
+
+
+- name: '.columns_hidden_cmd'
+  description: "= "
+  pattern: ".columns_hidden_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tree']
+
+
+- name: '.columns_hidden_refresh'
+  description: "= "
+  pattern: ".columns_hidden_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tree']
+
+
+- name: '.context_menu_callback'
+  description: "= "
+  pattern: ".context_menu_callback = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tree']
+
+
+- name: '.create_caption'
+  description: "= ${create_caption} (default:'True')"
+  pattern: ".create_caption = ${create_caption}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tree']
+
+
+- name: '.double_click_cmd'
+  description: "= "
+  pattern: ".double_click_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tree']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tree']
+
+
+- name: '.enable_refresh'
+  description: "= "
+  pattern: ".enable_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tree']
+
+
+- name: '.keep_state'
+  description: "= ${bool} (default:False)"
+  pattern: ".keep_state = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tree']
+
+
+- name: '.orientation'
+  description: "= ${orientation} (default:'horizontal')"
+  pattern: ".orientation = ${orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tree']
+
+
+- name: '.root_is_decorated'
+  description: "= ${bool} (default:False)"
+  pattern: ".root_is_decorated = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tree']
+
+
+- name: '.selection_mode'
+  description: "= ${Tree_selection_mode} (default:'single')"
+  pattern: ".selection_mode = ${Tree_selection_mode}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tree']
+
+
+- name: '.tooltip_callback'
+  description: "= "
+  pattern: ".tooltip_callback = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tree']
+
+
+- name: '.values_cmd'
+  description: "= "
+  pattern: ".values_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tree']
+
+
+- name: '.values_refresh'
+  description: "= "
+  pattern: ".values_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tree']
+
+
+- name: '.values_sorted'
+  description: "= ${bool} (default:False)"
+  pattern: ".values_sorted = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tree']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tree']
+
+
+- name: '.visible_refresh'
+  description: "= "
+  pattern: ".visible_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Tree']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TreeView']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TreeView']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TreeView']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TreeView']
+
+
+- name: '.create_caption'
+  description: "= ${create_caption} (default:'True')"
+  pattern: ".create_caption = ${create_caption}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TreeView']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TreeView']
+
+
+- name: '.orientation'
+  description: "= ${orientation} (default:'horizontal')"
+  pattern: ".orientation = ${orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TreeView']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TreeView']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TreeView']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TreeView']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TreeWidget']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TreeWidget']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TreeWidget']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TreeWidget']
+
+
+- name: '.create_caption'
+  description: "= ${create_caption} (default:'True')"
+  pattern: ".create_caption = ${create_caption}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TreeWidget']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TreeWidget']
+
+
+- name: '.orientation'
+  description: "= ${orientation} (default:'horizontal')"
+  pattern: ".orientation = ${orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TreeWidget']
+
+
+- name: '.refresh_on'
+  description: "= "
+  pattern: ".refresh_on = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TreeWidget']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TreeWidget']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TreeWidget']
+
+
+- name: '.alternate_row_colors'
+  description: "= ${bool} (default:False)"
+  pattern: ".alternate_row_colors = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TupleTable']
+
+
+- name: '.background_color_expr'
+  description: "= "
+  pattern: ".background_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TupleTable']
+
+
+- name: '.background_color_refresh'
+  description: "= "
+  pattern: ".background_color_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TupleTable']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TupleTable']
+
+
+- name: '.caption_cmd'
+  description: "= "
+  pattern: ".caption_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TupleTable']
+
+
+- name: '.caption_color_expr'
+  description: "= "
+  pattern: ".caption_color_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TupleTable']
+
+
+- name: '.caption_refresh'
+  description: "= "
+  pattern: ".caption_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TupleTable']
+
+
+- name: '.cmd'
+  description: "= "
+  pattern: ".cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TupleTable']
+
+
+- name: '.create_caption'
+  description: "= ${create_caption} (default:'True')"
+  pattern: ".create_caption = ${create_caption}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TupleTable']
+
+
+- name: '.data_refresh'
+  description: "= "
+  pattern: ".data_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TupleTable']
+
+
+- name: '.editing_status_cmd'
+  description: "= "
+  pattern: ".editing_status_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TupleTable']
+
+
+- name: '.enable_expr'
+  description: "= "
+  pattern: ".enable_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TupleTable']
+
+
+- name: '.enable_refresh'
+  description: "= "
+  pattern: ".enable_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TupleTable']
+
+
+- name: '.hidden_subject_indexes_cmd'
+  description: "= "
+  pattern: ".hidden_subject_indexes_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TupleTable']
+
+
+- name: '.hidden_subject_indexes_refresh'
+  description: "= "
+  pattern: ".hidden_subject_indexes_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TupleTable']
+
+
+- name: '.orientation'
+  description: "= ${orientation} (default:'horizontal')"
+  pattern: ".orientation = ${orientation}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TupleTable']
+
+
+- name: '.resize_columns_automatically'
+  description: "= ${bool} (default:True)"
+  pattern: ".resize_columns_automatically = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TupleTable']
+
+
+- name: '.selected_cell_cmd'
+  description: "= "
+  pattern: ".selected_cell_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TupleTable']
+
+
+- name: '.selection_cmd'
+  description: "= "
+  pattern: ".selection_cmd = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TupleTable']
+
+
+- name: '.selection_mode'
+  description: "= ${selection_mode} (default:'single_cell')"
+  pattern: ".selection_mode = ${selection_mode}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TupleTable']
+
+
+- name: '.should_trigger_modify_while_import'
+  description: "= ${bool} (default:False)"
+  pattern: ".should_trigger_modify_while_import = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TupleTable']
+
+
+- name: '.show_vertical_header'
+  description: "= ${bool} (default:False)"
+  pattern: ".show_vertical_header = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TupleTable']
+
+
+- name: '.sorting_enabled'
+  description: "= ${bool} (default:False)"
+  pattern: ".sorting_enabled = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TupleTable']
+
+
+- name: '.tool_tip_expr'
+  description: "= "
+  pattern: ".tool_tip_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TupleTable']
+
+
+- name: '.tool_tip_refresh'
+  description: "= "
+  pattern: ".tool_tip_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TupleTable']
+
+
+- name: '.visible_expr'
+  description: "= "
+  pattern: ".visible_expr = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TupleTable']
+
+
+- name: '.visible_refresh'
+  description: "= "
+  pattern: ".visible_refresh = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'TupleTable']
+
+
+- name: '.base_class'
+  description: "= 'QWidget'"
+  pattern: ".base_class = 'QWidget'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Widget']
+
+
+- name: '.caption'
+  description: "= "
+  pattern: ".caption = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Widget']
+
+
+- name: '.class_name'
+  description: "= 'MyWidget'"
+  pattern: ".class_name = 'MyWidget'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Widget']
+
+
+- name: '.controller'
+  description: "= "
+  pattern: ".controller = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Widget']
+
+
+- name: '.height'
+  description: "= "
+  pattern: ".height = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Widget']
+
+
+- name: '.is_main'
+  description: "= ${bool} (default:False)"
+  pattern: ".is_main = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Widget']
+
+
+- name: '.layout_margin'
+  description: "= '5'"
+  pattern: ".layout_margin = '5'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Widget']
+
+
+- name: '.layout_spacing'
+  description: "= '0'"
+  pattern: ".layout_spacing = '0'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Widget']
+
+
+- name: '.margin_indent'
+  description: "= '-1'"
+  pattern: ".margin_indent = '-1'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Widget']
+
+
+- name: '.margin_width'
+  description: "= '110'"
+  pattern: ".margin_width = '110'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Widget']
+
+
+- name: '.show_whats_this'
+  description: "= ${bool} (default:False)"
+  pattern: ".show_whats_this = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Widget']
+
+
+- name: '.spacer_resize_policy'
+  description: "= ${spacer_resize_policy} (default:'MinimumExpanding')"
+  pattern: ".spacer_resize_policy = ${spacer_resize_policy}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Widget']
+
+
+- name: '.style'
+  description: "= ${Widget_style} (default:'fixed')"
+  pattern: ".style = ${Widget_style}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Widget']
+
+
+- name: '.top_layout_margin'
+  description: "= '5'"
+  pattern: ".top_layout_margin = '5'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Widget']
+
+
+- name: '.top_layout_spacing'
+  description: "= '0'"
+  pattern: ".top_layout_spacing = '0'"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Widget']
+
+
+- name: '.use_apply_on_request'
+  description: "= ${bool} (default:False)"
+  pattern: ".use_apply_on_request = ${bool}"
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Widget']
+
+
+- name: '.width'
+  description: "= "
+  pattern: ".width = "
+  icon: attribute
+  match_previous_sub_scope: ['default.keyword', 'Widget']
+

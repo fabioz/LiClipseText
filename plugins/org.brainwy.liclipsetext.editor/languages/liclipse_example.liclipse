@@ -1,0 +1,44 @@
+# For this example we have a language which has multi-line comments where we start and end with "###".
+# Also, it has a class definition as: class ClassName, and the indentation is used to define new scopes. 
+
+scope_to_color_name: {
+ multiLineComment: string, #For this example, our multiLineComment will use the string color defined in general > appearance > color theme
+ default: foreground, #In the default, we'll use the foreground color
+ #Anything else uses a color with the same name as the scope (i.e.: class, keyword)
+}
+scope_definition_rules:
+  #Define that our comment is anything between ###....###
+  #Note that any text that does not match any of these rules is considered to be in the default scope.
+  - {type: MultiLineRule, scope: multiLineComment, start: "###", end: "###", escapeCharacter: \}
+  
+  
+scope: #Here we'll specify sub-partition for top-level scopes
+
+  default: # We're defining things internal to the default scope
+  
+    keyword: [class, pass] #Define that we want to consider 'class' and 'pass' as a keyword
+    
+    sub_rules: [
+      # There are things which may need more work to match in a scope, so, for this case we can
+      # have sub_rules.
+      {type: CompositeRule, sub_rules: [ #A composite rule will only be matched if all containing rules also match.
+        { type: SequenceRule, scope: keyword, sequence: 'class'}, #Define that 'class' is a keyword 
+        { type: OneOrMoreSpacesRule, scope: default}, #After class we need at least a space
+        { type: AnyWordRule, scope: class }] #And any name after that is the class we matched
+      },
+    ]
+
+file_extensions: [liclipse_example] #The extensions matched by this language
+filename: []
+name: LiClipse Example #Name of the language
+
+outline: #Note that we just specify 'flat' items here, the indent is later used to specify parent/children scopes.
+  - {type: Scope, scope: [default, class], define: class} #Wherever we have a class inside the default scope we'll show a class icon in the outline.
+
+indent: {
+  type: spaces, #Our example language uses spaces for indenting
+  outline_scopes: [class], #We have to say which outline entries actually create a new scope (so, indent and outline work toghether to specify the tree).
+} 
+
+# Specify that the default comment action (Ctrl+/) creates a multiLineComment and that it should wrap it with '###'.
+comment: {type: multiLine, start: '###', end: '###', scope: multiLineComment}

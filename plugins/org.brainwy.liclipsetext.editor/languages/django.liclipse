@@ -1,0 +1,213 @@
+inherit: HTML # Signal that we want to start from html.liclipse
+
+# Unfortunately django usually specifies html and htm as regular django, but this conflicts with the regular editor, so,
+# we have to provide a way to solve this conflict properly later on.
+file_extensions: [djhtml]
+
+name: Django
+
+
+patch:
+    # Note: 'patch' is Only available if 'inherit' is defined.
+    # Items inside patch append data to the specified items.
+    # If some item should completely override the entry, it should be declared in the top-level scope.
+    - scope_to_color_name: {django_tag: foreground, django_filter: foreground}
+
+    - scope_definition_rules:
+        - {type: MultiLineRule, scope: django_tag, start: '{%', end: '%}', escapeCharacter: '\0'}
+        - {type: MultiLineRule, scope: django_filter, start: '{{', end: '}}', escapeCharacter: '\0'}
+
+    - scope:
+        django_tag:
+            bracket: ['{', '%', '}']
+
+            keyword: [autoescape, endautoescape, block, endblock, comment, endcomment, csrf_token, cycle,
+            debug, extends, filter, endfilter, firstof, for, endfor, if, endif, else, not, and, or, ifchanged,
+            endifchanged, ifequal, endifequal, ifnotequal, endifnotequal, inclde, load, now, regroup, as,
+            spaceless, endspaceless, ssi, templatetag, url, as, widthratio, with, endwith, in, ]
+
+        django_filter:
+            bracket: ['{', '}']
+
+            keyword: [add, addslashes, capfirst, center, cut, date, default, default_if_none, dictsort,
+                dictsortreversed, divisibleby, escape, escapejs, filesizeformat, first, ampersands,
+                floatformat, force_escape, get_digit, iriencode, join, last, length, length_js, linebreaks,
+                linebreaksbr, linenumbers, ljust, lower, make_list, phone2numeric, pluralize, pprint, random,
+                removetags, rjust, safe, safeseq, slice, slugify, stringformat, striptags, time, timesince,
+                timeuntil, title, truncatewords, truncatewords_html, unordered_list, upper, urlencode, urlize,
+                urlizetrunc, wordcount, wordwrap, yesno, ]
+
+            sub_rules: [ # Color properly even if it's not one of the known keywords.
+              {type: CompositeRule, sub_rules: [
+                { type: SequenceRule, scope: constant, sequence: '|' },
+                { type: ZeroOrMoreSpacesRule, scope: default },
+                { type: AnyWordRule, scope: keyword }]
+              },
+            ]
+
+    - auto_edit:
+        - {auto_close_scopes: [django_tag], scope: default}
+        - {auto_close_scopes: [django_filter], scope: default}
+        - {auto_close_parens: ['{'], scope: default} #Will close the parens if it's not properly balanced
+        - {auto_skip_parens: ['}'], scope: django_filter} #Will skip the close parens if it's properly balanced
+
+    - templates:
+        - name: 'autoescape'
+          description: 'Auto escape inside django block'
+          pattern:  |-
+            {% autoescape ${on_off} %}
+                ${cursor}
+            {% endautoescape %}
+
+        - name: 'block'
+          description: 'Define a block that can be overridden by child templates'
+          pattern:  |-
+            {% block ${name} %}
+                ${cursor}
+            {% endblock %}
+
+        - name: 'comment'
+          description: 'Comment in django (everything inside is ignored)'
+          pattern:  |-
+            {% comment %}
+                ${cursor}
+            {% endcomment %}
+
+        - name: 'csrf_token'
+          description: 'Token to use against Cross Site Request Forgeries'
+          pattern: '{% csrf_token %}'
+
+        - name: 'cycle'
+          description: 'Cycles among the given strings each time through the loop'
+          pattern: '{% cycle ${string1} ${string2} %}'
+
+        - name: 'debug'
+          description: 'Output debug information (current context, imported module, etc.)'
+          pattern: '{% debug %}'
+
+        - name: 'extends'
+          description: 'Extend another django template'
+          pattern: '{% extends "${base_html}" %}'
+
+        - name: 'filter'
+          description: 'Filter the contents of the variable through variable filters'
+          pattern: |-
+            {% filter ${filter_name} %}
+                ${cursor}
+            {% endfilter %}
+
+
+        - name: 'firstof'
+          description: 'Outputs the first variable passed that is not False, without escaping'
+          pattern: '{% firstof ${var1} ${var2} %}'
+
+        - name: 'for'
+          description: 'Loop over each item in an array'
+          pattern: |-
+            {% for ${el} in ${array} %}
+                ${cursor}
+            {% endfor %}
+
+        - name: 'forempty'
+          description: 'The for tag can take an optional {% empty %} clause that will be displayed if the given array is empty or could not be found'
+          pattern: |-
+             {% for ${el} in ${array} %}
+                 ${cursor}
+             {% empty %}
+             {% endfor %}
+
+
+        - name: 'if'
+          description: 'Evaluates a variable, and if that variable is true the contents of the block are output'
+          pattern: |-
+             {% if ${condition} %}
+                 ${cursor}
+             {% endif %}
+
+
+        - name: 'ifelse'
+          description: 'The if tag can take an optional {% else %} clause that will be displayed if the test fails'
+          pattern: |-
+             {% if ${condition} %}
+                 ${cursor}
+             {% else %}
+             {% endif %}
+
+
+        - name: 'ifchanged'
+          description: 'Check if a value has changed from the last iteration of a loop'
+          pattern: |-
+             {% ifchanged ${what} %}
+                 ${cursor}
+             {% endifchanged %}
+
+
+        - name: 'ifchangedelse'
+          description: 'Do something if a value has not changed in the last iteration of a loop'
+          pattern: |-
+             {% ifchanged ${what} %}
+                 ${cursor}
+             {% else %}
+             {% endifchanged %}
+
+        - name: 'ifequal'
+          description: 'Output the contents of the block if the two arguments equal each other'
+          pattern: |-
+             {% ifequal ${par1} ${par2} %}
+                 ${cursor}
+             {% endifequal %}
+
+
+        - name: 'ifnotequal'
+          description: 'Output the contents of the block if the two arguments are not equal'
+          pattern: |-
+            {% ifnotequal ${par1} ${par2} %}
+            {% endifnotequal %}
+
+        - name: 'include'
+          description: 'Loads a template and renders it with the current context'
+          pattern: '{% include "${path_to_html}" %}'
+
+        - name: 'load'
+          description: 'Load a custom template tag set'
+          pattern: '{% load ${templ} %}'
+
+        - name: 'now'
+          description: 'Display the date, formatted according to the given string'
+          pattern: '{% now "${format}" %}'
+
+        - name: 'regroup'
+          description: 'Regroup a list of alike objects by a common attribute'
+          pattern: '{% regroup ${x} by ${y} as ${list} %}'
+
+        - name: 'spaceless'
+          description: 'Removes whitespace between HTML tags'
+          pattern: |-
+             {% spaceless %}
+                 ${cursor}
+             {% endspaceless %}
+
+        - name: 'ssi'
+          description: 'Output the contents of a given file into the page'
+          pattern: '{% ssi ${filename} %}'
+
+        - name: 'templatetag'
+          description: 'Output one of the syntax characters used to compose template tags'
+          pattern: '{% templatetag ${arg} %}'
+
+        - name: 'url'
+          description: 'Returns an absolute URL (i.e., a URL without the domain name) matching a given view function and optional parameters'
+          pattern: '{% url ${path_to_some_view} ${args} %}'
+
+        - name: 'widthratio'
+          description: 'For creating bar charts and such, this tag calculates the ratio of a given value to a maximum value, and then applies that ratio to a constant'
+          pattern: '{% widthratio ${this_value} ${max_value} 100 %}'
+
+        - name: 'with'
+          description: 'Caches a complex variable under a simpler name'
+          pattern: |-
+             {% with ${x} as ${y} %}
+                 ${cursor}
+             {% endwith %}
+
+

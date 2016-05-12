@@ -1,0 +1,154 @@
+scope_to_color_name: {
+ #All types of strings map to the string color
+ doubleQuotedMultiLineString: string,
+ singleQuotedMultiLineString: string,
+ doubleQuotedString: string,
+ singleQuotedString: string,
+ decorator: annotation,
+}
+
+scope_definition_rules:
+  #Comments
+  - {type: EndOfLineRule, scope: singleLineComment, start: '//'}
+  - {type: MultiLineRule, scope: multiLineComment, start: "/*", end: "*/", escapeCharacter: \}
+
+  #Multi Line Strings
+  - {type: MultiLineRule, scope: singleQuotedMultiLineString, start: "'''", end: "'''", escapeCharacter: \}
+  - {type: MultiLineRule, scope: doubleQuotedMultiLineString, start: '"""', end: '"""', escapeCharacter: \}
+
+  # Single Line Strings
+  - {type: SingleLineRule, scope: doubleQuotedString, sequence: '"', escapeCharacter: \, escapeContinuesLine: true}
+  - {type: SingleLineRule, scope: singleQuotedString, sequence: "'", escapeCharacter: \, escapeContinuesLine: true}
+
+
+rule_aliases: {
+  StringInterpolationRuleIdentifier: {
+    type: CompositeRule, sub_rules: [
+      { type: SequenceRule, scope: keyword, sequence: '$'},
+      { type: AnyWordRule, scope: keyword }]
+  },
+
+  StringInterpolationRule: {
+    type: CompositeRule, sub_rules: [
+      { type: SequenceRule, scope: keyword, sequence: '$'},
+      { type: MultiLineRule, scope: keyword, start: '{', end: '}', escapeCharacter: \0 }]
+  }
+}
+
+scope:
+  singleLineComment:
+    javadocTag: [TODO]
+
+  multiLineComment:
+    javadocTag: [TODO]
+
+  singleQuotedMultiLineString:
+      # Using aliases
+      sub_rules: ['StringInterpolationRuleIdentifier','StringInterpolationRule']
+
+  doubleQuotedMultiLineString:
+      sub_rules: ['StringInterpolationRuleIdentifier','StringInterpolationRule']
+
+  doubleQuotedString:
+      sub_rules: ['StringInterpolationRuleIdentifier','StringInterpolationRule']
+
+  singleQuotedString:
+      sub_rules: ['StringInterpolationRuleIdentifier','StringInterpolationRule']
+
+
+
+  default:
+    sub_rules: [
+      {type: CompositeRule, sub_rules: [
+        { type: SequenceRule, scope: keyword, sequence: 'class'}, #Define that 'class' is a keyword
+        { type: OneOrMoreSpacesRule, scope: default},
+        { type: AnyWordRule, scope: class }] #And any name after 'class' is the class we matched (we'll put it in the outline defining [default, class]).
+      },
+
+      # Decorator
+      {type: CompositeRule, sub_rules: [
+        { type: SequenceRule, scope: decorator, sequence: '@'},
+        { type: AnyWordRule, scope: decorator }]
+      },
+
+      # Any: name( xxx ){  pattern makes the name a method (Note: Skip if name is a keyword in AnyWordRule -- i.e.: if(a){ ).
+      {type: CompositeRule, sub_rules: [
+        { type: AnyWordRule, scope: method, except: [
+          abstract, continue, factory, import, return, try,
+          as, default, 'false', in, set, typedef,
+          assert, do, final, is, static, var,
+          break, dynamic, finally, library, super, void,
+          case, else, for, new, switch, while,
+          catch, export, get, 'null', this, with,
+          class, external, if, operator, throw,
+          const, extends, implements, part, 'true',] },
+        { type: ZeroOrMoreSpacesRule, scope: OFF_PARTITION},
+        { type: MultiLineRule, scope: OFF_PARTITION, start: '(', end: ')', escapeCharacter: \0},
+        { type: ZeroOrMoreSpacesRule, scope: OFF_PARTITION},
+        { type: SequenceRule, scope: OFF_PARTITION, sequence: '{'},
+        ]
+      },
+
+      # Any: name( xxx ) =>  pattern makes the name a method.
+      {type: CompositeRule, sub_rules: [
+        { type: AnyWordRule, scope: method, except: [
+          abstract, continue, factory, import, return, try,
+          as, default, 'false', in, set, typedef,
+          assert, do, final, is, static, var,
+          break, dynamic, finally, library, super, void,
+          case, else, for, new, switch, while,
+          catch, export, get, 'null', this, with,
+          class, external, if, operator, throw,
+          const, extends, implements, part, 'true',] },
+        { type: ZeroOrMoreSpacesRule, scope: OFF_PARTITION},
+        { type: MultiLineRule, scope: OFF_PARTITION, start: '(', end: ')', escapeCharacter: \0},
+        { type: ZeroOrMoreSpacesRule, scope: OFF_PARTITION},
+        { type: SequenceRule, scope: OFF_PARTITION, sequence: '=>'},
+        ]
+      },
+
+      { type: NumberRule, scope: number}
+    ]
+
+    keyword: [
+      abstract, continue, factory, import, return, try,
+      as, default, 'false', in, set, typedef,
+      assert, do, final, is, static, var,
+      break, dynamic, finally, library, super, void,
+      case, else, for, new, switch, while,
+      catch, export, get, 'null', this, with,
+      class, external, if, operator, throw,
+      const, extends, implements, part, 'true',]
+
+    localVariable: ['main', 'print', 'num', 'bool', 'double','int','String','Map','Function','List', 'Set']
+
+    bracket: ['(', ')', '[', ']', '{', '}']
+
+    operator: [<, '>', '=', +, '-', /, '*', '!', '&', '|', '%', '~', ^, ',']
+
+
+file_extensions: [dart]
+filename: []
+name: dart
+
+outline:
+  - {type: Scope, scope: [default, method], define: method}
+  - {type: Scope, scope: [default, class], define: class}
+  - {type: Regexp, scope: [singleLineComment], regexp: '//---.*', define: comment, group: 0}
+
+indent: {
+  type: braces, #Braces are used for indenting in Dart
+  scope: default, #Only braces found in the default scope are considered
+  outline_scopes: [class, method], #Scopes are created where the outline defines a class or method.
+  spaces_for_tabs: true, #Dart folks recommend it.
+  #tab_width: 4, #Note: optional (default is based on preferences for text editors in the eclipse preferences)
+}
+
+comment: {type: singleLine, sequence: '//'}
+
+auto_edit:
+  - {auto_close_scopes: [doubleQuotedString, singleQuotedString, singleQuotedMultiLineString, doubleQuotedMultiLineString], scope: default} #To work, the scopes must be: SingleLineRule(sequence used for start/end) or MultiLineRule.
+  - {auto_close_parens: ['(', '[', '{'], scope: default} #Will close the parens if it's not properly balanced
+  - {auto_skip_parens: [')', ']', '}'], scope: default} #Will skip the close parens if it's properly balanced
+
+

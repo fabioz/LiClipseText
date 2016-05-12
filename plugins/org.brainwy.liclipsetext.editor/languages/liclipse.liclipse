@@ -1,0 +1,158 @@
+scope_to_color_name: {
+  singleQuotedString: string, doubleQuotedString: string, default: foreground}
+scope_definition_rules:
+  - {type: SingleLineRule, scope: singleQuotedString, sequence: '''', escapeCharacter: \,  escapeContinuesLine: true}
+  - {type: SingleLineRule, scope: doubleQuotedString, sequence: '"', escapeCharacter: \,  escapeContinuesLine: true}
+  - {type: EndOfLineRule, scope: singleLineComment, start: '#'}
+scope:
+  singleLineComment:
+    javadocTag: ['TODO']
+
+  default:
+    class: ['scope_to_color_name', 'scope_definition_rules', 'scope', 'file_extensions', 'filename', 'name', 'outline', 'indent',
+    'type', 'inherit', 'patch', 'spell_check', 'mustStartUppercase']
+    bracket: ['{', '[', ']', '}']
+    keyword: [OptionalMultiLineRule, AnyWordRule, PatternRule, SingleLineRule, SequenceRule, SequencesRule, RegexpRule, OneOrMoreSpacesRule,
+              EndOfLineRule, ZeroOrMoreSpacesRule, NumberRule, CompositeRule, OptionalSequenceRule, IndentedBlockRule,
+              MatchLineStartRule, SkipLineRule, RepeatCharToEolRule, MultiLineRule, MultiLineRuleWithSkip,
+              MultiLineRuleRecursive, SwitchLanguageHtmlRule, SwitchLanguageRule, JSRegexRule, NimNumberRule, PrevCharNotIn,
+              SingleLineRuleWithSkip]
+    sub_rules: [
+      {type: CompositeRule, sub_rules: [
+        { type: AnyWordRule, scope: class},
+        { type: SequenceRule, scope: operator, sequence: ':'}]
+      },
+    ]
+
+file_extensions: [liclipse]
+filename: []
+name: LiClipse
+
+outline: #Icons: LiClipseParsedItem.getImage(): class, method, comment, attribute (based on 'define')
+  - {type: Scope, scope: [default, class], define: class} #scope is a list to identify sub-rule
+  - {type: Scope, scope: [default, method], define: method}
+  - {type: Regexp, scope: [singleLineComment], regexp: '#---.*', define: comment, group: 0}
+
+indent: {
+  type: spaces, #Space-based indentation
+  outline_scopes: [class, method], #Scopes are created where the outline defines a class or method.
+  spaces_for_tabs: true, #Note: for yaml we cannot use tabs.
+  tab_width: 2, #Note: optional (default is based on preferences for text editors in the eclipse preferences)
+}
+
+comment: {type: singleLine, sequence: '#'}
+
+auto_edit:
+  - {auto_close_scopes: [singleQuotedString, doubleQuotedString], scope: default} #To work, the scopes must be: SingleLineRule(sequence used for start/end)
+  - {auto_close_parens: ['(', '[', '{'], scope: default} #Will close the parens if it's not properly balanced
+  - {auto_skip_parens: [')', ']', '}'], scope: default} #Will skip the close parens if it's properly balanced
+
+
+templates: #Note: pressing ctrl+space twice will show only the templates
+
+- name: 'CompositeRule'
+  description: "A rule which is only matched if all its internal rules also match. When used in the context of a coloring, it'll return the scope of the first rule registered in it as the color."
+  pattern: '{type: CompositeRule, sub_rules: []}'
+
+- name: 'MultiLineRule'
+  description: 'A rule which may span multiple lines after we find the start sequence (and which ends at the end sequence).'
+  pattern: "{type: MultiLineRule, scope: keyword, start: '/*', end: '*/', escapeCharacter: '\\0'}"
+
+- name: 'MultiLineRuleWithSkip'
+  description: 'A rule which may span multiple lines after we find the start sequence (and which ends at the end sequence) with  optional rules which may be used to skip sections while doing the match.'
+  pattern: "{type: MultiLineRuleWithSkip, scope: keyword, start: '/*', end: '*/', escapeCharacter: '\\0', skip_rules:[]}"
+
+- name: 'MultiLineRuleRecursive'
+  description: 'A rule which may span multiple lines after we find the start sequence (and which ends at the end sequence) and can have sub-scopes created with  optional rules which may be used to skip sections while doing the match.'
+  pattern: "{type: MultiLineRuleRecursive, scope: keyword, start: '(', end: ')', escapeCharacter: '\\0', skip_rules:[]}"
+
+- name: 'OptionalMultiLineRule'
+  description: 'Optional rule (usually used in a CompositeRule). A rule which may span multiple lines after we find the start sequence (and which ends at the end sequence).'
+  pattern: "{type: OptionalMultiLineRule, scope: keyword, start: '/*', end: '*/', escapeCharacter: '\\0'}"
+
+- name: 'RegexpRule'
+  description: "Important: this rule may be a bit slower than other rules. Use with caution. Rule that matches a regular expression. The regexp is only matched against a single line and or most 512 chars (whatever is shorter). The regexp uses Java semantics. "
+  pattern: '{type: RegexpRule, regexp: "aabb", scope: keyword}'
+
+- name: 'AnyWordRule'
+  description: 'Rule that matches any identifier word (i.e.: Where the first character matches Character.isJavaIdentifierStart and the remaining ones match Character.isJavaIdentifierPart). Usually used in a CompositeRule.'
+  pattern: "{type: AnyWordRule, scope: decorator, mustStartUppercase: false}"
+
+- name: 'PatternRule'
+  description: "A complex rule upon many other rules are built (so, usually there's a more specific rule to a given case)."
+  pattern: "{type: PatternRule, scope: javadocLink, startSequence: '[', endSequence: ']', escapeCharacter: '\\0', breaksOnEOL: true, breaksOnEOF: false, escapeContinuesLine: false}"
+
+- name: 'SingleLineRule'
+  description: "A rule which must start and end at the same line (sequence is the start and end char -- usually used for strings)."
+  pattern: "{type: SingleLineRule, scope: doubleQuotedString, sequence: '\"', escapeCharacter: \\, escapeContinuesLine: true}"
+
+- name: 'SequenceRule'
+  description: 'Usually used in a CompositeRule to specify that some sequence must be matched.'
+  pattern: "{type: SequenceRule, scope: keyword, sequence: 'def'}"
+
+- name: 'OptionalSequenceRule'
+  description: 'Usually used in a CompositeRule to specify that some sequence must be optionally matched.'
+  pattern: "{type: OptionalSequenceRule, scope: keyword, sequence: '*'}"
+
+- name: 'SequencesRule'
+  description: 'Usually used in a CompositeRule to specify that one of the specified sequences must be matched.'
+  pattern: "{type: SequencesRule, scope: keyword, sequences: ['function', 'def']}"
+
+- name: 'EndOfLineRule'
+  description: 'A rule which starts after a sequence is found and ends at the end of the line.'
+  pattern: "{type: EndOfLineRule, scope: singleLineComment, start: '#'}"
+
+- name: 'OneOrMoreSpacesRule'
+  description: 'Usually used in a CompositeRule match one or more whitespaces. A whitespace is matched if Character.isWhitespace(char) returns true and it is not a newline.'
+  pattern: "{type: OneOrMoreSpacesRule, scope: default}"
+
+- name: 'ZeroOrMoreSpacesRule'
+  description: 'Usually used in a CompositeRule match zero or more whitespaces. A whitespace is matched if Character.isWhitespace(char) returns true and it is not a newline.'
+  pattern: "{type: ZeroOrMoreSpacesRule, scope: default}"
+
+- name: 'NumberRule'
+  description: 'A rule which matches a number for most languages. I.e.: 1.3e4 (float with exp), 0xAF (hexa), 1 (int), 33. (float).'
+  pattern: "{type: NumberRule, scope: number}"
+
+- name: 'SwitchLanguageRule'
+  description: 'Same as a multi-line rule, but the contents inside the rule will be partitioned/scanned as being another language (actions which are language dependent should obey this properly later on).'
+  pattern: "{type: SwitchLanguageRule, scope: python_block, start: '&lt;%', end: '%&gt;', language: python}"
+
+- name: 'SwitchLanguageHtmlRule'
+  description: ''
+  pattern: |-
+    {type: SwitchLanguageHtmlRule, #custom rule matching for: '<script type="???", language="???">', end: '</script>'
+     scope: this, #On a switch, the scope must alway be 'this'
+     tag: 'script',
+     type_attr: {
+        'application/javascript': javascript, 'application/ecmascript': javascript, 'application/x-javascript': javascript,
+        'application/x-ecmascript': javascript, 'text/javascript': javascript, 'text/ecmascript': javascript, 'text/jscript':javascript
+     },
+     language_attr: {JavaScript: javascript} #the expected language attr to switch to the target language (used with startswith() and case-independent)
+    }
+
+- name: 'IndentedBlockRule'
+  description: "Rule which will match any indented block after some prefix is found."
+  pattern: '{type: IndentedBlockRule, scope: literalBlock, start: "::", column: -1}'
+
+- name: 'MatchLineStartRule'
+  description: "This rule should only be used inside a CompositeRule. Matches the start of a line (column 0). It's length is always 0."
+  pattern: "{type: MatchLineStartRule, scope: default}"
+
+- name: 'SkipLineRule'
+  description: 'This rule will skip all the contents of the current line until from the current position. Made to be used inside a CompositeRule.'
+  pattern: "{type: SkipLineRule, scope: default}"
+
+- name: 'RepeatCharToEolRule'
+  description: "This rule will match if all the characters in the current line until the end of the line (or file) are the same."
+  pattern: "{type: RepeatCharToEolRule, scope: title, chars: ['-', '=', '_', '~', '`']}"
+
+- name: 'PrevCharNotIn'
+  description: "This rule is always a 0-sized rule just to check that the previous char is not contained in any of the passed characters."
+  pattern: "{type: PrevCharNotIn, scope: string, chars: '0123456789'}"
+
+- name: 'SingleLineRuleWithSkip'
+  description: "This rule would usually match a single line after some character is found and can optionally have additional rules if we need to skip some parts (such as a parenthesis that must be closed)."
+  pattern: "{type: SingleLineRuleWithSkip, scope: string, start: '#', escapeCharacter: '\0', escapeContinuesLine: false, skipRules:[]}"
+
+

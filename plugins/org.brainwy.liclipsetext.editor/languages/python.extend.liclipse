@@ -1,0 +1,19 @@
+extend: Python # Signal that we want to extend python.liclipse to add templates
+
+patch: # Only available if 'extend' is defined: appends data to the specified items
+  - templates:
+    - name: ''
+      description: "Surround with try..except"
+      pattern: |-
+        try:
+        ${indented_block}${cursor}
+        except:
+            raise
+
+    - name: ''
+      description: "Surround with try..finally"
+      pattern: |-
+        try:
+        ${indented_block}${cursor}
+        finally:
+            ${pass}
