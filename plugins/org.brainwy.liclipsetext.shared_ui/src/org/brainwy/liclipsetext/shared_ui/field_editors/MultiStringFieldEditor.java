@@ -127,11 +127,11 @@ public class MultiStringFieldEditor extends StringFieldEditor {
     @Override
     protected void adjustForNumColumns(int numColumns) {
         GridData gd = (GridData) textField.getLayoutData();
-        gd.horizontalSpan = numColumns - 1;
+        gd.horizontalSpan = numColumns;
         // We only grab excess space if we have to
         // If another field editor has more columns then
         // we assume it is setting the width.
-        gd.grabExcessHorizontalSpace = gd.horizontalSpan == 1;
+        gd.grabExcessHorizontalSpace = true;
         gd.grabExcessVerticalSpace = true;
         gd.heightHint = 200;
         if (this.fillVertically) {

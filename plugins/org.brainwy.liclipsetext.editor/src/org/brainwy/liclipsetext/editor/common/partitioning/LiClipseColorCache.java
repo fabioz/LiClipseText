@@ -142,6 +142,11 @@ public class LiClipseColorCache extends ColorCache implements IColorCache {
 
     protected LiClipseTextAttribute getTextAttribute(String contentType, String colorName) {
     	String temp = colorName;
+    	if(!"".equals(preferences.getString(temp+"_COLOR"))){
+    		// Ok, found.
+    		return new LiClipseTextAttribute(contentType, colorName, getNamedColor(temp+"_COLOR"), null,
+    				preferences.getInt(temp+"_STYLE"));
+    	}
         do {
         	String mapped = TM_TO_COLOR_THEME_MAPPINGS.get(temp);
         	if(mapped != null){

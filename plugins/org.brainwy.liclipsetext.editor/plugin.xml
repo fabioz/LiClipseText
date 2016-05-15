@@ -1812,6 +1812,9 @@
 
       <page class="org.brainwy.liclipsetext.editor.common.mark_occurrences.LiClipseMarkOccurrencesPreferencesPage"
             id="liclipse.mark_occurrences" name="Mark Occurrences" category="liclipse" />
+            
+      <page class="org.brainwy.liclipsetext.editor.preferences.LiClipseColorsPreferencesPage"
+            id="liclipse.colors" name="Colors" category="liclipse" />
    </extension>
 
    <extension point="org.eclipse.ui.ide.editorAssociationOverride">
