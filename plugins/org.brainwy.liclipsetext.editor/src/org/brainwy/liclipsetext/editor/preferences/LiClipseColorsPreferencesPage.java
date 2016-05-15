@@ -7,10 +7,13 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 import org.brainwy.liclipsetext.editor.LiClipseTextEditorPlugin;
+import org.brainwy.liclipsetext.editor.common.partitioning.IColorCacheProvider;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.string.StringUtils;
 import org.brainwy.liclipsetext.shared_core.structure.Tuple3;
+import org.brainwy.liclipsetext.shared_core.utils.BaseExtensionHelper;
 import org.brainwy.liclipsetext.shared_ui.field_editors.MultiStringFieldEditor;
+import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.widgets.Composite;
@@ -28,10 +31,28 @@ public class LiClipseColorsPreferencesPage extends FieldEditorPreferencePage imp
 	public void init(IWorkbench workbench) {
 
 	}
+	
+	@Override
+	public void addField(FieldEditor editor) {
+		super.addField(editor);
+	}
 
 	@Override
 	protected void createFieldEditors() {
 		Composite p = getFieldEditorParent();
+		
+        try {
+        	IColorCacheProvider provider = (IColorCacheProvider) BaseExtensionHelper.getParticipant(
+        			"org.brainwy.liclipsetext.editor.liclipse_color_cache_provider", false);
+        	if(provider != null){
+        		if(provider.createFieldEditors(this, p)){
+        			return;
+        		}
+        	}
+		} catch (Exception e) {
+			Log.log(e);
+		}
+
 
 		addField(new MultiStringFieldEditor("LICLIPSE_COLORS",
 				"Colors for LiClipse Editors in the format:\n\nname=r,g,b;ITALIC,BOLD,UNDERLINE,STRIKETHROUGH", p, true) {
