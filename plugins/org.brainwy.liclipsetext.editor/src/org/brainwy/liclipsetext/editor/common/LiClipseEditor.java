@@ -49,6 +49,7 @@ public class LiClipseEditor extends BaseLiClipseEditor {
     protected IResource resource = null;
     private MarkerAnnotation[] currentAnnotations;
 
+    // Kept in com.brainwy.liclipse for backward-compatibility.
     public static final String EDITOR_ID = "com.brainwy.liclipse.editor.common.LiClipseEditor";
 
     private void updateMarkerResource(IEditorInput input) {

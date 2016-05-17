@@ -10,7 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.brainwy.liclipsetext.editor.LiClipseTextEditorPlugin;
+import org.brainwy.liclipsetext.editor.common.ILiClipseEditorCustomizer;
+import org.brainwy.liclipsetext.editor.common.partitioning.IColorCacheProvider;
 import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner;
+import org.brainwy.liclipsetext.shared_core.log.Log;
+import org.brainwy.liclipsetext.shared_core.utils.BaseExtensionHelper;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.ui.editors.text.EditorsUI;
@@ -24,6 +28,21 @@ public class LiClipseTextPreferences {
         if (chainedPreferenceStore == null) {
             List<IPreferenceStore> stores = new ArrayList<IPreferenceStore>();
             if (LiClipseTextEditorPlugin.PLUGIN_STARTED) {
+
+                try {
+                	ILiClipseEditorCustomizer editorCustomizer = (ILiClipseEditorCustomizer) BaseExtensionHelper.getParticipant(
+                			"org.brainwy.liclipsetext.editor.liclipse_editor_customizer", false);
+                	if(editorCustomizer != null){
+                		IPreferenceStore preferenceStore = editorCustomizer.getPreferenceStore();
+                		if(preferenceStore != null){
+                			stores.add(preferenceStore);
+                		}
+                	}
+    			} catch (Exception e) {
+    				Log.log(e);
+    			}
+
+
                 //Note: the order is important
                 stores.add(LiClipseTextEditorPlugin.getDefault().getPreferenceStore());
                 stores.add(EditorsUI.getPreferenceStore());
