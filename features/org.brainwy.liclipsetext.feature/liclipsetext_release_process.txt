@@ -4,7 +4,7 @@ x:
 cd x:\liclipsetext
 python update_version.py 1.0.0
 
-X:\liclipsetext\org.brainwy.liclipsetext.feature\build_liclipsetext.bat
+X:\liclipsetext\features\org.brainwy.liclipsetext.feature\build_liclipsetext.bat
 
 		Copy features and plugins folders from X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\repository to X:\liclipsetext_build\update_site_dir\updates
 
