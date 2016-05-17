@@ -5,3 +5,18 @@ cd x:\liclipsetext
 python update_version.py 1.0.0
 
 X:\liclipsetext\org.brainwy.liclipsetext.feature\build_liclipsetext.bat
+
+		Copy features and plugins folders from X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\repository to X:\liclipsetext_build\update_site_dir\updates
+
+copy X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\repository\features\*.jar X:\liclipsetext_build\update_site_dir\updates\features /Y
+copy X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\repository\plugins\*.jar X:\liclipsetext_build\update_site_dir\updates\plugins /Y
+
+		Update the site.xml at X:\liclipsetext_build\update_site_dir\updates
+
+		** Create zips to distribute
+
+x:\
+cd X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target
+"C:\Program Files\7-Zip\7z" a -tzip -r "LiClipseText p2.repo 1.0.0.zip" repository
+
+        ** Submit p2 repository to github

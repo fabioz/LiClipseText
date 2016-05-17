@@ -140,20 +140,20 @@ COPYRIGHT 20016 BRAINWY SOFTWARE LTDA-ME
 
    <plugin
          id="org.brainwy.liclipsetext.editor"
-         download-size="0"
-         install-size="0"
+         download-size="2912"
+         install-size="2912"
          version="1.0.0.qualifier"/>
 
    <plugin
          id="org.brainwy.liclipsetext.shared_core"
-         download-size="0"
-         install-size="0"
+         download-size="530"
+         install-size="530"
          version="1.0.0.qualifier"/>
 
    <plugin
          id="org.brainwy.liclipsetext.shared_ui"
-         download-size="0"
-         install-size="0"
+         download-size="151"
+         install-size="151"
          version="1.0.0.qualifier"/>
 
 </feature>
