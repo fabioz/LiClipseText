@@ -65,8 +65,8 @@ public class SharedCorePlugin extends Plugin {
      *
      * We are in test when one of two cases is true:
      * a) plugin == null meaning we have not been activated
-     * b) System property PyDevInTestMode == true
-     * c) Environment variable PyDevInTestMode == true
+     * b) System property LiClipseInTestMode == true
+     * c) Environment variable LiClipseInTestMode == true
      */
     public static boolean inTestMode() {
         if (testModeReturnFalse) {
@@ -77,11 +77,11 @@ public class SharedCorePlugin extends Plugin {
             return true;
         }
 
-        if ("true".equals(System.getProperty("PyDevInTestMode"))) {
+        if ("true".equals(System.getProperty("LiClipseInTestMode"))) {
             return true;
         }
 
-        if ("true".equals(System.getenv("PyDevInTestMode"))) {
+        if ("true".equals(System.getenv("LiClipseInTestMode"))) {
             return true;
         }
 

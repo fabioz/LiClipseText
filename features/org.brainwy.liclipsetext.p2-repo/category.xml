@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <description url="http://liclipse.com/LiClipseText">LiClipseText</description>   
+   
+   <feature url="features/org.brainwy.liclipsetext.feature_0.0.0.qualifier.jar" id="org.brainwy.liclipsetext.feature" version="0.0.0">
+      <category name="LiClipseText"/>
+  </feature>
+
+   <feature url="features/org.brainwy.liclipsetext.feature.source_0.0.0.qualifier.jar" id="org.brainwy.liclipsetext.feature.source" version="0.0.0">
+      <category name="LiClipseText"/>
+   </feature>
+   
+   <category-def name="LiClipseText" label="LiClipseText">
+      <description>LiClipseText</description>
+   </category-def>   
+   
+</site>

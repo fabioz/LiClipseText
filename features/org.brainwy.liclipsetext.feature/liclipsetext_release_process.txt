@@ -1,0 +1,7 @@
+Update the version:
+
+x:
+cd x:\liclipsetext
+python update_version.py 1.0.0
+
+X:\liclipsetext\org.brainwy.liclipsetext.feature\build_liclipsetext.bat

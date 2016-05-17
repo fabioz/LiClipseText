@@ -37,8 +37,6 @@ import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.console.FileLink;
 import org.eclipse.ui.console.IHyperlink;
 
-import com.brainwy.liclipse.editor.epl.launch.IExternalToolConstants;
-
 public class LanguageLaunch extends LanguageConfig {
 
     // Settings related to hyperlinking

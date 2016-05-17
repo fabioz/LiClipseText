@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+   Copyright (C) 2013, Red Hat, Inc. and others
+
+   All rights reserved. This program and the accompanying materials
+   are made available under the terms of the Eclipse Public License v1.0
+   which accompanies this distribution, and is available at
+   http://www.eclipse.org/legal/epl-v10.html
+
+   Contributors:
+       Red Hat Incorporated - initial implementation
+       Jonah Graham - add testing, signing and deployment
+       Fabio Zadrozny - port for LiClipseText
+       
+Using:
+
+  To run a LiClipseText build you need to:
+    1) Download Java (e.g. OpenJDK 8 or OracleJDK8)
+    2) Download Maven (http://maven.apache.org/download.html)
+    3) Run "mvn install"
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <properties>
+        <tycho-version>0.24.0</tycho-version>
+        <tycho-extras-version>0.24.0</tycho-extras-version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <repository.id>eclipse-neon</repository.id>
+        <repository.url>http://download.eclipse.org/releases/neon/</repository.url>
+    </properties>
+    <prerequisites>
+        <maven>3.0</maven>
+    </prerequisites>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.brainwy.liclipsetext</groupId>
+    <artifactId>parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <name>LiClipseText Build Parent</name>
+    <packaging>pom</packaging>
+    <modules>
+        <module>plugins</module>
+        <module>features</module>
+    </modules>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-maven-plugin</artifactId>
+                <version>${tycho-version}</version>
+                <extensions>true</extensions>
+            </plugin>
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-surefire-plugin</artifactId>
+                <version>${tycho-version}</version>
+                <configuration>
+                    <explodedBundles>
+                        <!-- languages is in org.brainwy.liclipsetext.editor, so explode it -->
+                        <explodedBundle>org.brainwy.liclipsetext.editor</explodedBundle>
+                        <explodedBundle>org.brainwy.liclipsetext.shared_core</explodedBundle>
+                        <explodedBundle>org.brainwy.liclipsetext.shared_ui</explodedBundle>
+                    </explodedBundles>
+                    <failIfNoTests>false</failIfNoTests>
+                    <useUIHarness>false</useUIHarness>
+                    <testFailureIgnore>true</testFailureIgnore>
+                    <argLine>-enableassertions</argLine>
+                    <systemProperties>
+                        <!-- We are in test mode when running JUnit (non-workbench) tests.
+                 See SharedCorePlugin.inTestMode().  -->
+                        <LiClipseInTestMode>true</LiClipseInTestMode>
+                    </systemProperties>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>target-platform-configuration</artifactId>
+                <version>${tycho-version}</version>
+                <configuration>
+                    <target>
+                        <extraRequirements>
+                            <requirement>
+                                <type>eclipse-feature</type>
+                                <artifactId>org.brainwy.liclipsetext.feature</artifactId>
+                                <version>0.0.0</version>
+                            </requirement>
+                        </extraRequirements>
+                    </target>
+                    <environments>
+                        <environment>
+                            <os>linux</os>
+                            <ws>gtk</ws>
+                            <arch>x86_64</arch>
+                        </environment>
+                        <environment>
+                            <os>linux</os>
+                            <ws>gtk</ws>
+                            <arch>x86</arch>
+                        </environment>
+                        <environment>
+                            <os>win32</os>
+                            <ws>win32</ws>
+                            <arch>x86_64</arch>
+                        </environment>
+                        <environment>
+                            <os>win32</os>
+                            <ws>win32</ws>
+                            <arch>x86</arch>
+                        </environment>
+                        <environment>
+                            <os>macosx</os>
+                            <ws>cocoa</ws>
+                            <arch>x86_64</arch>
+                        </environment>
+                    </environments>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-versions-plugin</artifactId>
+                <version>${tycho-version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-source-plugin</artifactId>
+                <version>${tycho-version}</version>
+                <executions>
+                    <execution>
+                        <id>plugin-source</id>
+                        <goals>
+                            <goal>plugin-source</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <profiles>
+        <profile>
+            <!-- We only sign the jars when the keystore has been provided in the environment -->
+            <id>sign-jars</id>
+            <activation>
+                <file>
+                    <exists>${env.SIGN_KEYSTORE}</exists>
+                </file>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-jarsigner-plugin</artifactId>
+                        <version>1.4</version>
+                        <configuration>
+                            <keystore>${env.SIGN_KEYSTORE}</keystore>
+                            <storepass>${env.SIGN_STOREPASS}</storepass>
+                            <alias>${env.SIGN_ALIAS}</alias>
+                            <keypass>${env.SIGN_KEYPASS}</keypass>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>sign</id>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+    <repositories>
+        <repository>
+            <id>${repository.id}</id>
+            <layout>p2</layout>
+            <url>${repository.url}</url>
+        </repository>
+    </repositories>
+</project>

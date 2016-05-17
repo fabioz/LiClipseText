@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="org.brainwy.liclipsetext.feature"
-      label="LiClipseMate Feature"
+      label="LiClipseText Feature"
       version="1.0.0.qualifier"
       provider-name="Brainwy Software Ltda">
 
    <description>
-      LiClipseMate
+      LiClipseText
 
-LiClipseMate provides a lightweight editor which can be used to deal with multiple languages.
+LiClipseText provides a lightweight editor which can be used to deal with multiple languages.
 
 It was initially available only as a part of LiClipse itself and is now available as a separate
 Open Source based component, which provides an easy way to create an editor or use existing TextMate bundles
 (it also ships with support for several languages by default).
 
-LiClipse itself (which is its commercial counterpart) bundles LiClipseMate and provides additional features.
+LiClipse itself (which is its commercial counterpart) bundles LiClipseText and provides additional features.
    </description>
 
    <copyright>
@@ -117,9 +117,6 @@ COPYRIGHT 20016 BRAINWY SOFTWARE LTDA-ME
       <import plugin="org.eclipse.core.runtime"/>
       <import plugin="org.eclipse.jface.text"/>
       <import plugin="org.eclipse.ui.editors"/>
-      <import plugin="org.brainwy.liclipsetext.shared_core" version="1.0.0" match="perfect"/>
-      <import plugin="org.brainwy.liclipsetext.shared_ui"/>
-      <import plugin="com.brainwy.liclipse.editor.epl" version="3.0.1" match="perfect"/>
       <import plugin="org.eclipse.core.resources"/>
       <import plugin="org.eclipse.search"/>
       <import plugin="org.eclipse.ui.workbench.texteditor"/>
