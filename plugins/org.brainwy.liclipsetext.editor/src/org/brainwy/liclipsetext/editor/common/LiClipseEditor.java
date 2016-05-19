@@ -52,6 +52,11 @@ public class LiClipseEditor extends BaseLiClipseEditor {
     // Kept in com.brainwy.liclipse for backward-compatibility.
     public static final String EDITOR_ID = "com.brainwy.liclipse.editor.common.LiClipseEditor";
 
+    public LiClipseEditor() {
+		super();
+		LiClipseTextShowBrowserMessage.show();
+	}
+
     private void updateMarkerResource(IEditorInput input) {
         resource = input.getAdapter(IResource.class);
         isExternal = false;
