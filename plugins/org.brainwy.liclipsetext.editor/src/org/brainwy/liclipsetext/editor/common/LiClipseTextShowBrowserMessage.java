@@ -282,10 +282,10 @@ public class LiClipseTextShowBrowserMessage {
         long showAtTime = preferenceStore.getLong(LICLIPSETEXT_FUNDING_SHOW_AT_TIME);
         boolean show;
         if (showAtTime == 0) {
-            // It was never shown, so, show it after 3 days from now (we don't want to show
+            // It was never shown, so, show it after 5 days from now (we don't want to show
             // the dialog as the first thing after the user installed it).
             preferenceStore.setValue(LICLIPSETEXT_FUNDING_SHOW_AT_TIME,
-                    System.currentTimeMillis() + (ONE_DAY_IN_MILLIS * 3));
+                    System.currentTimeMillis() + (ONE_DAY_IN_MILLIS * 5));
             show = false;
         } else if (System.currentTimeMillis() < showAtTime) {
             // We still didn't reach the time for it to show.
