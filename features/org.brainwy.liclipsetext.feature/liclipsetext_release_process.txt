@@ -8,21 +8,14 @@ python update_version.py 1.0.0
 
 X:\liclipsetext\features\org.brainwy.liclipsetext.feature\build_liclipsetext.bat
 
-		Copy features and plugins folders from X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\repository to X:\liclipsetext_build\update_site_dir\updates
+Create "1.0.0" version in "https://bintray.com/fabioz/liclipsetext/liclipsetext/new/version"
+Add "1.0.0" in X:\release_tools\liclipsetext_uploader_bintray.py
+c:\bin\Python27\python.exe X:\release_tools\liclipsetext_uploader_bintray.py -s X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\org.brainwy.liclipsetext.p2-repo-1.0.0-SNAPSHOT.zip -d https://api.bintray.com/content/fabioz/liclipsetext/1.0.0/
 
-copy X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\repository\features\*.jar X:\liclipsetext_build\update_site_dir\updates\features /Y
-copy X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\repository\plugins\*.jar X:\liclipsetext_build\update_site_dir\updates\plugins /Y
-
-		Update the site.xml at X:\liclipsetext_build\update_site_dir\updates
-
-		** Create zips to distribute
-
-x:\
-cd X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target
-"C:\Program Files\7-Zip\7z" a -tzip -r "LiClipseText p2.repo 1.0.0.zip" repository
+Note: if the script doesn't work, it's possible to go to:
+https://bintray.com/fabioz/liclipsetext/liclipsetext/1.0.0/view > files > upload .zip (explode and put 1.0.0 path).
 
         ** Submit p2 repository to github
 
 git tag liclipsetext_1_0_0 -a -m "LiClipseText 1.0.0"
 git push --tags
-        
