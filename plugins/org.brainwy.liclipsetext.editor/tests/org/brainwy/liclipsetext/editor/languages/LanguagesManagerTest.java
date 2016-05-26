@@ -116,9 +116,14 @@ public class LanguagesManagerTest extends TestCase {
         }
     }
 
-    public void testLanguagesManagerTmBundles() {
+    public void testLanguagesManagerTmBundles() throws Exception {
         LanguagesManager manager = new LanguagesManager(TestUtils.getLanguagesDir());
         List<LanguageMetadata> languagesMetadata = manager.getLanguagesMetadata();
         assertEquals(37, languagesMetadata.size());
+        for (LanguageMetadata languageMetadata : languagesMetadata) {
+        	LiClipseLanguage language = languageMetadata.file.loadLanguage(true);
+        	assertNotNull(language);
+		}
+
     }
 }
