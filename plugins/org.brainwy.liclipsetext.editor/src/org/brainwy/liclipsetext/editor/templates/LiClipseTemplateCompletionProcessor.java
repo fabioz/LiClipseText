@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2013-2016 by Brainwy Software Ltda. All Rights Reserved.
+ * =Copyright (c) 2013-2016 by Brainwy Software Ltda, and others.
+ * All Rights Reserved.
  * Licensed under the terms of the Eclipse Public License (EPL).
  * Please see the license.txt included with this distribution for details.
  * Any modifications to this file must keep this entire header intact.
@@ -374,8 +375,7 @@ public final class LiClipseTemplateCompletionProcessor {// implements IContentAs
         }
 
         //This would be the super call, but we want to use our language to say which are the separators.
-        LiClipseDocumentPartitioner partitioner = ((LiClipseDocumentPartitioner) document.getDocumentPartitioner());
-        Set<Character> separatorChars = partitioner.language.getSeparatorChars();
+        Set<Character> separatorChars = liClipseLanguage.getSeparatorChars();
 
         int i = offset;
         if (i > document.getLength()) {
@@ -417,18 +417,12 @@ public final class LiClipseTemplateCompletionProcessor {// implements IContentAs
 
     protected LiClipseDocumentTemplateContext createContext(final ITextViewer viewer, final IRegion region) {
         Assert.isNotNull(liClipseTemplateContextType);
-        if (!(viewer instanceof ILiClipseSourceViewer)) {
-            Log.log("Expecting ILiClipseSourceViewer. Found: " + viewer);
-            return null;
-        }
-        ILiClipseSourceViewer liClipseSourceViewer = (ILiClipseSourceViewer) viewer;
-        ILiClipseEditor editor = liClipseSourceViewer.getLiClipseEditor();
 
         IDocument document = viewer.getDocument();
         TextSelectionUtils ts = new TextSelectionUtils(document, viewer.getSelectedRange().x);
         String indent = ts.getIndentationFromLine();
         return new LiClipseDocumentTemplateContext(liClipseTemplateContextType, document, region.getOffset(),
-                region.getLength(), indent, editor);
+                region.getLength(), indent, this.liClipseLanguage);
     }
 
 }
