@@ -415,7 +415,9 @@ public class LanguagesManager {
                 LanguageType.TEXT_MATE, caption);
         languageNameToMetadata.put(name, languageMetadata);
 
-        registerFileExtensions(file, languageMetadata, tmGrammarPart.getFileTypes());
+        List<String> fileTypes = tmGrammarPart.getFileTypes();
+		registerFileExtensions(file, languageMetadata, fileTypes);
+		registerFilenames(file, languageMetadata, fileTypes);
     }
 
     public static boolean considerTmBundleZipName(String elementName) {

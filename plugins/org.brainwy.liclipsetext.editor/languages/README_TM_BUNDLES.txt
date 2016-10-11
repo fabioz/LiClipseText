@@ -18,6 +18,7 @@ curl -L -o shellscript.tmbundle https://github.com/textmate/shellscript.tmbundle
 curl -L -o raml.tmbundle https://github.com/mulesoft/raml-sublime-plugin/archive/master.zip
 curl -L -o css.tmbundle https://github.com/textmate/css.tmbundle/archive/master.zip
 curl -L -o scss.tmbundle https://github.com/MarioRicalde/SCSS.tmbundle/archive/master.zip
+curl -L -o cmake.tmbundle https://github.com/textmate/cmake.tmbundle/archive/master.zip
 
 LiClipse should then automatically recognize the bundle.
 

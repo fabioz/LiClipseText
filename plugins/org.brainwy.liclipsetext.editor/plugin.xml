@@ -160,7 +160,7 @@
     # Note: see: com.brainwy.liclipse.editor.common.BaseLiClipseEditor.setInitializationData(IConfigurationElement, String, Object)
     # for how we handle the language.
 
-    EDITORS_LST = [{'kind': 'html', 'ext': 'html,htm', 'img': 'html'}, {'kind': 'xml', 'base_type': 'org.eclipse.core.runtime.xml', 'ext': 'xml,xsd', 'img': 'xml', 'filenames': '.pydevproject,.project,.classpath'}, {'kind': 'javascript', 'ext': 'js', 'img': 'javascript'}, {'kind': 'java', 'ext': 'java', 'img': 'java'}, {'kind': 'liclipse', 'ext': 'liclipse', 'img': 'liclipse'}, {'kind': 'django', 'ext': 'djhtml', 'img': 'django'}, {'kind': 'python', 'ext': 'py,pyw', 'img': 'python', 'filenames': 'SConstruct,Sconstruct,sconstruct,SConscript'}, {'kind': 'cpp', 'ext': 'c,cpp,h,hpp', 'img': 'cpp'}, {'kind': 'source.css', 'ext': 'css', 'img': 'css'}, {'kind': 'source.scss', 'ext': 'scss', 'img': 'scss'}, {'kind': 'coffeescript', 'ext': 'coffee', 'img': 'coffee'}, {'kind': 'restructured text', 'ext': 'rst', 'img': 'rst'}, {'kind': 'dart', 'ext': 'dart', 'img': 'dart'}, {'kind': 'mako', 'ext': 'mako', 'img': 'mako'}, {'kind': 'xgui20', 'ext': 'xgui2,xgui2_', 'img': 'liclipse'}, {'kind': 'kivy', 'ext': 'kv', 'img': 'kivy'}, {'kind': 'julia', 'ext': 'jl', 'img': 'julia'}, {'kind': 'stringtemplate', 'ext': 'st,stg', 'img': 'stringtemplate'}, {'kind': 'yaml', 'ext': 'yml,yaml,liclipseprefs', 'img': 'yaml'}, {'kind': 'nim', 'ext': 'nim', 'img': 'nim'}, {'kind': 'go', 'ext': 'go', 'img': 'go'}, {'kind': 'jinja2', 'ext': 'jinja2', 'img': 'jinja2'}, {'kind': 'source.ruby', 'ext': 'rb,rbx,Rakefile,rake', 'img': 'source.ruby'}, {'kind': 'text.html.erb', 'ext': 'erb,rhtml,html.erb', 'img': 'text.html.erb'}, {'kind': 'text.html.php', 'ext': 'php,php3,php4,php5,phpt,phtml,aw,ctp', 'img': 'text.html.php'}, {'kind': 'text.html.markdown', 'ext': 'md,mdown,markdown,markdn', 'img': 'text.html.markdown'}, {'kind': 'source.swift', 'ext': 'swift', 'img': 'source.swift'}, {'kind': 'source.perl', 'ext': 'pl,pm,pod,t,PL,psgi', 'img': 'source.perl'}, {'kind': 'source.perl.6', 'ext': 'p6,pl6,pm6,nqp', 'img': 'source.perl.6'}, {'kind': 'source.dosbatch', 'ext': 'bat', 'img': 'source.dosbatch'}, {'kind': 'source.shell', 'ext': 'sh,bash,zsh,bashrc,bash_profile,bash_login,profile,bash_logout,textmate_init', 'img': 'source.shell'}, {'kind': 'source.raml', 'ext': 'raml', 'img': 'source.raml'}]
+    EDITORS_LST = [{'kind': 'html', 'ext': 'html,htm', 'img': 'html'}, {'kind': 'xml', 'base_type': 'org.eclipse.core.runtime.xml', 'ext': 'xml,xsd', 'img': 'xml', 'filenames': '.pydevproject,.project,.classpath'}, {'kind': 'javascript', 'ext': 'js', 'img': 'javascript'}, {'kind': 'java', 'ext': 'java', 'img': 'java'}, {'kind': 'liclipse', 'ext': 'liclipse', 'img': 'liclipse'}, {'kind': 'django', 'ext': 'djhtml', 'img': 'django'}, {'kind': 'python', 'ext': 'py,pyw', 'img': 'python', 'filenames': 'SConstruct,Sconstruct,sconstruct,SConscript'}, {'kind': 'cpp', 'ext': 'c,cpp,h,hpp', 'img': 'cpp'}, {'kind': 'source.css', 'ext': 'css', 'img': 'css'}, {'kind': 'source.scss', 'ext': 'scss', 'img': 'scss'}, {'kind': 'coffeescript', 'ext': 'coffee', 'img': 'coffee'}, {'kind': 'restructured text', 'ext': 'rst', 'img': 'rst'}, {'kind': 'dart', 'ext': 'dart', 'img': 'dart'}, {'kind': 'mako', 'ext': 'mako', 'img': 'mako'}, {'kind': 'xgui20', 'ext': 'xgui2,xgui2_', 'img': 'liclipse'}, {'kind': 'kivy', 'ext': 'kv', 'img': 'kivy'}, {'kind': 'julia', 'ext': 'jl', 'img': 'julia'}, {'kind': 'stringtemplate', 'ext': 'st,stg', 'img': 'stringtemplate'}, {'kind': 'yaml', 'ext': 'yml,yaml,liclipseprefs', 'img': 'yaml'}, {'kind': 'nim', 'ext': 'nim', 'img': 'nim'}, {'kind': 'go', 'ext': 'go', 'img': 'go'}, {'kind': 'jinja2', 'ext': 'jinja2', 'img': 'jinja2'}, {'kind': 'source.ruby', 'ext': 'rb,rbx,Rakefile,rake', 'img': 'source.ruby'}, {'kind': 'text.html.erb', 'ext': 'erb,rhtml,html.erb', 'img': 'text.html.erb'}, {'kind': 'text.html.php', 'ext': 'php,php3,php4,php5,phpt,phtml,aw,ctp', 'img': 'text.html.php'}, {'kind': 'text.html.markdown', 'ext': 'md,mdown,markdown,markdn', 'img': 'text.html.markdown'}, {'kind': 'source.swift', 'ext': 'swift', 'img': 'source.swift'}, {'kind': 'source.perl', 'ext': 'pl,pm,pod,t,PL,psgi', 'img': 'source.perl'}, {'kind': 'source.perl.6', 'ext': 'p6,pl6,pm6,nqp', 'img': 'source.perl.6'}, {'kind': 'source.dosbatch', 'ext': 'bat', 'img': 'source.dosbatch'}, {'kind': 'source.shell', 'ext': 'sh,bash,zsh,bashrc,bash_profile,bash_login,profile,bash_logout,textmate_init', 'img': 'source.shell'}, {'kind': 'source.raml', 'ext': 'raml', 'img': 'source.raml'}, {'kind': 'source.cmake', 'ext': 'cmake', 'img': 'source.cmake', 'filenames': 'CMakeLists.txt,cmake'}, {'kind': 'source.cache.cmake', 'ext': 'cmakecache', 'img': 'source.cache.cmake', 'filenames': 'CMakeCache.txt'}]
     for x in EDITORS_LST:
         if 'base_type' not in x:
             x['base_type'] = 'org.eclipse.core.runtime.text'
@@ -1546,6 +1546,92 @@
         </contentTypeBinding>
     </extension>
 
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="cmake" file-names="CMakeLists.txt,cmake"
+            id="com.brainwy.liclipse.source.cmake" name="SourceCmake File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:source.cmake"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="cmake" icon="icons/source.cmake_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.source.cmake" name="Liclipse SourceCmake Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.source.cmake"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="cmake"
+            class="org.brainwy.liclipsetext.editor.compare.SourceCmakeContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.SourceCmakeContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.source.cmake"
+            contentViewerId="com.brainwy.liclipse.editor.compare.SourceCmakeContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="cmake"
+            class="org.brainwy.liclipsetext.editor.compare.SourceCmakeMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.SourceCmakeMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.source.cmake"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.SourceCmakeMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.core.contenttype.contentTypes">
+        <content-type base-type="org.eclipse.core.runtime.text"
+            file-extensions="cmakecache" file-names="CMakeCache.txt"
+            id="com.brainwy.liclipse.source.cache.cmake" name="SourceCacheCmake File" priority="normal"/>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension point="org.eclipse.ui.editors">
+        <editor
+            class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:source.cache.cmake"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false" extensions="cmakecache" icon="icons/source.cache.cmake_editor.png"
+            id="com.brainwy.liclipse.editor.common.LiClipseEditor.source.cache.cmake" name="Liclipse SourceCacheCmake Editor">
+            <contentTypeBinding contentTypeId="com.brainwy.liclipse.source.cache.cmake"/>
+        </editor>
+    </extension>
+    <!-- Note: run the install.py to regenerate the actions contents! -->
+    <extension
+         point="org.eclipse.compare.contentViewers">
+      <viewer
+            extensions="cmakecache"
+            class="org.brainwy.liclipsetext.editor.compare.SourceCacheCmakeContentViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.SourceCacheCmakeContentViewerCreator">
+      </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.source.cache.cmake"
+            contentViewerId="com.brainwy.liclipse.editor.compare.SourceCacheCmakeContentViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
+    <extension
+        point="org.eclipse.compare.contentMergeViewers">
+        <viewer
+            extensions="cmakecache"
+            class="org.brainwy.liclipsetext.editor.compare.SourceCacheCmakeMergeViewerCreator"
+            id="com.brainwy.liclipse.editor.compare.SourceCacheCmakeMergeViewerCreator">
+        </viewer>
+        <contentTypeBinding
+            contentTypeId="com.brainwy.liclipse.source.cache.cmake"
+            contentMergeViewerId="com.brainwy.liclipse.editor.compare.SourceCacheCmakeMergeViewerCreator">
+        </contentTypeBinding>
+    </extension>
+
     <!--[[[end]]]-->
 
 
@@ -1560,7 +1646,7 @@
             name="LiClipse editor"
             parentId="org.eclipse.ui.textEditorScope"
             description="LiClipse commands"
-            id="com.brainwy.liclipse.editor.context">
+            id="org.brainwy.liclipsetext.editor.context">
       </context>
     </extension>
 
@@ -1593,16 +1679,16 @@
     ''')
 
     generate = [
-        ('com.brainwy.liclipse.editor.handlers.NextElement', 'Next Element', 'M1+M2+Arrow_Down'),
-        ('com.brainwy.liclipse.editor.handlers.PrevElement', 'Previous Element', 'M1+M2+Arrow_Up'),
-        ('com.brainwy.liclipse.editor.handlers.ToggleComment', 'Toggle Comment', 'M1+/'),
-        ('com.brainwy.liclipse.editor.handlers.GoToMatchingBracket', 'Go to Matching Bracket', 'M1+M2+P'),
-        ('com.brainwy.liclipse.editor.handlers.Rename', 'Rename', ['M3+M2+R', 'M1+2 R']),
-        ('com.brainwy.liclipse.editor.handlers.QuickOutline', 'Quick Outline', 'M1+O'),
-        ('com.brainwy.liclipse.editor.handlers.Formatter', 'Code Format', 'M1+M2+F'),
-        ('com.brainwy.liclipse.editor.handlers.SelectEnclosingScope', 'Select Enclosing Scope', 'M2+M3+Arrow_Up'),
-        ('com.brainwy.liclipse.editor.handlers.DeselectEnclosingScope', 'Deselect Enclosing Scope', 'M2+M3+Arrow_Down'),
-        ('com.brainwy.liclipse.editor.handlers.ToggleMarkOccurrences', 'Toggle Mark Occurrences', 'M2+M3+O'),
+        ('org.brainwy.liclipsetext.editor.handlers.NextElement', 'Next Element', 'M1+M2+Arrow_Down'),
+        ('org.brainwy.liclipsetext.editor.handlers.PrevElement', 'Previous Element', 'M1+M2+Arrow_Up'),
+        ('org.brainwy.liclipsetext.editor.handlers.ToggleComment', 'Toggle Comment', 'M1+/'),
+        ('org.brainwy.liclipsetext.editor.handlers.GoToMatchingBracket', 'Go to Matching Bracket', 'M1+M2+P'),
+        ('org.brainwy.liclipsetext.editor.handlers.Rename', 'Rename', ['M3+M2+R', 'M1+2 R']),
+        ('org.brainwy.liclipsetext.editor.handlers.QuickOutline', 'Quick Outline', 'M1+O'),
+        ('org.brainwy.liclipsetext.editor.handlers.Formatter', 'Code Format', 'M1+M2+F'),
+        ('org.brainwy.liclipsetext.editor.handlers.SelectEnclosingScope', 'Select Enclosing Scope', 'M2+M3+Arrow_Up'),
+        ('org.brainwy.liclipsetext.editor.handlers.DeselectEnclosingScope', 'Deselect Enclosing Scope', 'M2+M3+Arrow_Down'),
+        ('org.brainwy.liclipsetext.editor.handlers.ToggleMarkOccurrences', 'Toggle Mark Occurrences', 'M2+M3+O'),
     ]
     for class_, desc, binding in generate:
         template = '''<!-COMMENT->
@@ -1631,7 +1717,7 @@
         for b in binding:
             template = '''<!-COMMENT->
             <key commandId="%(class_)s"
-            contextId="com.brainwy.liclipse.editor.context"
+            contextId="org.brainwy.liclipsetext.editor.context"
             sequence="%(binding)s"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
     </key>'''
@@ -1649,61 +1735,61 @@
     <!-- Note: run the install.py to regenerate the actions contents! -->
         <command categoryId="com.brainwy.liclipse.handlers.category"
         defaultHandler="org.brainwy.liclipsetext.editor.handlers.NextElement"
-        id="com.brainwy.liclipse.editor.handlers.NextElement"
+        id="org.brainwy.liclipsetext.editor.handlers.NextElement"
         name="Next Element">
     </command>
     <!-- Note: run the install.py to regenerate the actions contents! -->
         <command categoryId="com.brainwy.liclipse.handlers.category"
         defaultHandler="org.brainwy.liclipsetext.editor.handlers.PrevElement"
-        id="com.brainwy.liclipse.editor.handlers.PrevElement"
+        id="org.brainwy.liclipsetext.editor.handlers.PrevElement"
         name="Previous Element">
     </command>
     <!-- Note: run the install.py to regenerate the actions contents! -->
         <command categoryId="com.brainwy.liclipse.handlers.category"
         defaultHandler="org.brainwy.liclipsetext.editor.handlers.ToggleComment"
-        id="com.brainwy.liclipse.editor.handlers.ToggleComment"
+        id="org.brainwy.liclipsetext.editor.handlers.ToggleComment"
         name="Toggle Comment">
     </command>
     <!-- Note: run the install.py to regenerate the actions contents! -->
         <command categoryId="com.brainwy.liclipse.handlers.category"
         defaultHandler="org.brainwy.liclipsetext.editor.handlers.GoToMatchingBracket"
-        id="com.brainwy.liclipse.editor.handlers.GoToMatchingBracket"
+        id="org.brainwy.liclipsetext.editor.handlers.GoToMatchingBracket"
         name="Go to Matching Bracket">
     </command>
     <!-- Note: run the install.py to regenerate the actions contents! -->
         <command categoryId="com.brainwy.liclipse.handlers.category"
         defaultHandler="org.brainwy.liclipsetext.editor.handlers.Rename"
-        id="com.brainwy.liclipse.editor.handlers.Rename"
+        id="org.brainwy.liclipsetext.editor.handlers.Rename"
         name="Rename">
     </command>
     <!-- Note: run the install.py to regenerate the actions contents! -->
         <command categoryId="com.brainwy.liclipse.handlers.category"
         defaultHandler="org.brainwy.liclipsetext.editor.handlers.QuickOutline"
-        id="com.brainwy.liclipse.editor.handlers.QuickOutline"
+        id="org.brainwy.liclipsetext.editor.handlers.QuickOutline"
         name="Quick Outline">
     </command>
     <!-- Note: run the install.py to regenerate the actions contents! -->
         <command categoryId="com.brainwy.liclipse.handlers.category"
         defaultHandler="org.brainwy.liclipsetext.editor.handlers.Formatter"
-        id="com.brainwy.liclipse.editor.handlers.Formatter"
+        id="org.brainwy.liclipsetext.editor.handlers.Formatter"
         name="Code Format">
     </command>
     <!-- Note: run the install.py to regenerate the actions contents! -->
         <command categoryId="com.brainwy.liclipse.handlers.category"
         defaultHandler="org.brainwy.liclipsetext.editor.handlers.SelectEnclosingScope"
-        id="com.brainwy.liclipse.editor.handlers.SelectEnclosingScope"
+        id="org.brainwy.liclipsetext.editor.handlers.SelectEnclosingScope"
         name="Select Enclosing Scope">
     </command>
     <!-- Note: run the install.py to regenerate the actions contents! -->
         <command categoryId="com.brainwy.liclipse.handlers.category"
         defaultHandler="org.brainwy.liclipsetext.editor.handlers.DeselectEnclosingScope"
-        id="com.brainwy.liclipse.editor.handlers.DeselectEnclosingScope"
+        id="org.brainwy.liclipsetext.editor.handlers.DeselectEnclosingScope"
         name="Deselect Enclosing Scope">
     </command>
     <!-- Note: run the install.py to regenerate the actions contents! -->
         <command categoryId="com.brainwy.liclipse.handlers.category"
         defaultHandler="org.brainwy.liclipsetext.editor.handlers.ToggleMarkOccurrences"
-        id="com.brainwy.liclipse.editor.handlers.ToggleMarkOccurrences"
+        id="org.brainwy.liclipsetext.editor.handlers.ToggleMarkOccurrences"
         name="Toggle Mark Occurrences">
     </command>
 
@@ -1713,68 +1799,68 @@
     <extension point="org.eclipse.ui.bindings">
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
-            <key commandId="com.brainwy.liclipse.editor.handlers.NextElement"
-            contextId="com.brainwy.liclipse.editor.context"
+            <key commandId="org.brainwy.liclipsetext.editor.handlers.NextElement"
+            contextId="org.brainwy.liclipsetext.editor.context"
             sequence="M1+M2+Arrow_Down"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
     </key>
     <!-- Note: run the install.py to regenerate the actions contents! -->
-            <key commandId="com.brainwy.liclipse.editor.handlers.PrevElement"
-            contextId="com.brainwy.liclipse.editor.context"
+            <key commandId="org.brainwy.liclipsetext.editor.handlers.PrevElement"
+            contextId="org.brainwy.liclipsetext.editor.context"
             sequence="M1+M2+Arrow_Up"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
     </key>
     <!-- Note: run the install.py to regenerate the actions contents! -->
-            <key commandId="com.brainwy.liclipse.editor.handlers.ToggleComment"
-            contextId="com.brainwy.liclipse.editor.context"
+            <key commandId="org.brainwy.liclipsetext.editor.handlers.ToggleComment"
+            contextId="org.brainwy.liclipsetext.editor.context"
             sequence="M1+/"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
     </key>
     <!-- Note: run the install.py to regenerate the actions contents! -->
-            <key commandId="com.brainwy.liclipse.editor.handlers.GoToMatchingBracket"
-            contextId="com.brainwy.liclipse.editor.context"
+            <key commandId="org.brainwy.liclipsetext.editor.handlers.GoToMatchingBracket"
+            contextId="org.brainwy.liclipsetext.editor.context"
             sequence="M1+M2+P"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
     </key>
     <!-- Note: run the install.py to regenerate the actions contents! -->
-            <key commandId="com.brainwy.liclipse.editor.handlers.Rename"
-            contextId="com.brainwy.liclipse.editor.context"
+            <key commandId="org.brainwy.liclipsetext.editor.handlers.Rename"
+            contextId="org.brainwy.liclipsetext.editor.context"
             sequence="M3+M2+R"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
     </key>
     <!-- Note: run the install.py to regenerate the actions contents! -->
-            <key commandId="com.brainwy.liclipse.editor.handlers.Rename"
-            contextId="com.brainwy.liclipse.editor.context"
+            <key commandId="org.brainwy.liclipsetext.editor.handlers.Rename"
+            contextId="org.brainwy.liclipsetext.editor.context"
             sequence="M1+2 R"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
     </key>
     <!-- Note: run the install.py to regenerate the actions contents! -->
-            <key commandId="com.brainwy.liclipse.editor.handlers.QuickOutline"
-            contextId="com.brainwy.liclipse.editor.context"
+            <key commandId="org.brainwy.liclipsetext.editor.handlers.QuickOutline"
+            contextId="org.brainwy.liclipsetext.editor.context"
             sequence="M1+O"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
     </key>
     <!-- Note: run the install.py to regenerate the actions contents! -->
-            <key commandId="com.brainwy.liclipse.editor.handlers.Formatter"
-            contextId="com.brainwy.liclipse.editor.context"
+            <key commandId="org.brainwy.liclipsetext.editor.handlers.Formatter"
+            contextId="org.brainwy.liclipsetext.editor.context"
             sequence="M1+M2+F"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
     </key>
     <!-- Note: run the install.py to regenerate the actions contents! -->
-            <key commandId="com.brainwy.liclipse.editor.handlers.SelectEnclosingScope"
-            contextId="com.brainwy.liclipse.editor.context"
+            <key commandId="org.brainwy.liclipsetext.editor.handlers.SelectEnclosingScope"
+            contextId="org.brainwy.liclipsetext.editor.context"
             sequence="M2+M3+Arrow_Up"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
     </key>
     <!-- Note: run the install.py to regenerate the actions contents! -->
-            <key commandId="com.brainwy.liclipse.editor.handlers.DeselectEnclosingScope"
-            contextId="com.brainwy.liclipse.editor.context"
+            <key commandId="org.brainwy.liclipsetext.editor.handlers.DeselectEnclosingScope"
+            contextId="org.brainwy.liclipsetext.editor.context"
             sequence="M2+M3+Arrow_Down"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
     </key>
     <!-- Note: run the install.py to regenerate the actions contents! -->
-            <key commandId="com.brainwy.liclipse.editor.handlers.ToggleMarkOccurrences"
-            contextId="com.brainwy.liclipse.editor.context"
+            <key commandId="org.brainwy.liclipsetext.editor.handlers.ToggleMarkOccurrences"
+            contextId="org.brainwy.liclipsetext.editor.context"
             sequence="M2+M3+O"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
     </key>

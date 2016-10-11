@@ -43,6 +43,8 @@ def RunCog():
         dict(ext='bat', kind='source.dosbatch', img='source.dosbatch'),
         dict(ext='sh,bash,zsh,bashrc,bash_profile,bash_login,profile,bash_logout,textmate_init', kind='source.shell', img='source.shell'),
         dict(ext='raml', kind='source.raml', img='source.raml'),
+        dict(ext='cmake', kind='source.cmake', img='source.cmake', filenames="CMakeLists.txt,cmake"),
+        dict(ext='cmakecache', kind='source.cache.cmake', img='source.cache.cmake', filenames="CMakeCache.txt"),
         ]
 
     plugin_file = os.path.join(parent_dir, 'plugin.xml')

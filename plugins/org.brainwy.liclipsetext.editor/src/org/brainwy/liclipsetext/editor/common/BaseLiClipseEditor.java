@@ -175,7 +175,7 @@ public class BaseLiClipseEditor extends AbstractLiClipseEditor implements ILiCli
 
     @Override
     protected void initializeKeyBindingScopes() {
-        setKeyBindingScopes(new String[] { "com.brainwy.liclipse.editor.context" });
+        setKeyBindingScopes(new String[] { "org.brainwy.liclipsetext.editor.context" });
     }
 
     public static class ActionsResourceBundle extends ListResourceBundle {
