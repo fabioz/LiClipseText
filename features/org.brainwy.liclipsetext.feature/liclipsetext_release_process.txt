@@ -16,3 +16,10 @@ c:\bin\Python27\python.exe X:\release_tools\liclipsetext_uploader_bintray.py -s 
 
 git tag liclipsetext_1_1_0 -a -m "LiClipseText 1.1.0"
 git push --tags
+
+
+Update the homepage at liclipse.page:
+
+At least liclipse.page/text/updates/.htaccess / index.html must have the version changed.
+
+Update it in http://marketplace.eclipse.org/
