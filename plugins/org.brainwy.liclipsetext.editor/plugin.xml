@@ -7,6 +7,16 @@
    <extension-point id="liclipse_color_cache_provider" name="LiClipse Color Cache Provider" schema="schema/liclipse_color_cache_provider.exsd"/>
    <extension-point id="liclipse_editor_customizer" name="LiClipse Editor Customizer" schema="schema/liclipse_editor_customizer.exsd"/>
 
+    <extension
+          point="org.eclipse.core.contenttype.contentTypes">
+       <content-type
+             base-type="org.eclipse.core.runtime.text"
+             id="org.brainwy.liclipsetext.contentType"
+             name="Supported by Liclipse"
+             priority="normal">
+       </content-type>
+    </extension>
+
    <!-- editor -->
    <extension point="org.eclipse.ui.editors">
       <editor
@@ -18,7 +28,7 @@
             id="com.brainwy.liclipse.editor.common.LiClipseEditor"
             name="Liclipse Editor">
          <contentTypeBinding
-               contentTypeId="org.eclipse.core.runtime.text">
+               contentTypeId="org.brainwy.liclipsetext.contentType">
          </contentTypeBinding>
       </editor>
    </extension>
@@ -163,7 +173,7 @@
     EDITORS_LST = [{'kind': 'html', 'ext': 'html,htm', 'img': 'html'}, {'kind': 'xml', 'base_type': 'org.eclipse.core.runtime.xml', 'ext': 'xml,xsd', 'img': 'xml', 'filenames': '.pydevproject,.project,.classpath'}, {'kind': 'javascript', 'ext': 'js', 'img': 'javascript'}, {'kind': 'java', 'ext': 'java', 'img': 'java'}, {'kind': 'liclipse', 'ext': 'liclipse', 'img': 'liclipse'}, {'kind': 'django', 'ext': 'djhtml', 'img': 'django'}, {'kind': 'python', 'ext': 'py,pyw', 'img': 'python', 'filenames': 'SConstruct,Sconstruct,sconstruct,SConscript'}, {'kind': 'cpp', 'ext': 'c,cpp,h,hpp', 'img': 'cpp'}, {'kind': 'source.css', 'ext': 'css', 'img': 'css'}, {'kind': 'source.scss', 'ext': 'scss', 'img': 'scss'}, {'kind': 'coffeescript', 'ext': 'coffee', 'img': 'coffee'}, {'kind': 'restructured text', 'ext': 'rst', 'img': 'rst'}, {'kind': 'dart', 'ext': 'dart', 'img': 'dart'}, {'kind': 'mako', 'ext': 'mako', 'img': 'mako'}, {'kind': 'xgui20', 'ext': 'xgui2,xgui2_', 'img': 'liclipse'}, {'kind': 'kivy', 'ext': 'kv', 'img': 'kivy'}, {'kind': 'julia', 'ext': 'jl', 'img': 'julia'}, {'kind': 'stringtemplate', 'ext': 'st,stg', 'img': 'stringtemplate'}, {'kind': 'yaml', 'ext': 'yml,yaml,liclipseprefs', 'img': 'yaml'}, {'kind': 'nim', 'ext': 'nim', 'img': 'nim'}, {'kind': 'go', 'ext': 'go', 'img': 'go'}, {'kind': 'jinja2', 'ext': 'jinja2', 'img': 'jinja2'}, {'kind': 'source.ruby', 'ext': 'rb,rbx,Rakefile,rake', 'img': 'source.ruby'}, {'kind': 'text.html.erb', 'ext': 'erb,rhtml,html.erb', 'img': 'text.html.erb'}, {'kind': 'text.html.php', 'ext': 'php,php3,php4,php5,phpt,phtml,aw,ctp', 'img': 'text.html.php'}, {'kind': 'text.html.markdown', 'ext': 'md,mdown,markdown,markdn', 'img': 'text.html.markdown'}, {'kind': 'source.swift', 'ext': 'swift', 'img': 'source.swift'}, {'kind': 'source.perl', 'ext': 'pl,pm,pod,t,PL,psgi', 'img': 'source.perl'}, {'kind': 'source.perl.6', 'ext': 'p6,pl6,pm6,nqp', 'img': 'source.perl.6'}, {'kind': 'source.dosbatch', 'ext': 'bat', 'img': 'source.dosbatch'}, {'kind': 'source.shell', 'ext': 'sh,bash,zsh,bashrc,bash_profile,bash_login,profile,bash_logout,textmate_init', 'img': 'source.shell'}, {'kind': 'source.raml', 'ext': 'raml', 'img': 'source.raml'}, {'kind': 'source.cmake', 'ext': 'cmake', 'img': 'source.cmake', 'filenames': 'CMakeLists.txt,cmake'}, {'kind': 'source.cache.cmake', 'ext': 'cmakecache', 'img': 'source.cache.cmake', 'filenames': 'CMakeCache.txt'}]
     for x in EDITORS_LST:
         if 'base_type' not in x:
-            x['base_type'] = 'org.eclipse.core.runtime.text'
+            x['base_type'] = 'org.brainwy.liclipsetext.contentType'
         x['kind_upper'] = x['kind'].title().replace(' ', '').replace('.', '')
         if 'filenames' not in x:
         	x['filenames'] = ''
@@ -172,7 +182,7 @@
     ]]]-->
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="html,htm" file-names=""
             id="com.brainwy.liclipse.html" name="Html File" priority="normal"/>
     </extension>
@@ -258,7 +268,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="js" file-names=""
             id="com.brainwy.liclipse.javascript" name="Javascript File" priority="normal"/>
     </extension>
@@ -301,7 +311,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="java" file-names=""
             id="com.brainwy.liclipse.java" name="Java File" priority="normal"/>
     </extension>
@@ -344,7 +354,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="liclipse" file-names=""
             id="com.brainwy.liclipse.liclipse" name="Liclipse File" priority="normal"/>
     </extension>
@@ -387,7 +397,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="djhtml" file-names=""
             id="com.brainwy.liclipse.django" name="Django File" priority="normal"/>
     </extension>
@@ -430,7 +440,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="py,pyw" file-names="SConstruct,Sconstruct,sconstruct,SConscript"
             id="com.brainwy.liclipse.python" name="Python File" priority="normal"/>
     </extension>
@@ -473,7 +483,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="c,cpp,h,hpp" file-names=""
             id="com.brainwy.liclipse.cpp" name="Cpp File" priority="normal"/>
     </extension>
@@ -516,7 +526,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="css" file-names=""
             id="com.brainwy.liclipse.source.css" name="SourceCss File" priority="normal"/>
     </extension>
@@ -559,7 +569,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="scss" file-names=""
             id="com.brainwy.liclipse.source.scss" name="SourceScss File" priority="normal"/>
     </extension>
@@ -602,7 +612,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="coffee" file-names=""
             id="com.brainwy.liclipse.coffeescript" name="Coffeescript File" priority="normal"/>
     </extension>
@@ -645,7 +655,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="rst" file-names=""
             id="com.brainwy.liclipse.restructured text" name="RestructuredText File" priority="normal"/>
     </extension>
@@ -688,7 +698,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="dart" file-names=""
             id="com.brainwy.liclipse.dart" name="Dart File" priority="normal"/>
     </extension>
@@ -731,7 +741,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="mako" file-names=""
             id="com.brainwy.liclipse.mako" name="Mako File" priority="normal"/>
     </extension>
@@ -774,7 +784,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="xgui2,xgui2_" file-names=""
             id="com.brainwy.liclipse.xgui20" name="Xgui20 File" priority="normal"/>
     </extension>
@@ -817,7 +827,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="kv" file-names=""
             id="com.brainwy.liclipse.kivy" name="Kivy File" priority="normal"/>
     </extension>
@@ -860,7 +870,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="jl" file-names=""
             id="com.brainwy.liclipse.julia" name="Julia File" priority="normal"/>
     </extension>
@@ -903,7 +913,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="st,stg" file-names=""
             id="com.brainwy.liclipse.stringtemplate" name="Stringtemplate File" priority="normal"/>
     </extension>
@@ -946,7 +956,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="yml,yaml,liclipseprefs" file-names=""
             id="com.brainwy.liclipse.yaml" name="Yaml File" priority="normal"/>
     </extension>
@@ -989,7 +999,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="nim" file-names=""
             id="com.brainwy.liclipse.nim" name="Nim File" priority="normal"/>
     </extension>
@@ -1032,7 +1042,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="go" file-names=""
             id="com.brainwy.liclipse.go" name="Go File" priority="normal"/>
     </extension>
@@ -1075,7 +1085,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="jinja2" file-names=""
             id="com.brainwy.liclipse.jinja2" name="Jinja2 File" priority="normal"/>
     </extension>
@@ -1118,7 +1128,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="rb,rbx,Rakefile,rake" file-names=""
             id="com.brainwy.liclipse.source.ruby" name="SourceRuby File" priority="normal"/>
     </extension>
@@ -1161,7 +1171,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="erb,rhtml,html.erb" file-names=""
             id="com.brainwy.liclipse.text.html.erb" name="TextHtmlErb File" priority="normal"/>
     </extension>
@@ -1204,7 +1214,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="php,php3,php4,php5,phpt,phtml,aw,ctp" file-names=""
             id="com.brainwy.liclipse.text.html.php" name="TextHtmlPhp File" priority="normal"/>
     </extension>
@@ -1247,7 +1257,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="md,mdown,markdown,markdn" file-names=""
             id="com.brainwy.liclipse.text.html.markdown" name="TextHtmlMarkdown File" priority="normal"/>
     </extension>
@@ -1290,7 +1300,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="swift" file-names=""
             id="com.brainwy.liclipse.source.swift" name="SourceSwift File" priority="normal"/>
     </extension>
@@ -1333,7 +1343,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="pl,pm,pod,t,PL,psgi" file-names=""
             id="com.brainwy.liclipse.source.perl" name="SourcePerl File" priority="normal"/>
     </extension>
@@ -1376,7 +1386,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="p6,pl6,pm6,nqp" file-names=""
             id="com.brainwy.liclipse.source.perl.6" name="SourcePerl6 File" priority="normal"/>
     </extension>
@@ -1419,7 +1429,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="bat" file-names=""
             id="com.brainwy.liclipse.source.dosbatch" name="SourceDosbatch File" priority="normal"/>
     </extension>
@@ -1462,7 +1472,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="sh,bash,zsh,bashrc,bash_profile,bash_login,profile,bash_logout,textmate_init" file-names=""
             id="com.brainwy.liclipse.source.shell" name="SourceShell File" priority="normal"/>
     </extension>
@@ -1505,7 +1515,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="raml" file-names=""
             id="com.brainwy.liclipse.source.raml" name="SourceRaml File" priority="normal"/>
     </extension>
@@ -1548,7 +1558,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="cmake" file-names="CMakeLists.txt,cmake"
             id="com.brainwy.liclipse.source.cmake" name="SourceCmake File" priority="normal"/>
     </extension>
@@ -1591,7 +1601,7 @@
 
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
-        <content-type base-type="org.eclipse.core.runtime.text"
+        <content-type base-type="org.brainwy.liclipsetext.contentType"
             file-extensions="cmakecache" file-names="CMakeCache.txt"
             id="com.brainwy.liclipse.source.cache.cmake" name="SourceCacheCmake File" priority="normal"/>
     </extension>
@@ -1920,6 +1930,14 @@
 
     <extension point="org.brainwy.liclipsetext.editor.liclipse_error_collector">
         <error_collector_participant class="org.brainwy.liclipsetext.editor.error_handling.LiClipseLanguageErrorCollector"/>
+    </extension>
+    
+    <extension
+          point="org.eclipse.ui.genericeditor.presentationReconcilers">
+       <presentationReconciler
+             class="org.brainwy.liclipsetext.editor.common.partitioning.LiclipsePresentationReconcilierExt"
+             contentType="org.brainwy.liclipsetext.contentType">
+       </presentationReconciler>
     </extension>
 
 </plugin>
