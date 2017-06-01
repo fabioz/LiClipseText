@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: LiClipseText Shared Core
 Bundle-SymbolicName: org.brainwy.liclipsetext.shared_core
-Bundle-Version: 1.1.1.qualifier
+Bundle-Version: 1.1.2.qualifier
 Bundle-Activator: org.brainwy.liclipsetext.shared_core.SharedCorePlugin
 Bundle-Vendor: Brainwy Software Ltda
 Require-Bundle: org.eclipse.core.runtime,
