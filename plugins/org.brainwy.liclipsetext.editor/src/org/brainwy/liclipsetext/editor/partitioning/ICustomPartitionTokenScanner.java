@@ -7,6 +7,7 @@
 package org.brainwy.liclipsetext.editor.partitioning;
 
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.rules.IToken;
 
 public interface ICustomPartitionTokenScanner {
 
@@ -42,5 +43,7 @@ public interface ICustomPartitionTokenScanner {
      * @param length the length of the document range to scan
      */
     ScannerRange createScannerRange(IDocument document, int offset, int length);
+
+	void setDefaultReturnToken(IToken defaultReturnToken);
 
 }

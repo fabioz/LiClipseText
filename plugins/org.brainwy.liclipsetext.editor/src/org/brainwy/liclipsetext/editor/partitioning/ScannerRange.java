@@ -394,6 +394,10 @@ public class ScannerRange
         return helper.getLineFromOffsetAsBytes(currOffset);
     }
 
+    public Tuple<String, Integer> getLineFromOffsetAsString(int currOffset) {
+    	return helper.getLineFromOffsetAsString(currOffset);
+    }
+
     public Tuple<Utf8WithCharLen, Integer> getLineFromLineAsBytes(int currLine) {
         return helper.getLineFromLineAsBytes(currLine);
     }

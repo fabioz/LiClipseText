@@ -27,6 +27,7 @@ public class PartitionCodeReaderInScannerHelper implements IPartitionCodeReaderI
     private IDocument fDocument;
 
     private Map<Integer, Tuple<Utf8WithCharLen, Integer>> lineToBytes = new HashMap<>();
+    private Map<Integer, String> lineToStr = new HashMap<>();
 
     private int fDocLen;
 
@@ -42,6 +43,7 @@ public class PartitionCodeReaderInScannerHelper implements IPartitionCodeReaderI
         if (document != fDocument || newTime != oldTime) {
             codeReader = null;
             lineToBytes.clear();
+            lineToStr.clear();
         }
         oldTime = newTime;
         fDocument = document;
@@ -65,6 +67,39 @@ public class PartitionCodeReaderInScannerHelper implements IPartitionCodeReaderI
             return null;
         }
         return codeReader;
+    }
+
+    @Override
+    public String getLineFromOffsetAsStr(final int offset) {
+    	if (offset >= fDocLen) {
+    		return null;
+    	}
+    	String s = lineToStr.get(offset);
+    	if (s != null) {
+    		return s;
+    	}
+    	try {
+    		int currLine = this.fDocument.getLineOfOffset(offset);
+    		IRegion lineInformation = fDocument.getLineInformation(currLine);
+
+            int lineOffset = lineInformation.getOffset();
+            int lineLen = lineInformation.getLength();
+
+            String lineDelimiter = fDocument.getLineDelimiter(currLine);
+
+            // TODO: Finish this. WIP
+            int lineDelimiterLen = 0;
+            if (lineDelimiter != null) {
+                lineDelimiterLen = lineDelimiter.length();
+                line = new FastStringBuffer(fDocument.get(lineOffset, lineLen), 1).append('\n').toString();
+            } else {
+                line = fDocument.get(lineOffset, lineLen);
+            }
+
+    	} catch (BadLocationException e) {
+    		Log.log(e);
+    		return null;
+    	}
     }
 
     /**

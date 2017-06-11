@@ -64,6 +64,8 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.preference.IPersistentPreferenceStore;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.tm4e.core.grammar.IGrammar;
+import org.eclipse.tm4e.core.registry.Registry;
 import org.yaml.snakeyaml.Yaml;
 
 @SuppressWarnings("unchecked")
@@ -79,6 +81,9 @@ public class LanguagesManager {
     private final Map<String, LanguageMetadata> languageNameToMetadata = new HashMap<String, LanguageMetadata>();
     private File[] languagesDir;
     private IPathWatch pathWatch;
+
+	private final Registry fRegistry = new Registry();
+
 
     public final CallbackWithListeners<LanguagesManager> onReload = new CallbackWithListeners<>();
 
@@ -962,5 +967,17 @@ public class LanguagesManager {
             }
         }
     }
+
+	public IGrammar getTm4EGrammar(LiClipseLanguage language) throws Exception {
+        IStreamProvider streamProvider = language.file.getStreamProvider();
+
+        IGrammar grammar = fRegistry.grammarForScopeName(language.name);
+        if(grammar == null) {
+        	grammar = fRegistry.loadGrammarFromPathSync(".tmLanguage",
+        			streamProvider.getStream());
+        }
+		return grammar;
+	}
+
 
 }

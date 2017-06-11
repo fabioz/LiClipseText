@@ -37,4 +37,6 @@ public interface IPartitionCodeReaderInScannerHelper {
 
     boolean isInBeginWhile();
 
+	Tuple<String, Integer> getLineFromOffsetAsString(int currOffset);
+
 }

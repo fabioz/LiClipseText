@@ -11,8 +11,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.brainwy.liclipsetext.editor.LiClipseTextEditorPlugin;
+import org.brainwy.liclipsetext.editor.common.partitioning.tm4e.Tm4ePartitionScanner;
 import org.brainwy.liclipsetext.editor.common.partitioning.tokens.ContentTypeToken;
 import org.brainwy.liclipsetext.editor.languages.LanguageMetadata;
+import org.brainwy.liclipsetext.editor.languages.LanguageMetadata.LanguageType;
 import org.brainwy.liclipsetext.editor.languages.LanguagesManager;
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner;
@@ -161,8 +163,19 @@ public final class LiClipseDocumentPartitioner extends FastPartitioner {
             scanner = singleTokenScanner;
 
         } else {
-            LiClipsePartitionScanner scopeScanner = new LiClipsePartitionScanner(
-                    scopeColoringScanning, language);
+        	ICustomPartitionTokenScanner scopeScanner;
+        	if(language.languageType == LanguageType.TEXT_MATE) {
+        		try {
+					scopeScanner = new Tm4ePartitionScanner(scopeColoringScanning, language);
+				} catch (Exception e) {
+					Log.log("Error creating tm4e parser. Falling back to liclipse textmate parser.", e);
+					scopeScanner = new LiClipsePartitionScanner(scopeColoringScanning, language);
+				}
+        	}
+        	else {
+        		scopeScanner = new LiClipsePartitionScanner(scopeColoringScanning, language);
+        	}
+
             scopeScanner.setDefaultReturnToken(defaultReturnToken);
             scanner = scopeScanner;
         }

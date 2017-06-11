@@ -26,7 +26,9 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.e4.core.commands;resolution:=optional,
  com.ibm.icu,
  org.eclipse.core.expressions;bundle-version="3.5.100",
- org.eclipse.ui.genericeditor;bundle-version="1.0.0";resolution:=optional
+ org.eclipse.ui.genericeditor;bundle-version="1.0.0";resolution:=optional,
+ org.eclipse.tm4e.registry,
+ org.eclipse.tm4e.core
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Export-Package: com.eclipsesource.json,
