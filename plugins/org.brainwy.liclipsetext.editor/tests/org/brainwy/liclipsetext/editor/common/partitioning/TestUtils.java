@@ -561,6 +561,7 @@ public class TestUtils {
             }
 
             ScannerRange range = scannerForContentType.createScannerRange(document, start, len);
+            scannerForContentType.clearCache(document, start);
             String scan = TestUtils.scan(scannerForContentType, range, false);
             last = scan;
         }

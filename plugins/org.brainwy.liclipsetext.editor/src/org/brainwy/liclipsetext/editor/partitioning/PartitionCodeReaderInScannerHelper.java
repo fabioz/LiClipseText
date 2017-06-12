@@ -70,32 +70,23 @@ public class PartitionCodeReaderInScannerHelper implements IPartitionCodeReaderI
     }
 
     @Override
-    public String getLineFromOffsetAsStr(final int offset) {
-    	if (offset >= fDocLen) {
+    public String getLineAsString(final int currLine) {
+    	if (currLine >= fNumberOfLines) {
     		return null;
     	}
-    	String s = lineToStr.get(offset);
+    	String s = lineToStr.get(currLine);
     	if (s != null) {
     		return s;
     	}
     	try {
-    		int currLine = this.fDocument.getLineOfOffset(offset);
     		IRegion lineInformation = fDocument.getLineInformation(currLine);
 
             int lineOffset = lineInformation.getOffset();
             int lineLen = lineInformation.getLength();
 
-            String lineDelimiter = fDocument.getLineDelimiter(currLine);
-
-            // TODO: Finish this. WIP
-            int lineDelimiterLen = 0;
-            if (lineDelimiter != null) {
-                lineDelimiterLen = lineDelimiter.length();
-                line = new FastStringBuffer(fDocument.get(lineOffset, lineLen), 1).append('\n').toString();
-            } else {
-                line = fDocument.get(lineOffset, lineLen);
-            }
-
+            s = new FastStringBuffer(fDocument.get(lineOffset, lineLen), 1).append('\n').toString();
+            lineToStr.put(currLine, s);
+            return s;
     	} catch (BadLocationException e) {
     		Log.log(e);
     		return null;

@@ -1,5 +1,8 @@
 package org.brainwy.liclipsetext.editor.common.partitioning.tm4e;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.brainwy.liclipsetext.editor.LiClipseTextEditorPlugin;
 import org.brainwy.liclipsetext.editor.common.partitioning.ScannerHelper;
 import org.brainwy.liclipsetext.editor.common.partitioning.ScopeColorScanning;
@@ -10,29 +13,32 @@ import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner
 import org.brainwy.liclipsetext.editor.partitioning.PartitionCodeReaderInScannerHelper;
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
 import org.brainwy.liclipsetext.editor.partitioning.Utf8WithCharLen;
+import org.brainwy.liclipsetext.shared_core.log.Log;
+import org.brainwy.liclipsetext.shared_core.partitioner.DummyToken;
+import org.brainwy.liclipsetext.shared_core.partitioner.SubRuleToken;
 import org.brainwy.liclipsetext.shared_core.structure.Tuple;
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.tm4e.core.grammar.IGrammar;
-import org.eclipse.tm4e.core.internal.oniguruma.OnigString;
+import org.eclipse.tm4e.core.grammar.ITokenizeLineResult;
+import org.eclipse.tm4e.core.grammar.StackElement;
 import org.eclipse.tm4e.core.registry.Registry;
 
 public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
 
 	private IGrammar fGrammar;
 	private final ScopeColorScanning scopeColoringScanning;
-    private final ScannerHelper helper = new ScannerHelper();
-
+    private StackElement[] fLines;
 
 	public Tm4ePartitionScanner(ScopeColorScanning scopeColoringScanning, LiClipseLanguage language) throws Exception {
 		LanguagesManager languagesManager = LiClipseTextEditorPlugin.getLanguagesManager();
 		IGrammar grammar = languagesManager.getTm4EGrammar(language);
 		this.fGrammar = grammar;
 
-        helper.setLanguage(language);
         if (scopeColoringScanning != null) {
             this.scopeColoringScanning = scopeColoringScanning;
             this.scopeColoringScanning.freeze(language);
@@ -56,9 +62,11 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
         if (range.nextOfferedToken()) {
             return;
         }
+
         range.startNextToken();
 
         //Check 0: EOF: just bail out
+        final int currOffset = range.getMark();
         int c = range.read();
         if (c == ICharacterScanner.EOF) {
             range.setToken(Token.EOF);
@@ -70,36 +78,109 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
             return;
         }
 
-        //Note: check for whitespaces only after a rule.
-        //As we may want to match a rule at the start of a line, we shouldn't handle all whitespaces
-        //when one is found, only to the beginning of the next line.
-        if (c == '\r' || c == '\n') {
-            do {
-                c = range.read();
-            } while (c == '\r' || c == '\n'); //keep reading new lines until we get them all.
-            range.unread();
-            range.setToken(Token.WHITESPACE);
-            return;
+        int lineFromOffset;
+		try {
+			lineFromOffset = range.getLineFromOffset(currOffset);
+		} catch (BadLocationException e) {
+			Log.log(e);
+			range.setToken(fDefaultReturnToken);
+			return;
+		}
+        String s = range.getLineAsString(lineFromOffset);
+        range.setMark(currOffset + s.length()-1); // -1 because we get the line contents without new lines and always add a \n.
 
+        // Now, skip the real lines.
+        c = range.read();
+        if(c == '\r') {
+        	c = range.read();
+        	if(c == '\n') {
+        	}else {
+        		range.unread();
+        	}
+        }else if(c == '\n'){
+        }else {
+        	range.unread();
         }
-        final int currOffset = range.getMark();
-        Tuple<OnigString, Integer> lineFromOffsetAsBytes = range.getLineFromOffsetAsOnigString(currOffset);
-        fGrammar.tokenizeLine(lineText, prevState)
 
-        range.offerSubToken(sub2);
+        StackElement prevState = null;
+    	if(lineFromOffset > 0) {
+    		prevState = fLines[lineFromOffset-1];
+    	}
+    	ITokenizeLineResult tokenizeLine = fGrammar.tokenizeLine(s, prevState);
+    	fLines[lineFromOffset] = tokenizeLine.getRuleStack();
 
+    	org.eclipse.tm4e.core.grammar.IToken[] tokens = tokenizeLine.getTokens();
+    	if(tokens == null || tokens.length == 0) {
+    		SubRuleToken wholeMatchSubRuleToken = new SubRuleToken(fDefaultReturnToken, currOffset, range.getMark()-currOffset);
+    		range.setCurrentSubToken(wholeMatchSubRuleToken);
+
+    	}else {
+			org.eclipse.tm4e.core.grammar.IToken iToken = tokens[0];
+			SubRuleToken subRuleToken = new SubRuleToken(getToken(iToken), currOffset+iToken.getStartIndex(), iToken.getEndIndex()-iToken.getStartIndex());
+			range.setCurrentSubToken(subRuleToken);
+
+    		for (int i = 1; i < tokens.length; i++) {
+    			iToken = tokens[i];
+    			subRuleToken = new SubRuleToken(getToken(iToken), currOffset+iToken.getStartIndex(), iToken.getEndIndex()-iToken.getStartIndex());
+				range.offerSubToken(subRuleToken);
+    		}
+
+    		// Check last one to cover full range
+    		int endOffset = subRuleToken.offset + subRuleToken.len;
+    		subRuleToken.len += range.getMark() - endOffset;
+    	}
+    	return;
     }
 
-    @Override
+    private IToken getToken(org.eclipse.tm4e.core.grammar.IToken iToken) {
+		List<String> scopes = iToken.getScopes();
+		return new DummyToken(scopes.get(scopes.size()-1));
+	}
+
+	@Override
     public ScannerRange createPartialScannerRange(IDocument document, int offset, int length, String contentType,
             int partitionOffset) {
+		checkCache(document, offset);
         return new ScannerRange(document, offset, length, contentType, partitionOffset,
                 new PartitionCodeReaderInScannerHelper());
     }
 
+	private void checkCache(IDocument document, int offset) {
+		if(this.fLines == null || document.getNumberOfLines() != this.fLines.length) {
+			this.clearCache(document, offset);
+		}
+	}
+
     @Override
     public ScannerRange createScannerRange(IDocument document, int offset, int length) {
+    	if(this.fLines == null || document.getNumberOfLines() != this.fLines.length) {
+    		this.fLines = new StackElement[document.getNumberOfLines()];
+    	}
         return new ScannerRange(document, offset, length, new PartitionCodeReaderInScannerHelper());
     }
 
+    @Override
+    public void clearCache(IDocument document, int startAtOffset) {
+    	if(fLines == null) {
+    		fLines = new StackElement[document.getNumberOfLines()];
+    		return;
+    	}
+    	try {
+			int lineOfOffset = document.getLineOfOffset(startAtOffset);
+			int numberOfLines = document.getNumberOfLines();
+
+			if(numberOfLines != fLines.length) {
+				StackElement[] newStack = new StackElement[numberOfLines];
+				System.arraycopy(fLines, 0, newStack, 0, Math.min(fLines.length,lineOfOffset));
+				fLines = newStack;
+			}else {
+				for(int i=lineOfOffset;i<numberOfLines;i++) {
+					fLines[i] = null;
+				}
+			}
+
+		} catch (BadLocationException e) {
+			Log.log(e);
+		}
+    }
 }
