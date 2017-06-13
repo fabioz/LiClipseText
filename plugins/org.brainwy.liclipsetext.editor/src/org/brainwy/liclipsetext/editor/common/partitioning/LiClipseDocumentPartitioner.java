@@ -57,6 +57,8 @@ public final class LiClipseDocumentPartitioner extends FastPartitioner {
      */
     public static LiClipseContentTypeDefinitionScanner createContentTypeDefinitionScanner(
             LiClipseLanguage language) {
+    	//TODO: This approach is not valid for textmate based languages (which should be parsed by
+    	// line -- so, a better approach should be used).
         return new LiClipseContentTypeDefinitionScanner(language);
     }
 
