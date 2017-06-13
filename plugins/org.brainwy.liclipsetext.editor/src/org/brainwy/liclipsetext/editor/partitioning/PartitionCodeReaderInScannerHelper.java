@@ -27,7 +27,7 @@ public class PartitionCodeReaderInScannerHelper implements IPartitionCodeReaderI
     private IDocument fDocument;
 
     private Map<Integer, Tuple<Utf8WithCharLen, Integer>> lineToBytes = new HashMap<>();
-    private Map<Integer, String> lineToStr = new HashMap<>();
+    private Map<Integer, LineInfo> lineToStr = new HashMap<>();
 
     private int fDocLen;
 
@@ -70,11 +70,11 @@ public class PartitionCodeReaderInScannerHelper implements IPartitionCodeReaderI
     }
 
     @Override
-    public String getLineAsString(final int currLine) {
+    public LineInfo getLineAsString(final int currLine) {
     	if (currLine >= fNumberOfLines) {
     		return null;
     	}
-    	String s = lineToStr.get(currLine);
+    	LineInfo s = lineToStr.get(currLine);
     	if (s != null) {
     		return s;
     	}
@@ -84,7 +84,7 @@ public class PartitionCodeReaderInScannerHelper implements IPartitionCodeReaderI
             int lineOffset = lineInformation.getOffset();
             int lineLen = lineInformation.getLength();
 
-            s = new FastStringBuffer(fDocument.get(lineOffset, lineLen), 1).append('\n').toString();
+            s = new LineInfo(new FastStringBuffer(fDocument.get(lineOffset, lineLen), 1).append('\n').toString(), lineOffset);
             lineToStr.put(currLine, s);
             return s;
     	} catch (BadLocationException e) {

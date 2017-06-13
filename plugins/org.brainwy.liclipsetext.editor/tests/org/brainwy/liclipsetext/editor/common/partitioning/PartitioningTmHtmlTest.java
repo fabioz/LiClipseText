@@ -49,24 +49,24 @@ public class PartitioningTmHtmlTest extends TestCase {
                 .getDocumentPartitioner();
         ICustomPartitionTokenScanner scannerForContentType = documentPartitioner.obtainTokenScannerForContentType(
                 "meta.tag.inline.any.html", contentTypeToScanner, language);
-        ScannerRange range = scannerForContentType.createScannerRange(document, 11, 25);
+        ScannerRange range = scannerForContentType.createScannerRange(document, 11, 29);
         String scan = TestUtils.scan(scannerForContentType, range, false);
         assertEquals(TestUtils.listToExpected("punctuation.definition.tag.begin.html:11:1",
-                "entity.name.tag.inline.any.html:12:1",
-                "meta.tag.inline.any.html:13:1",
-                "entity.other.attribute-name.html:14:4",
-                "meta.tag.inline.any.html:18:1",
-                "punctuation.definition.string.begin.html:19:1",
-                "string.quoted.double.html:20:3",
-                "punctuation.definition.string.end.html:23:1",
-                "punctuation.definition.tag.end.html:24:1",
-                "meta.tag.inline.any.html:25:4",
-                "punctuation.definition.tag.begin.html:29:2",
-                "entity.name.tag.inline.any.html:31:1",
-                "punctuation.definition.tag.end.html:32:1",
-                "punctuation.definition.tag.begin.html:33:2",
-                "entity.name.tag.inline.any.html:35:4",
-                "punctuation.definition.tag.end.html:39:1"), scan);
+        		"entity.name.tag.inline.any.html:12:1",
+        		"meta.tag.inline.any.html:13:1",
+        		"entity.other.attribute-name.html:14:4",
+        		"meta.tag.inline.any.html:18:1",
+        		"punctuation.definition.string.begin.html:19:1",
+        		"string.quoted.double.html:20:3",
+        		"punctuation.definition.string.end.html:23:1",
+        		"punctuation.definition.tag.end.html:24:1",
+        		"text.html.basic:25:4",
+        		"punctuation.definition.tag.begin.html:29:2",
+        		"entity.name.tag.inline.any.html:31:1",
+        		"punctuation.definition.tag.end.html:32:1",
+        		"punctuation.definition.tag.html:33:2",
+        		"entity.name.tag.structure.any.html:35:4",
+        		"punctuation.definition.tag.html:39:1"), scan);
     }
 
     //    public void testTmHtmlPartitioning3() throws Exception {

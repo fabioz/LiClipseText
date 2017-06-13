@@ -8,6 +8,7 @@ package org.brainwy.liclipsetext.editor.partitioning;
 
 import java.util.Queue;
 
+import org.brainwy.liclipsetext.editor.partitioning.IPartitionCodeReaderInScannerHelper.LineInfo;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.partitioner.IContentsScanner;
 import org.brainwy.liclipsetext.shared_core.partitioner.IDocumentScanner;
@@ -133,10 +134,24 @@ public class ScannerRange
     /** Internal setting for the un-initialized column cache. */
     protected static final int UNDEFINED = -1;
 
+    private int rangeStartOffset;
+    private int rangeEndOffset;
+
+    public int getRangeStartOffset() {
+		return rangeStartOffset;
+	}
+
+    public int getRangeEndOffset() {
+		return rangeEndOffset;
+	}
+
     /*
      * @see ITokenScanner#setRange(IDocument, int, int)
      */
     public void setRange(final IDocument document, int offset, int length) {
+    	rangeStartOffset = offset;
+    	rangeEndOffset = offset + length;
+
         fDocumentLength = document.getLength();
         shiftBuffer(offset);
 
@@ -315,20 +330,27 @@ public class ScannerRange
 
     private static class TempStacked {
 
-        private int offset;
-        private int rangeEnd;
-        private int lastRegexpMatchOffset;
+        private final int offset;
+        private final int rangeEnd;
+        private final int lastRegexpMatchOffset;
+		private final int rangeStartOffset;
+		private final int rangeEndOffset;
 
-        public TempStacked(int offset, int rangeEnd, int lastRegexpMatchOffset) {
+        public TempStacked(int offset, int rangeEnd, int lastRegexpMatchOffset, int rangeStartOffset, int rangeEndOffset) {
             this.offset = offset;
             this.rangeEnd = rangeEnd;
             this.lastRegexpMatchOffset = lastRegexpMatchOffset;
+            this.rangeStartOffset = rangeStartOffset;
+            this.rangeEndOffset = rangeEndOffset;
         }
 
     }
 
     public void pushRange(int offset, int len) {
-        rangeStack.push(new TempStacked(fOffset, fRangeEnd, lastRegexpMatchOffset));
+        rangeStack.push(new TempStacked(fOffset, fRangeEnd, lastRegexpMatchOffset, rangeStartOffset, rangeEndOffset));
+        this.rangeStartOffset = offset;
+        this.rangeEndOffset = offset + len;
+
         this.fOffset = offset;
         this.fRangeEnd = offset + len;
         this.setMark(fOffset);
@@ -336,6 +358,9 @@ public class ScannerRange
 
     public void popRange() {
         TempStacked pop = rangeStack.pop();
+        this.rangeStartOffset = pop.rangeStartOffset;
+        this.rangeEndOffset = pop.rangeEndOffset;
+
         this.fOffset = pop.offset;
         this.fRangeEnd = pop.rangeEnd;
         //Although it's not changed at push, it must be restored.
@@ -394,7 +419,7 @@ public class ScannerRange
         return helper.getLineFromOffsetAsBytes(currOffset);
     }
 
-    public String getLineAsString(int currLine) {
+    public LineInfo getLineAsString(int currLine) {
     	return helper.getLineAsString(currLine);
     }
 

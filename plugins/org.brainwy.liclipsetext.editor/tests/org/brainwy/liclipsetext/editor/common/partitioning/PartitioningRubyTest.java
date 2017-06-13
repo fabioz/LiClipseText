@@ -245,5 +245,37 @@ public class PartitioningRubyTest extends TestCase {
                 "punctuation.definition.string.end.ruby:14:1"), scan);
 
     }
+    
+    public void testRubyPartitioning6() throws Exception {
+    	LanguageMetadataZipFileInfo metadata = new LanguageMetadataZipFileInfo(
+    			new File(TestUtils.getLanguagesDir(), "ruby.tmbundle"), "ruby.tmbundle-master/Syntaxes/Ruby.plist");
+    	
+    	LiClipseLanguage language = metadata.loadLanguage(true);
+    	
+    	Document document = new Document(""
+    			+ "\"a#{'b'}c\"" +
+    			"");
+    	language.connect(document);
+    	String partition = TestUtils.partition(document);
+    	assertEquals(TestUtils.listToExpected("string.quoted.double.ruby:0:"), partition);
+    	
+    	Map<String, ICustomPartitionTokenScanner> contentTypeToScanner = new HashMap<>();
+    	LiClipseDocumentPartitioner documentPartitioner = (LiClipseDocumentPartitioner) document
+    			.getDocumentPartitioner();
+    	ICustomPartitionTokenScanner scannerForContentType = documentPartitioner.obtainTokenScannerForContentType(
+    			"string.quoted.double.ruby", contentTypeToScanner, language);
+    	ScannerRange range = scannerForContentType.createScannerRange(document, 0, document.getLength());
+    	String scan = TestUtils.scan(scannerForContentType, range, false);
+    	assertEquals(TestUtils.listToExpected("punctuation.definition.string.begin.ruby:0:1",
+    			"string.quoted.double.ruby:1:1",
+    			"punctuation.section.embedded.begin.ruby:2:2",
+    			"punctuation.definition.string.begin.ruby:4:1",
+    			"string.quoted.single.ruby:5:1",
+    			"punctuation.definition.string.end.ruby:6:1",
+    			"source.ruby:7:1",
+    			"string.quoted.double.ruby:8:1",
+    			"punctuation.definition.string.end.ruby:9:1"), scan);
+    	
+    }
 
 }

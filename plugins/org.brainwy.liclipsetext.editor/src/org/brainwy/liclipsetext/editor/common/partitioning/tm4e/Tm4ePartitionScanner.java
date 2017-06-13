@@ -6,10 +6,12 @@ import java.util.List;
 import org.brainwy.liclipsetext.editor.LiClipseTextEditorPlugin;
 import org.brainwy.liclipsetext.editor.common.partitioning.ScannerHelper;
 import org.brainwy.liclipsetext.editor.common.partitioning.ScopeColorScanning;
+import org.brainwy.liclipsetext.editor.common.partitioning.tokens.ContentTypeToken;
 import org.brainwy.liclipsetext.editor.languages.IStreamProvider;
 import org.brainwy.liclipsetext.editor.languages.LanguagesManager;
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner;
+import org.brainwy.liclipsetext.editor.partitioning.IPartitionCodeReaderInScannerHelper.LineInfo;
 import org.brainwy.liclipsetext.editor.partitioning.PartitionCodeReaderInScannerHelper;
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
 import org.brainwy.liclipsetext.editor.partitioning.Utf8WithCharLen;
@@ -33,9 +35,11 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
 	private IGrammar fGrammar;
 	private final ScopeColorScanning scopeColoringScanning;
     private StackElement[] fLines;
+	private LiClipseLanguage language;
 
 	public Tm4ePartitionScanner(ScopeColorScanning scopeColoringScanning, LiClipseLanguage language) throws Exception {
 		LanguagesManager languagesManager = LiClipseTextEditorPlugin.getLanguagesManager();
+		this.language = language;
 		IGrammar grammar = languagesManager.getTm4EGrammar(language);
 		this.fGrammar = grammar;
 
@@ -86,8 +90,28 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
 			range.setToken(fDefaultReturnToken);
 			return;
 		}
-        String s = range.getLineAsString(lineFromOffset);
-        range.setMark(currOffset + s.length()-1); // -1 because we get the line contents without new lines and always add a \n.
+
+		LineInfo lineInfo = range.getLineAsString(lineFromOffset);
+		String s = lineInfo.str;
+        StackElement prevState = null;
+    	if(lineFromOffset > 0) {
+    		prevState = fLines[lineFromOffset-1];
+    	}
+
+		if(currOffset > lineInfo.lineOffset) {
+			// Starting in the middle of a line (can't use prev state and must get line substring).
+			prevState = null;
+			s = s.substring(currOffset - lineInfo.lineOffset);
+		}
+
+		int lineEndOffset = currOffset + s.length()-1;
+		if(lineEndOffset > range.getRangeEndOffset()) {
+			// If the line is > than the current range
+			s = s.substring(lineEndOffset - range.getRangeEndOffset()) + '\n';
+			lineEndOffset = range.getRangeEndOffset();
+		}
+
+        range.setMark(lineEndOffset); // -1 because we get the line contents without new lines and always add a \n.
 
         // Now, skip the real lines.
         c = range.read();
@@ -102,10 +126,6 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
         	range.unread();
         }
 
-        StackElement prevState = null;
-    	if(lineFromOffset > 0) {
-    		prevState = fLines[lineFromOffset-1];
-    	}
     	ITokenizeLineResult tokenizeLine = fGrammar.tokenizeLine(s, prevState);
     	fLines[lineFromOffset] = tokenizeLine.getRuleStack();
 
@@ -134,7 +154,7 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
 
     private IToken getToken(org.eclipse.tm4e.core.grammar.IToken iToken) {
 		List<String> scopes = iToken.getScopes();
-		return new DummyToken(scopes.get(scopes.size()-1));
+		return new ContentTypeToken(scopes.get(scopes.size()-1));
 	}
 
 	@Override

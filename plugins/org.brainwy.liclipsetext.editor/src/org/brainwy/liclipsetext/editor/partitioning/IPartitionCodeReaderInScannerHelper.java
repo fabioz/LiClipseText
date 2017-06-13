@@ -37,6 +37,18 @@ public interface IPartitionCodeReaderInScannerHelper {
 
     boolean isInBeginWhile();
 
-	String getLineAsString(int currLine);
+    LineInfo getLineAsString(int currLine);
+
+	public static class LineInfo{
+
+		public final String str;
+		public final int lineOffset;
+
+		public LineInfo(String string, int lineOffset) {
+			this.str = string;
+			this.lineOffset = lineOffset;
+		}
+
+	}
 
 }

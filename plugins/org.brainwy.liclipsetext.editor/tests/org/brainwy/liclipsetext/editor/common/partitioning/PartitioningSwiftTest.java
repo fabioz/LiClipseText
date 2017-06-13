@@ -74,8 +74,7 @@ public class PartitioningSwiftTest extends TestCase {
         asList = Arrays.asList(asList.get(asList.size() - 1));
         String last = TestUtils.scanAll(language, document, asList);
         assertEquals(TestUtils.listToExpected("punctuation.definition.comment.swift:28:2",
-                "comment.line.double-slash.swift:30:12",
-                "comment.line.double-slash.swift:42:1"), last);
+                "comment.line.double-slash.swift:30:13"), last);
 
     }
 

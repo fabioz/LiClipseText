@@ -3,7 +3,10 @@ package org.brainwy.liclipsetext.editor.languages;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.brainwy.liclipsetext.editor.LiClipseTextEditorPlugin;
 import org.brainwy.liclipsetext.editor.common.partitioning.TestUtils;
@@ -119,7 +122,90 @@ public class LanguagesManagerTest extends TestCase {
     public void testLanguagesManagerTmBundles() throws Exception {
         LanguagesManager manager = new LanguagesManager(TestUtils.getLanguagesDir());
         List<LanguageMetadata> languagesMetadata = manager.getLanguagesMetadata();
-        assertEquals(37, languagesMetadata.size());
+        List<String> captions = languagesMetadata.stream().map(u->u.languageCaption).collect(Collectors.toList());
+        List<String> names = languagesMetadata.stream().map(u->u.languageName).collect(Collectors.toList());
+        Collections.sort(captions);
+        Collections.sort(names);
+        assertEquals(TestUtils.listToExpected(captions), TestUtils.listToExpected("BaseDefinitions",
+        		"Batch File",
+        		"CMake Cache",
+        		"CMake Listfile",
+        		"CSS",
+        		"CoffeeScript",
+        		"Cpp",
+        		"Django",
+        		"Go",
+        		"HTML",
+        		"HTML",
+        		"HTML (Ruby - ERB)",
+        		"Java",
+        		"Javascript",
+        		"Jinja2",
+        		"Kivy",
+        		"LiClipse",
+        		"LiClipse Example",
+        		"Mako",
+        		"Markdown",
+        		"Nim",
+        		"PHP",
+        		"Perl",
+        		"Perl 6",
+        		"Properties",
+        		"Python",
+        		"RAML",
+        		"ReStructured Text",
+        		"Regular Expressions (Oniguruma)",
+        		"Ruby",
+        		"SCSS",
+        		"Shell Script (Bash)",
+        		"StringTemplate",
+        		"Swift",
+        		"XML",
+        		"Xgui20",
+        		"Yaml",
+        		"dart",
+        		"julia"));
+        
+        assertEquals(TestUtils.listToExpected(names), TestUtils.listToExpected("BaseDefinitions",
+        		"CoffeeScript",
+        		"Cpp",
+        		"Django",
+        		"Go",
+        		"HTML",
+        		"Java",
+        		"Javascript",
+        		"Jinja2",
+        		"Kivy",
+        		"LiClipse",
+        		"LiClipse Example",
+        		"Mako",
+        		"Nim",
+        		"Python",
+        		"ReStructured Text",
+        		"StringTemplate",
+        		"XML",
+        		"Xgui20",
+        		"Yaml",
+        		"dart",
+        		"julia",
+        		"source.cache.cmake",
+        		"source.cmake",
+        		"source.css",
+        		"source.dosbatch",
+        		"source.perl",
+        		"source.perl.6",
+        		"source.raml",
+        		"source.regexp.oniguruma",
+        		"source.ruby",
+        		"source.scss",
+        		"source.shell",
+        		"source.swift",
+        		"source.tm-properties",
+        		"text.html.basic",
+        		"text.html.erb",
+        		"text.html.markdown",
+        		"text.html.php"));
+        assertEquals(39, languagesMetadata.size());
         for (LanguageMetadata languageMetadata : languagesMetadata) {
         	LiClipseLanguage language = languageMetadata.file.loadLanguage(true);
         	assertNotNull(language);
