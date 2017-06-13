@@ -27,8 +27,9 @@ Require-Bundle: org.eclipse.ui,
  com.ibm.icu,
  org.eclipse.core.expressions;bundle-version="3.5.100",
  org.eclipse.ui.genericeditor;bundle-version="1.0.0";resolution:=optional,
- org.eclipse.tm4e.registry,
- org.eclipse.tm4e.core
+ com.google.gson;bundle-version="2.2.4",
+ org.jcodings;bundle-version="1.0.18",
+ org.joni;bundle-version="2.1.11"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Export-Package: com.eclipsesource.json,
@@ -75,21 +76,5 @@ Export-Package: com.eclipsesource.json,
  org.brainwy.liclipsetext.editor.templates.resolvers,
  org.brainwy.liclipsetext.editor.tmbundle,
  org.brainwy.liclipsetext.editor.views.languages,
- org.brainwy.liclipsetext.editor.views.partitioning,
- org.jcodings,
- org.jcodings.ascii,
- org.jcodings.constants,
- org.jcodings.exception,
- org.jcodings.specific,
- org.jcodings.transcode,
- org.jcodings.transcode.specific,
- org.jcodings.unicode,
- org.jcodings.util,
- org.joni,
- org.joni.ast,
- org.joni.bench,
- org.joni.constants,
- org.joni.exception
-Bundle-ClassPath: libs/jcodings-1.0.13.jar,
- libs/joni-2.1.6.jar,
- .
+ org.brainwy.liclipsetext.editor.views.partitioning
+Bundle-ClassPath: .
