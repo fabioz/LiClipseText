@@ -90,10 +90,15 @@ public class DocCopy implements IDocument, IDocumentExtension4 {
         return this.contents;
     }
 
-    @Override
-    public String get(int offset, int length) throws BadLocationException {
-        return this.contents.substring(offset, offset + length);
-    }
+	@Override
+	public String get(int offset, int length) throws BadLocationException {
+		try {
+			return this.contents.substring(offset, offset + length);
+		} catch (StringIndexOutOfBoundsException e) {
+			throw new BadLocationException("Bad location. Start Offset: " + offset + " Final offset: " + (offset + length)
+					+ " len: " + length + " doc len: " + this.contents.length());
+		}
+	}
 
     @Override
     public void set(String text) {
