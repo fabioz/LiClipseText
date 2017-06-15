@@ -382,6 +382,7 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
                             partitionStart = partition.getOffset();
                             contentType = partition.getType();
                             if (e.getOffset() == partition.getOffset() + partition.getLength()) {
+                                // if editing at end of partition, reparse from the partition start
                                 reparseStart = partitionStart;
                             }
                             --first;

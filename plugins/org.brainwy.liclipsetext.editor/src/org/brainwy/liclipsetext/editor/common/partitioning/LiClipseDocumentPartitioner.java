@@ -17,9 +17,8 @@ import org.brainwy.liclipsetext.editor.languages.LanguageMetadata;
 import org.brainwy.liclipsetext.editor.languages.LanguageMetadata.LanguageType;
 import org.brainwy.liclipsetext.editor.languages.LanguagesManager;
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
-import org.brainwy.liclipsetext.editor.partitioning.AbstractLiClipseRuleBasedScanner;
 import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner;
-import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
+import org.brainwy.liclipsetext.editor.partitioning.LiClipseTm4ePartitionScanner;
 import org.brainwy.liclipsetext.editor.rules.FastPartitioner;
 import org.brainwy.liclipsetext.editor.rules.SwitchLanguageToken;
 import org.brainwy.liclipsetext.shared_core.log.Log;
@@ -27,9 +26,7 @@ import org.brainwy.liclipsetext.shared_core.structure.Tuple;
 import org.eclipse.jface.text.IDocumentExtension3;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
-import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IToken;
-import org.eclipse.jface.text.rules.Token;
 
 /**
  * Make it possible to do:
@@ -61,28 +58,15 @@ public final class LiClipseDocumentPartitioner extends FastPartitioner {
      */
     public static ICustomPartitionTokenScanner createContentTypeDefinitionScanner(
             LiClipseLanguage language) {
-    	//TODO: This approach is not valid for textmate based languages (which should be parsed by
-    	// line -- so, a better approach should be used).
-    	if(language.languageType == LanguageType.TEXT_MATE) {
-    		AbstractLiClipseRuleBasedScanner scanner = new AbstractLiClipseRuleBasedScanner() {
-    			@Override
-    			public void nextToken(ScannerRange range) {
-    				range.startNextToken();
-
-    	            if (range.read() == ICharacterScanner.EOF) {
-    	                range.setToken(Token.EOF);
-    	                return;
-    	            } else {
-    	            	range.setMark(range.getRangeEndOffset());
-    	            	range.setToken(fDefaultReturnToken);
-    	            }
-    			}
-			};
-			scanner.setDefaultReturnToken(new ContentTypeToken(language.name));
-			return scanner;
-    	}else {
-    		return new LiClipseContentTypeDefinitionScanner(language);
-    	}
+        //TODO: This approach is not valid for textmate based languages (which should be parsed by
+        // line -- so, a better approach should be used).
+        if (language.languageType == LanguageType.TEXT_MATE) {
+            ICustomPartitionTokenScanner scanner = new LiClipseTm4ePartitionScanner();
+            scanner.setDefaultReturnToken(new ContentTypeToken(language.name));
+            return scanner;
+        } else {
+            return new LiClipseContentTypeDefinitionScanner(language);
+        }
     }
 
     /**
@@ -180,24 +164,24 @@ public final class LiClipseDocumentPartitioner extends FastPartitioner {
             return scanner;
         }
 
-    	if(language.languageType == LanguageType.TEXT_MATE) {
-    		try {
-				scanner = new Tm4ePartitionScanner(language);
-			} catch (Exception e) {
-				Log.log("Error creating tm4e parser. No coloring will be available.", e);
-	            scanner = new SingleTokenScanner();
-			}
-    	}else {
-	        ScopeColorScanning scopeColoringScanning = language.scopeToScopeColorScanning.get(subContentType);
-	        if (scopeColoringScanning == null || scopeColoringScanning.empty()) {
-	            //Color everything with a single color
-	            scanner = new SingleTokenScanner();
+        if (language.languageType == LanguageType.TEXT_MATE) {
+            try {
+                scanner = new Tm4ePartitionScanner(language);
+            } catch (Exception e) {
+                Log.log("Error creating tm4e parser. No coloring will be available.", e);
+                scanner = new SingleTokenScanner();
+            }
+        } else {
+            ScopeColorScanning scopeColoringScanning = language.scopeToScopeColorScanning.get(subContentType);
+            if (scopeColoringScanning == null || scopeColoringScanning.empty()) {
+                //Color everything with a single color
+                scanner = new SingleTokenScanner();
 
-	        } else {
-	    		scanner = new LiClipsePartitionScanner(scopeColoringScanning, language);
-	        }
-    	}
-    	scanner.setDefaultReturnToken(defaultReturnToken);
+            } else {
+                scanner = new LiClipsePartitionScanner(scopeColoringScanning, language);
+            }
+        }
+        scanner.setDefaultReturnToken(defaultReturnToken);
         contentTypeToScanner.put(contentType, scanner);
         return scanner;
     }
