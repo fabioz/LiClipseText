@@ -36,7 +36,7 @@ public class SwitchLanguageRule extends PatternRule implements ISwitchLanguageRu
 
     private final String switchToLanguageName;
     private final LiClipseLanguage language;
-    private ICustomPartitionTokenScanner fScanner;
+    private final ICustomPartitionTokenScanner fScanner;
     private IToken token;
 
     public SwitchLanguageRule(String startSequence, String endSequence, IToken token, String targetLanguage) {
@@ -47,6 +47,8 @@ public class SwitchLanguageRule extends PatternRule implements ISwitchLanguageRu
         this.language = languagesManager.getLanguageFromName(this.switchToLanguageName);
         if (this.language != null) {
             this.fScanner = new LiClipseContentTypeDefinitionScanner(language);
+        } else {
+            this.fScanner = null;
         }
     }
 

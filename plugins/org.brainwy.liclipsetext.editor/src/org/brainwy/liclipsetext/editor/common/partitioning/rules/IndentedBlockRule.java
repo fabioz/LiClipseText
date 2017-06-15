@@ -23,7 +23,7 @@ public class IndentedBlockRule implements IPredicateRule, IChangeTokenRule {
     private final String start;
     private final SequenceRule sequenceRule;
     private final CompositeRule additionalStartCompositeRule;
-    private int column;
+    private final int column;
 
     /**
      * If start = '..'

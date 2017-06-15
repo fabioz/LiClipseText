@@ -34,8 +34,8 @@ import org.eclipse.jface.text.rules.Token;
 
 public class SwitchLanguageHtmlRule implements IPredicateRule, IChangeTokenRule, ISwitchLanguageRule {
 
-    private Map<String, String> typeAttr;
-    private Map<String, String> languageAttr;
+    private final Map<String, String> typeAttr;
+    private final Map<String, String> languageAttr;
     private IToken fToken;
 
     private final Map<String, LiClipseContentTypeDefinitionScanner> fScanner = new HashMap<String, LiClipseContentTypeDefinitionScanner>();
