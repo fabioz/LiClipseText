@@ -88,6 +88,7 @@ public final class LiClipseDamagerRepairer implements IPresentationDamager, IPre
         }
     }
 
+    @Override
     public void setDocument(IDocument document) {
         fDocument = document;
     }

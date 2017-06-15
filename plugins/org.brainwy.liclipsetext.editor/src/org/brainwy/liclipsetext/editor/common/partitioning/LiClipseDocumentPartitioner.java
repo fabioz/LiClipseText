@@ -25,7 +25,6 @@ import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.structure.Tuple;
 import org.eclipse.jface.text.IDocumentExtension3;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
-import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.rules.IToken;
 
 /**
@@ -98,7 +97,7 @@ public final class LiClipseDocumentPartitioner extends FastPartitioner {
         }
     }
 
-    private void updateReconciler(final IColorCache colorManager, final PresentationReconciler reconciler) {
+    private void updateReconciler(final IColorCache colorManager, final LiClipsePresentationReconciler reconciler) {
         createTokenScanners(colorManager);
 
         for (Entry<String, String> contentTypeToColor : language.contentTypeToColorTokenName.entrySet()) {
