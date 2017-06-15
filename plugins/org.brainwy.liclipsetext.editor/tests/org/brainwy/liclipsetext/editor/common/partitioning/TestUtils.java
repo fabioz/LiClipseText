@@ -10,15 +10,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.brainwy.liclipsetext.editor.LiClipseTextEditorPlugin;
-import org.brainwy.liclipsetext.editor.common.partitioning.DummyColorCache;
-import org.brainwy.liclipsetext.editor.common.partitioning.IColorCache;
-import org.brainwy.liclipsetext.editor.common.partitioning.LiClipseDocumentPartitioner;
-import org.brainwy.liclipsetext.editor.common.partitioning.LiClipsePartitionScanner;
-import org.brainwy.liclipsetext.editor.common.partitioning.LiClipseTextAttribute;
-import org.brainwy.liclipsetext.editor.common.partitioning.ScopeColorScanning;
 import org.brainwy.liclipsetext.editor.languages.LanguageMetadataFileInfo;
 import org.brainwy.liclipsetext.editor.languages.LanguageMetadataInMemoryFileInfo;
-import org.brainwy.liclipsetext.editor.languages.LanguageMetadataZipFileInfo;
+import org.brainwy.liclipsetext.editor.languages.LanguageMetadataTmBundleZipFileInfo;
 import org.brainwy.liclipsetext.editor.languages.LanguagesManager;
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner;
@@ -29,7 +23,6 @@ import org.brainwy.liclipsetext.shared_core.structure.Tuple3;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IAutoIndentStrategy;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IEventConsumer;
@@ -53,7 +46,6 @@ import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
-
 
 public class TestUtils {
 
@@ -110,8 +102,9 @@ public class TestUtils {
     }
 
     public static LiClipseLanguage loadLanguageFile(String string) throws Exception {
-    	return loadLanguageFile(string, null);
+        return loadLanguageFile(string, null);
     }
+
     /**
      * Loads a language file and returns it the loaded setup for it.
      *
@@ -122,10 +115,10 @@ public class TestUtils {
         if (!file.exists()) {
             file = new File(getTestLanguagesDir(), string);
         }
-        if(zipPath != null){
-        	return new LanguageMetadataZipFileInfo(file, zipPath).loadLanguage(true);
+        if (zipPath != null) {
+            return new LanguageMetadataTmBundleZipFileInfo(file, zipPath).loadLanguage(true);
         }
-        return new LanguageMetadataFileInfo(file).loadLanguage(true);
+        return new LanguageMetadataFileInfo(file, (File) null).loadLanguage(true);
     }
 
     public static LiClipseLanguage loadLanguageFromContents(String contents) throws Exception {
@@ -260,9 +253,11 @@ public class TestUtils {
     }
 
     public static LiClipseLanguage connectDocumentToLanguage(IDocument doc, String loadLanguage) throws Exception {
-    	return connectDocumentToLanguage(doc, loadLanguage, null);
+        return connectDocumentToLanguage(doc, loadLanguage, null);
     }
-    public static LiClipseLanguage connectDocumentToLanguage(IDocument doc, String loadLanguage, String zipPath) throws Exception {
+
+    public static LiClipseLanguage connectDocumentToLanguage(IDocument doc, String loadLanguage, String zipPath)
+            throws Exception {
         LiClipseLanguage language = loadLanguageFile(loadLanguage, zipPath);
         language.connect(doc);
         return language;
@@ -542,7 +537,7 @@ public class TestUtils {
         createPresentation.invoke(presentationReconciler, new Region(0, document.getLength()), document);
     }
 
-    public static String scanAll(LiClipseLanguage language, Document document, List<String> asList) {
+    public static String scanAll(LiClipseLanguage language, IDocument document, List<String> asList) {
         String last = null;
         for (String p : asList) {
             List<String> split = StringUtils.split(p, ':');

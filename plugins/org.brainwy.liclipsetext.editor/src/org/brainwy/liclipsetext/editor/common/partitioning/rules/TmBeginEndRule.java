@@ -18,7 +18,6 @@ import org.brainwy.liclipsetext.editor.regexp.CharsRegion;
 import org.brainwy.liclipsetext.editor.regexp.RegexpHelper;
 import org.brainwy.liclipsetext.editor.regexp.RegexpHelper.ReplaceInfo;
 import org.brainwy.liclipsetext.editor.rules.IRuleWithSubRules;
-import org.brainwy.liclipsetext.shared_core.SharedCorePlugin;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.partitioner.IChangeTokenRule;
 import org.brainwy.liclipsetext.shared_core.partitioner.SubRuleToken;
@@ -243,12 +242,15 @@ public class TmBeginEndRule implements IPredicateRule, IRuleWithSubRules, IRuleW
     }
 
     private static boolean reportedIssue = false;
+    public static boolean expectToUseTmBeginEndRule = false;
 
     public IToken evaluate(ICharacterScanner scanner, boolean resume) {
-    	if(!reportedIssue) {
-    		reportedIssue = true;
-    		Log.log("Not expecting to use TmBeginEndRule (should use tm4e as the backend for parsing textmate now).");
-    	}
+        if (!expectToUseTmBeginEndRule) {
+            if (!reportedIssue) {
+                reportedIssue = true;
+                Log.log("Not expecting to use TmBeginEndRule (should use tm4e as the backend for parsing textmate now).");
+            }
+        }
         if (resume) {
             //This rule is not resumable because it depends on things such as the begin to
             //set the end (\1) and whether we're in the end of another match (\G)

@@ -17,12 +17,12 @@ import org.brainwy.liclipsetext.shared_core.io.FileUtils;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.eclipse.core.runtime.Assert;
 
-public final class LanguageMetadataZipFileInfo implements ILanguageMetadataFileInfo {
+public final class LanguageMetadataTmBundleZipFileInfo implements ILanguageMetadataFileInfo {
 
     private final File zipFile;
     private final String zipPath;
 
-    public LanguageMetadataZipFileInfo(File zipFile, String zipPath) {
+    public LanguageMetadataTmBundleZipFileInfo(File zipFile, String zipPath) {
         Assert.isNotNull(zipFile);
         Assert.isNotNull(zipPath);
         this.zipFile = zipFile;
@@ -76,6 +76,12 @@ public final class LanguageMetadataZipFileInfo implements ILanguageMetadataFileI
     }
 
     @Override
+    public IStreamProvider getTmLanguageStreamProvider() throws ZipException, IOException {
+        // In this case, it's always the same
+        return getStreamProvider();
+    }
+
+    @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
@@ -95,7 +101,7 @@ public final class LanguageMetadataZipFileInfo implements ILanguageMetadataFileI
         if (getClass() != obj.getClass()) {
             return false;
         }
-        LanguageMetadataZipFileInfo other = (LanguageMetadataZipFileInfo) obj;
+        LanguageMetadataTmBundleZipFileInfo other = (LanguageMetadataTmBundleZipFileInfo) obj;
         if (zipFile == null) {
             if (other.zipFile != null) {
                 return false;

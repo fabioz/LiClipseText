@@ -17,7 +17,9 @@ import org.brainwy.liclipsetext.editor.languages.LanguageMetadata;
 import org.brainwy.liclipsetext.editor.languages.LanguageMetadata.LanguageType;
 import org.brainwy.liclipsetext.editor.languages.LanguagesManager;
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
+import org.brainwy.liclipsetext.editor.partitioning.AbstractLiClipseRuleBasedScanner;
 import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner;
+import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
 import org.brainwy.liclipsetext.editor.rules.FastPartitioner;
 import org.brainwy.liclipsetext.editor.rules.SwitchLanguageToken;
 import org.brainwy.liclipsetext.shared_core.log.Log;
@@ -25,7 +27,9 @@ import org.brainwy.liclipsetext.shared_core.structure.Tuple;
 import org.eclipse.jface.text.IDocumentExtension3;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
+import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IToken;
+import org.eclipse.jface.text.rules.Token;
 
 /**
  * Make it possible to do:
@@ -55,11 +59,30 @@ public final class LiClipseDocumentPartitioner extends FastPartitioner {
     /**
      * Create the partitioner which will define the content types.
      */
-    public static LiClipseContentTypeDefinitionScanner createContentTypeDefinitionScanner(
+    public static ICustomPartitionTokenScanner createContentTypeDefinitionScanner(
             LiClipseLanguage language) {
     	//TODO: This approach is not valid for textmate based languages (which should be parsed by
     	// line -- so, a better approach should be used).
-        return new LiClipseContentTypeDefinitionScanner(language);
+    	if(language.languageType == LanguageType.TEXT_MATE) {
+    		AbstractLiClipseRuleBasedScanner scanner = new AbstractLiClipseRuleBasedScanner() {
+    			@Override
+    			public void nextToken(ScannerRange range) {
+    				range.startNextToken();
+
+    	            if (range.read() == ICharacterScanner.EOF) {
+    	                range.setToken(Token.EOF);
+    	                return;
+    	            } else {
+    	            	range.setMark(range.getRangeEndOffset());
+    	            	range.setToken(fDefaultReturnToken);
+    	            }
+    			}
+			};
+			scanner.setDefaultReturnToken(new ContentTypeToken(language.name));
+			return scanner;
+    	}else {
+    		return new LiClipseContentTypeDefinitionScanner(language);
+    	}
     }
 
     /**
@@ -156,31 +179,25 @@ public final class LiClipseDocumentPartitioner extends FastPartitioner {
         if (scanner != null) {
             return scanner;
         }
-        ScopeColorScanning scopeColoringScanning = language.scopeToScopeColorScanning.get(subContentType);
 
-        if (scopeColoringScanning == null || scopeColoringScanning.empty()) {
-            //Color everything with a single color
-            SingleTokenScanner singleTokenScanner = new SingleTokenScanner();
-            singleTokenScanner.setDefaultReturnToken(defaultReturnToken);
-            scanner = singleTokenScanner;
+    	if(language.languageType == LanguageType.TEXT_MATE) {
+    		try {
+				scanner = new Tm4ePartitionScanner(language);
+			} catch (Exception e) {
+				Log.log("Error creating tm4e parser. No coloring will be available.", e);
+	            scanner = new SingleTokenScanner();
+			}
+    	}else {
+	        ScopeColorScanning scopeColoringScanning = language.scopeToScopeColorScanning.get(subContentType);
+	        if (scopeColoringScanning == null || scopeColoringScanning.empty()) {
+	            //Color everything with a single color
+	            scanner = new SingleTokenScanner();
 
-        } else {
-        	ICustomPartitionTokenScanner scopeScanner;
-        	if(language.languageType == LanguageType.TEXT_MATE) {
-        		try {
-					scopeScanner = new Tm4ePartitionScanner(scopeColoringScanning, language);
-				} catch (Exception e) {
-					Log.log("Error creating tm4e parser. Falling back to liclipse textmate parser.", e);
-					scopeScanner = new LiClipsePartitionScanner(scopeColoringScanning, language);
-				}
-        	}
-        	else {
-        		scopeScanner = new LiClipsePartitionScanner(scopeColoringScanning, language);
-        	}
-
-            scopeScanner.setDefaultReturnToken(defaultReturnToken);
-            scanner = scopeScanner;
-        }
+	        } else {
+	    		scanner = new LiClipsePartitionScanner(scopeColoringScanning, language);
+	        }
+    	}
+    	scanner.setDefaultReturnToken(defaultReturnToken);
         contentTypeToScanner.put(contentType, scanner);
         return scanner;
     }

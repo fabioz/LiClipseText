@@ -10,16 +10,34 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.Map;
 
 import org.brainwy.liclipsetext.shared_core.io.FileUtils;
 import org.brainwy.liclipsetext.shared_ui.EditorUtils;
+import org.yaml.snakeyaml.Yaml;
 
 public final class LanguageMetadataFileInfo implements ILanguageMetadataFileInfo {
 
     private File file;
+    private File tmLanguageFile;
+    private boolean tryLoadTmLanguage = false;
 
-    public LanguageMetadataFileInfo(File file) {
+    /**
+     * @param file
+     * @param tmLanguageFile note that it can be == file if it's actually a tm bundle or it can be different if
+     * it's a liclipse file referencing a .tmLanguage.
+     */
+    public LanguageMetadataFileInfo(File file, File tmLanguageFile) {
         this.file = file;
+        this.tmLanguageFile = tmLanguageFile;
+    }
+
+    /**
+     * Constructor for a .liclipse file which has loaded data.
+     */
+    public LanguageMetadataFileInfo(File file, Map<String, Object> data) {
+        this.file = file;
+        this.tmLanguageFile = LiClipseLanguageIO.getTmLanguageFileFromData(data, this);
     }
 
     @Override
@@ -59,6 +77,37 @@ public final class LanguageMetadataFileInfo implements ILanguageMetadataFileInfo
                 return new FileInputStream(file);
             }
         };
+    }
+
+    @Override
+    public IStreamProvider getTmLanguageStreamProvider() throws Exception {
+        if (tryLoadTmLanguage == false && tmLanguageFile == null && file.getName().endsWith(".liclipse")) {
+            tryLoadTmLanguage = true;
+            try {
+                Yaml yaml = new Yaml();
+                Object data = yaml.load(FileUtils.getFileContents(file));
+                if (data instanceof Map) {
+                    tmLanguageFile = LiClipseLanguageIO.getTmLanguageFileFromData((Map<String, Object>) data, this);
+                }
+            } catch (Exception e) {
+                //Ignore
+            }
+
+        }
+        if (tmLanguageFile != null) {
+            return new IStreamProvider() {
+
+                @Override
+                public void close() throws Exception {
+                }
+
+                @Override
+                public InputStream getStream() throws FileNotFoundException {
+                    return new FileInputStream(tmLanguageFile);
+                }
+            };
+        }
+        throw new RuntimeException("Error: " + file + " does not have a reference to a .tmLanguage file.");
     }
 
     public File getFile() {

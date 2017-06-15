@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-import org.brainwy.liclipsetext.editor.languages.LanguageMetadataZipFileInfo;
+import org.brainwy.liclipsetext.editor.languages.LanguageMetadataTmBundleZipFileInfo;
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.brainwy.liclipsetext.editor.partitioning.Utf8WithCharLen;
 import org.brainwy.liclipsetext.shared_core.io.FileUtils;
@@ -60,67 +60,27 @@ public class PartitioningSwiftTest extends TestCase {
                 "");
 
         String partition = connectAndPartition(language, document);
-        assertEquals(TestUtils.listToExpected("source.swift.include.6:0:3",
-                "__dftl_partition_content_type:3:8",
-                "source.swift.include.4:8:9",
-                "__dftl_partition_content_type:9:10",
-                "source.swift.include.3:10:14",
-                "__dftl_partition_content_type:14:24",
-                "source.swift.include.3:24:26",
-                "__dftl_partition_content_type:26:28",
-                "source.swift.include.1:28:"), partition);
+        assertEquals(TestUtils.listToExpected("source.swift:0:"), partition);
 
         List<String> asList = TestUtils.partitionAsList(document);
         asList = Arrays.asList(asList.get(asList.size() - 1));
         String last = TestUtils.scanAll(language, document, asList);
-        assertEquals(TestUtils.listToExpected("punctuation.definition.comment.swift:28:2",
+        assertEquals(TestUtils.listToExpected("storage.type.swift:0:3",
+                "source.swift:3:5",
+                "keyword.operator.assignment.swift:8:1",
+                "source.swift:9:1",
+                "punctuation.definition.string.begin.swift:10:1",
+                "string.quoted.double.swift:11:4",
+                "punctuation.definition.string.end.swift:15:1",
+                "source.swift:16:10",
+                "constant.numeric.integer.decimal.swift:26:2",
+                "punctuation.definition.comment.swift:28:2",
                 "comment.line.double-slash.swift:30:13"), last);
 
     }
 
-    public void testSwiftNonUnicode() throws Exception {
-        LiClipseLanguage language = setupLanguage();
-        Document document = new Document(""
-                + "let cat = \"a\"; println(10)\n" +
-                "// prints \"a\"\n" +
-                "");
-        String partition = connectAndPartition(language, document);
-        assertEquals(TestUtils.listToExpected("source.swift.include.6:0:3",
-                "__dftl_partition_content_type:3:8",
-                "source.swift.include.4:8:9",
-                "__dftl_partition_content_type:9:10",
-                "source.swift.include.3:10:13",
-                "__dftl_partition_content_type:13:23",
-                "source.swift.include.3:23:25",
-                "__dftl_partition_content_type:25:27",
-                "source.swift.include.1:27:"), partition);
-
-    }
-
-    public void testSwiftSimple() throws Exception {
-        LiClipseLanguage language = setupLanguage();
-        Document document = new Document(""
-                + "a = \"10\"\n");
-        String partition = connectAndPartition(language, document);
-        assertEquals(TestUtils.listToExpected("__dftl_partition_content_type:0:2",
-                "source.swift.include.4:2:3",
-                "__dftl_partition_content_type:3:4",
-                "source.swift.include.3:4:8",
-                "__dftl_partition_content_type:8:"), partition);
-        //
-        //        LiClipseDocumentPartitioner documentPartitioner = (LiClipseDocumentPartitioner) document
-        //                .getDocumentPartitioner();
-        //        Map<String, IFulICustomPartitionTokenScannerntentTypeToScanner = new HashMap<>();
-        //        IFulICustomPartitionTokenScannernnerForContentType = documentPartitioner.obtainTokenScannerForContentType(
-        //                "text.html.markdown.include", contentTypeToScanner, language);
-        //        ScannerRange range = scannerForContentType.createScannerRange(document, 0, document.getLength());
-        //        String scan = TestUtils.scan(scannerForContentType, false);
-        //        assertEquals(TestUtils.listToExpected("meta.paragraph.markdown:0:5",
-        //                "markup.heading.setext.2.markdown:5:5"), scan);
-    }
-
     private LiClipseLanguage setupLanguage() throws Exception {
-        LanguageMetadataZipFileInfo metadata = setup();
+        LanguageMetadataTmBundleZipFileInfo metadata = setup();
 
         LiClipseLanguage language = metadata.loadLanguage(true);
         return language;
@@ -134,8 +94,8 @@ public class PartitioningSwiftTest extends TestCase {
         return partition;
     }
 
-    private LanguageMetadataZipFileInfo setup() {
-        LanguageMetadataZipFileInfo metadata = new LanguageMetadataZipFileInfo(
+    private LanguageMetadataTmBundleZipFileInfo setup() {
+        LanguageMetadataTmBundleZipFileInfo metadata = new LanguageMetadataTmBundleZipFileInfo(
                 new File(TestUtils.getLanguagesDir(), "swift.tmbundle"),
                 "swift.tmbundle-master/Syntaxes/Swift.tmLanguage");
         return metadata;

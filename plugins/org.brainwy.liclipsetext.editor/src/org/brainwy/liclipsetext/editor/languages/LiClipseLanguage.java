@@ -6,6 +6,7 @@
  */
 package org.brainwy.liclipsetext.editor.languages;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -126,6 +127,10 @@ public class LiClipseLanguage {
                 IPredicateRule[] array = s.getRules().toArray(new IPredicateRule[0]);
                 collect(array, contentTypes);
             }
+        }
+
+        if (this.languageType == LanguageType.TEXT_MATE) {
+            contentTypes.add(this.name);
         }
         if (!contentTypes.contains(IDocument.DEFAULT_CONTENT_TYPE)) {
             contentTypes.add(IDocument.DEFAULT_CONTENT_TYPE);
@@ -520,7 +525,8 @@ public class LiClipseLanguage {
     }
 
     private ScopeColorScanning getScopeColorScanning() {
-        ScopeColorScanning scopeColoringScanning = scopeToScopeColorScanning.get(ICustomPartitionTokenScanner.DEFAULT_CONTENT_TYPE);
+        ScopeColorScanning scopeColoringScanning = scopeToScopeColorScanning
+                .get(ICustomPartitionTokenScanner.DEFAULT_CONTENT_TYPE);
         if (scopeColoringScanning == null) {
             scopeColoringScanning = new ScopeColorScanning(this.caseInsensitive, this);
             scopeToScopeColorScanning.put(ICustomPartitionTokenScanner.DEFAULT_CONTENT_TYPE, scopeColoringScanning);
@@ -644,6 +650,9 @@ public class LiClipseLanguage {
     private final Object defaultTokenCreatorLock = new Object();
 
     public LanguageType languageType = LanguageType.LICLIPSE; //default
+
+    // Only available if languageType == LanguageType.TEXT_MATE (in the case that this is a .liclipse language with a .tmLanguage file).
+    public File tmLanguageFile;
 
     public Set<Character> getSeparatorChars() {
         if (separatorsCharsInWord == null) {

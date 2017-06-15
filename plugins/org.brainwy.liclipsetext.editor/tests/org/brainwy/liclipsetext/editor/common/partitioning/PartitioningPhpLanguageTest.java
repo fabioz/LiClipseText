@@ -2,7 +2,7 @@ package org.brainwy.liclipsetext.editor.common.partitioning;
 
 import java.io.File;
 
-import org.brainwy.liclipsetext.editor.languages.LanguageMetadataZipFileInfo;
+import org.brainwy.liclipsetext.editor.languages.LanguageMetadataTmBundleZipFileInfo;
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.brainwy.liclipsetext.editor.rules.TypedRegionWithSubTokens;
 import org.brainwy.liclipsetext.shared_core.partitioner.SubRuleToken;
@@ -32,7 +32,7 @@ public class PartitioningPhpLanguageTest extends TestCase {
         String txt = "<?php\n$a=10;\n?>";
         IDocument document = new Document(txt);
 
-        LanguageMetadataZipFileInfo metadata = new LanguageMetadataZipFileInfo(
+        LanguageMetadataTmBundleZipFileInfo metadata = new LanguageMetadataTmBundleZipFileInfo(
                 new File(TestUtils.getLanguagesDir(), "php.tmbundle"), "php.tmbundle-master/Syntaxes/PHP.plist");
 
         LiClipseLanguage language = metadata.loadLanguage(true);
@@ -85,7 +85,7 @@ public class PartitioningPhpLanguageTest extends TestCase {
                 "";
         IDocument document = new Document(txt);
 
-        LanguageMetadataZipFileInfo metadata = new LanguageMetadataZipFileInfo(
+        LanguageMetadataTmBundleZipFileInfo metadata = new LanguageMetadataTmBundleZipFileInfo(
                 new File(TestUtils.getLanguagesDir(), "php.tmbundle"), "php.tmbundle-master/Syntaxes/PHP.plist");
 
         LiClipseLanguage language = metadata.loadLanguage(true);

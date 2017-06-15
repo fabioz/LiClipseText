@@ -33,26 +33,14 @@ import org.eclipse.tm4e.core.registry.Registry;
 public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
 
 	private IGrammar fGrammar;
-	private final ScopeColorScanning scopeColoringScanning;
     private StackElement[] fLines;
 	private LiClipseLanguage language;
 
-	public Tm4ePartitionScanner(ScopeColorScanning scopeColoringScanning, LiClipseLanguage language) throws Exception {
+	public Tm4ePartitionScanner(LiClipseLanguage language) throws Exception {
 		LanguagesManager languagesManager = LiClipseTextEditorPlugin.getLanguagesManager();
 		this.language = language;
 		IGrammar grammar = languagesManager.getTm4EGrammar(language);
 		this.fGrammar = grammar;
-
-        if (scopeColoringScanning != null) {
-            this.scopeColoringScanning = scopeColoringScanning;
-            this.scopeColoringScanning.freeze(language);
-        } else {
-            //This means that 'scope_definition_rules' was defined for the scope but
-            //in the 'scope' which defines how to scan that scope there's nothing
-            //defined (thus, the whole scope will not have sub-partitions and will
-            //only have a single color).
-            this.scopeColoringScanning = null;
-        }
 	}
 
     protected IToken fDefaultReturnToken = new Token(null);
@@ -74,11 +62,6 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
         int c = range.read();
         if (c == ICharacterScanner.EOF) {
             range.setToken(Token.EOF);
-            return;
-        }
-
-        if (scopeColoringScanning == null) {
-            range.setToken(fDefaultReturnToken);
             return;
         }
 

@@ -16,11 +16,11 @@ public class TokenFactory {
     public static IToken createTokenCopy(IToken successToken, String s) {
         if (successToken instanceof DummyToken) {
             return new DummyToken(s);
+        } else if (successToken instanceof TargetLanguageToken) { // Must be before ContentTypeToken.
+        	return new TargetLanguageToken(s);
         } else if (successToken instanceof ContentTypeToken) {
             return new ContentTypeToken(s);
-        } else if (successToken instanceof TargetLanguageToken) {
-            return new TargetLanguageToken(s);
-        } else if (successToken instanceof Token) {
+        } else if (successToken instanceof Token) { // Must be after all the others
             return new Token(s);
         } else {
             Log.log("Did not expect token: " + successToken.getClass());

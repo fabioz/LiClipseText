@@ -29,7 +29,7 @@ import org.eclipse.jface.text.rules.IToken;
  *
  * Used in the LiClipsePartitionScanner.
  */
-public final class ScopeColorScanning {
+public class ScopeColorScanning {
 
     public final Map<String, List<String>> tokenToWords = new HashMap<String, List<String>>();
     private final Map<String, IToken> wordToToken = new HashMap<String, IToken>();

@@ -7,9 +7,6 @@ import java.util.Map;
 import java.util.SortedMap;
 
 import org.brainwy.liclipsetext.editor.common.partitioning.LiClipseContentTypeDefinitionScanner;
-import org.brainwy.liclipsetext.editor.common.partitioning.rules.IEvalCaptures;
-import org.brainwy.liclipsetext.editor.common.partitioning.rules.TmBeginEndRule;
-import org.brainwy.liclipsetext.editor.common.partitioning.rules.TmMatchRule;
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
 import org.brainwy.liclipsetext.editor.partitioning.Utf8WithCharLen;
 import org.brainwy.liclipsetext.editor.regexp.CharsRegion;
@@ -28,6 +25,18 @@ import org.joni.Regex;
 import junit.framework.TestCase;
 
 public class TmBeginEndRuleTest extends TestCase {
+
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        TmBeginEndRule.expectToUseTmBeginEndRule = true;
+    }
+
+    @Override
+    protected void tearDown() throws Exception {
+        super.tearDown();
+        TmBeginEndRule.expectToUseTmBeginEndRule = false;
+    }
 
     public void testTmBeginEndRule() throws Exception {
         TmBeginEndRule rule = new TmBeginEndRule("<<(\"|')(\\w+)\\1", "^\\2$", new HashMap<>(), new HashMap<>(), null,
