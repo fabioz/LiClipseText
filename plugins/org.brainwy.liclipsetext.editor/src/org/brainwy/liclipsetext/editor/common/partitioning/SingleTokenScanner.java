@@ -19,23 +19,23 @@ public class SingleTokenScanner implements ICustomPartitionTokenScanner {
 
     protected IToken fDefaultReturnToken = new Token(null);
 
+    @Override
     public void setDefaultReturnToken(IToken defaultReturnToken) {
         Assert.isNotNull(defaultReturnToken.getData());
         fDefaultReturnToken = defaultReturnToken;
     }
 
+    @Override
     public void nextToken(ScannerRange range) {
         range.startNextToken();
 
         if (range.read() == ICharacterScanner.EOF) {
             range.setToken(Token.EOF);
             return;
+        } else {
+            range.setMark(range.getRangeEndOffset());
+            range.setToken(fDefaultReturnToken);
         }
-        while (range.read() != ICharacterScanner.EOF) {
-            //keep on going until the end if the first was not an EOF.
-        }
-        range.unread(); //unread EOF
-        range.setToken(fDefaultReturnToken);
     }
 
     @Override
@@ -52,7 +52,7 @@ public class SingleTokenScanner implements ICustomPartitionTokenScanner {
 
     @Override
     public void clearCache(IDocument document, int startAtOffset) {
-    	// No cache
+        // No cache
     }
 
 }
