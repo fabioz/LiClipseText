@@ -11,10 +11,12 @@ import org.brainwy.liclipsetext.editor.common.partitioning.tokens.ITextAttribute
 import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.partitioner.DummyToken;
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITypedRegion;
+import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.jface.text.presentation.IPresentationDamager;
@@ -26,6 +28,7 @@ import org.eclipse.swt.custom.StyleRange;
 
 public final class LiClipseDamagerRepairer implements IPresentationDamager, IPresentationRepairer {
 
+    private static final boolean DEBUG = false;
     private final CustomTextAttributeTokenCreator defaultTokenCreator;
     private ICustomPartitionTokenScanner fScanner;
     private TextAttribute fDefaultTextAttribute = new TextAttribute(null);
@@ -55,28 +58,46 @@ public final class LiClipseDamagerRepairer implements IPresentationDamager, IPre
     }
 
     @Override
-    public IRegion getDamageRegion(ITypedRegion partition, DocumentEvent e,
-            boolean documentPartitioningChanged) {
-        // The DefaultDamagerRepairer will usually not update the whole partition
-        // if the partitioning hasn't changed (i.e.: when some text is highlighted
-        // for instance).
-        // But this doesn't work well if the partitioner is more complex and has
-        // to look for the whole partition in order to get the colors properly
-        // (i.e.: textmate rules)
-        // So, we override to always update the whole partition.
-        //
-        // Example failing:
-        //
-        // Code:
-        // def in(a)
-        // end
-        // c=A.new(a, b)
-        //
-        // With textmate ruby grammar:
-        // highlight 'end' -- by doing so the end color actually becomes
-        // wrong because the scanner started at 'end' and not at the start
-        // of the partition.
-        return partition;
+    public IRegion getDamageRegion(ITypedRegion partition, DocumentEvent e, boolean documentPartitioningChanged) {
+
+        IDocument document = e.getDocument();
+        IRegion ret = partition;
+        if (!documentPartitioningChanged) {
+            try {
+
+                IRegion info = document.getLineInformationOfOffset(e.getOffset());
+                IRegion infoEnd = document.getLineInformationOfOffset(e.getOffset() + e.getLength());
+                if (info.getOffset() == infoEnd.getOffset()) {
+                    return info;
+                }
+                if (info.getOffset() > infoEnd.getOffset()) {
+                    IRegion temp = info;
+                    info = infoEnd;
+                    infoEnd = temp;
+                }
+                ret = new Region(info.getOffset(),
+                        (infoEnd.getOffset() + infoEnd.getLength()) - info.getOffset());
+                if (DEBUG) {
+                    System.out.println("Damage:");
+                    System.out.println(document.get(ret.getOffset(), ret.getLength()));
+                }
+                return ret;
+            } catch (BadLocationException x) {
+                Log.log(x);
+            }
+        } else {
+            ret = partition;
+        }
+        if (DEBUG) {
+            System.out.println("Damage partition:");
+            try {
+                System.out.println(document.get(ret.getOffset(), ret.getLength()));
+            } catch (BadLocationException e1) {
+                Log.log(e1);
+            }
+        }
+
+        return ret;
     }
 
     @Override

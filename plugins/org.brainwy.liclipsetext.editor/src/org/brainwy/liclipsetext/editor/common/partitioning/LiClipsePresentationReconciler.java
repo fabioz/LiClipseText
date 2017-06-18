@@ -11,13 +11,16 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
+import org.brainwy.liclipsetext.shared_core.document.DocCopy;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_ui.utils.RunInUiThread;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.text.BadLocationException;
@@ -27,6 +30,7 @@ import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.DocumentPartitioningChangedEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentExtension3;
+import org.eclipse.jface.text.IDocumentExtension4;
 import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.IDocumentPartitioningListener;
 import org.eclipse.jface.text.IDocumentPartitioningListenerExtension;
@@ -431,11 +435,74 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
                 presentation.setDefaultStyleRange(new StyleRange(damage.getOffset(), damage.getLength(), null, null));
                 applyTextRegionCollection(presentation);
             } else {
+                int totalDamageLen = 0;
                 synchronized (repairListLock) {
                     repairList.add(new RepairListEntry(damage, document));
-                }
-                processRepairListJob.schedule(10);
+                    IDocument doc = null;
+                    List<IRegion> regions = new ArrayList<>();
+                    for (RepairListEntry repairListEntry : repairList) {
+                        if (doc != repairListEntry.doc) {
+                            if (doc != null) {
+                                Log.logInfo("Doc changed (clearing regions).");
+                            }
+                            doc = repairListEntry.doc;
+                            regions.clear();
+                        }
+                        regions.add(repairListEntry.damage);
+                    }
+                    repairList.clear();
 
+                    if (doc == null) {
+                        return;
+                    }
+                    List<IRegion> finalRegions = new ArrayList<>(regions);
+
+                    // Ok, we now have the regions and the docs, let's join the regions we can...
+                    for (IRegion iRegion : regions) {
+                        if (DEBUG) {
+                            System.out.println("Initial: " + iRegion);
+                            try {
+                                System.out.println(doc.get(iRegion.getOffset(), iRegion.getLength()));
+                            } catch (BadLocationException e) {
+                                // TODO Auto-generated catch block
+                                e.printStackTrace();
+                            }
+                        }
+                        boolean found = false;
+                        for (ListIterator<IRegion> it = finalRegions.listIterator(); it.hasNext();) {
+                            IRegion existing = it.next();
+                            if (TextUtilities.overlaps(iRegion, existing)) {
+                                int startIndex = Math.min(existing.getOffset(), iRegion.getOffset());
+                                int endIndex = Math.max(existing.getOffset() + existing.getLength(),
+                                        iRegion.getOffset() + iRegion.getLength());
+
+                                IRegion merged = new Region(startIndex, endIndex - startIndex);
+                                it.set(merged);
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            finalRegions.add(iRegion);
+                        }
+                    }
+
+                    for (IRegion r : finalRegions) {
+                        repairList.add(new RepairListEntry(r, doc));
+                        totalDamageLen += r.getLength();
+                    }
+                }
+                if (totalDamageLen > 2000) {
+                    if (DEBUG) {
+                        System.out.println("Making async damage update");
+                    }
+                    processRepairListJob.schedule();
+                } else {
+                    if (DEBUG) {
+                        System.out.println("Making sync damage update");
+                    }
+                    processRepairListJob.run(new NullProgressMonitor());
+                }
             }
 
         } catch (Exception e) {
@@ -449,59 +516,129 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
     private static class RepairListEntry {
 
         private final IDocument doc;
-        private IRegion damage;
+        private final IRegion damage;
 
         public RepairListEntry(IRegion damage, IDocument document) {
+            Assert.isNotNull(document);
+            Assert.isNotNull(damage);
             this.doc = document;
             this.damage = damage;
         }
     }
+
+    private static final boolean DEBUG = false;
 
     private class ProcessRepairListJob extends Job {
 
         public ProcessRepairListJob() {
             super("ProcessRepairList");
             setSystem(true);
+            setPriority(Job.INTERACTIVE);
         }
 
         @Override
         protected IStatus run(IProgressMonitor monitor) {
-            synchronized (repairList) {
-                IDocument doc = null;
+            List<IRegion> finalRegions = new ArrayList<>();
+            IDocument doc = null;
+            synchronized (repairListLock) {
+                if (DEBUG) {
+                    System.out.println("Processing damaged regions...");
+                }
                 List<IRegion> regions = new ArrayList<>();
                 for (RepairListEntry repairListEntry : repairList) {
                     if (doc != repairListEntry.doc) {
+                        if (doc != null) {
+                            Log.logInfo("Doc changed (clearing regions).");
+                        }
                         doc = repairListEntry.doc;
                         regions.clear();
                     }
+                    regions.add(repairListEntry.damage);
                 }
-
-                // Ok, we now have the regions and the docs, let's join the regions we can...
-                throw new AssertionError("FINISH THIS!");
-                regions.sort((IRegion o1, IRegion o2) -> o1.getOffset() - o2.getOffset());
-                for (IRegion iRegion : regions) {
-
-                }
-                presentation = new TextPresentation(damage, 1000);
-
-                ITypedRegion[] partitioning = TextUtilities.computePartitioning(doc, getDocumentPartitioning(),
-                        damage.getOffset(), damage.getLength(), false);
-
-            }
-            for (ITypedRegion r : partitioning) {
-                IPresentationRepairer repairer = getRepairer(r.getType());
-                repairer.setDocument(docCopy);
-                if (repairer != null) {
-                    repairer.createPresentation(presentation, r);
+                finalRegions.addAll(regions);
+                repairList.clear();
+                if (doc == null) {
+                    return Status.OK_STATUS;
                 }
             }
+
+            List<TextPresentation> presentations = new ArrayList<>(finalRegions.size());
+            final IDocumentExtension4 docExt = (IDocumentExtension4) doc;
+            final long modificationStamp = docExt.getModificationStamp();
+
+            DocCopy docCopy = new DocCopy(doc);
+            for (IRegion damage : finalRegions) {
+                if (DEBUG) {
+                    System.out.println("Final: " + damage);
+                }
+                TextPresentation presentation = new TextPresentation(damage, 1000);
+
+                ITypedRegion[] partitioning;
+                try {
+                    int offset = damage.getOffset();
+                    int length = damage.getLength();
+                    if (offset > docCopy.getLength()) {
+                        continue;
+                    }
+                    if (offset + length > docCopy.getLength()) {
+                        length = docCopy.getLength() - offset;
+                    }
+                    partitioning = TextUtilities.computePartitioning(doc, getDocumentPartitioning(),
+                            offset, length, false);
+                    if (modificationStamp != docExt.getModificationStamp()) {
+                        synchronized (repairListLock) {
+                            if (DEBUG) {
+                                System.out.println("Document changed. Rescheduling (1).\n\n");
+                            }
+                            for (IRegion r : finalRegions) {
+                                repairList.add(0, new RepairListEntry(r, doc));
+                            }
+                            schedule();
+                            return Status.OK_STATUS;
+                        }
+                    }
+                    for (ITypedRegion r : partitioning) {
+                        IPresentationRepairer repairer = getRepairer(r.getType());
+                        repairer.setDocument(docCopy);
+                        if (repairer != null) {
+                            repairer.createPresentation(presentation, r);
+                        }
+                    }
+                    presentations.add(presentation);
+                } catch (BadLocationException e) {
+                    Log.log(e);
+                }
+            }
+            final IDocument finalDoc = doc;
             RunInUiThread.async(new Runnable() {
 
                 @Override
                 public void run() {
-                    applyTextRegionCollection(presentation);
+                    // Never apply if the document changed in the meanwhile...
+                    if (modificationStamp != docExt.getModificationStamp()) {
+                        synchronized (repairListLock) {
+                            if (DEBUG) {
+                                System.out.println("Document changed. Rescheduling (2).\n\n");
+                            }
+                            for (IRegion r : finalRegions) {
+                                repairList.add(0, new RepairListEntry(r, finalDoc));
+                            }
+                            ProcessRepairListJob.this.schedule();
+                            return;
+                        }
+                    }
+
+                    for (TextPresentation presentation : presentations) {
+                        if (DEBUG) {
+                            System.out.println("Applying text presentation.");
+                        }
+                        applyTextRegionCollection(presentation);
+                    }
+                    if (DEBUG) {
+                        System.out.println("\n.");
+                    }
                 }
-            });
+            }, true);
             return Status.OK_STATUS;
         }
     }
@@ -544,7 +681,6 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
             }
 
             IRegion r = damager.getDamageRegion(partition, e, fDocumentPartitioningChanged);
-
             if (!fDocumentPartitioningChanged && optimize && !isDeletion) {
                 damage = r;
             } else {
@@ -560,7 +696,9 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
 
                 damage = damageEnd == -1 ? r : new Region(damageStart, damageEnd - damageStart);
             }
-
+            if (DEBUG) {
+                System.out.println("Computed damage: " + e.getDocument().get(damage.getOffset(), damage.getLength()));
+            }
         } catch (BadLocationException x) {
         }
 
