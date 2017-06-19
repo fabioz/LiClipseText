@@ -73,9 +73,7 @@ public class SubTokensTokensProvider {
                 return Token.EOF;
             }
         } else {
-            tokenScanner.nextToken(scannerRange);
-            return scannerRange.getToken();
-
+            return scannerRange.nextToken(tokenScanner);
         }
     }
 

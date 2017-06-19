@@ -68,21 +68,30 @@ public class ScannerRange
     }
 
     private final IPartitionCodeReaderInScannerHelper helper;
+    private ICustomPartitionTokenScanner fScanner;
 
-    public ScannerRange(IDocument doc, int offset, int length, IPartitionCodeReaderInScannerHelper helper) {
+    public ScannerRange(IDocument doc, int offset, int length, IPartitionCodeReaderInScannerHelper helper,
+            ICustomPartitionTokenScanner scanner) {
         helper.setDocument(doc);
         this.fDocument = doc;
         this.helper = helper;
+        this.fScanner = scanner;
         this.setRange(doc, offset, length);
     }
 
     // Used in place of setPartialRange.
     public ScannerRange(IDocument doc, int offset, int length, String contentType, int partitionOffset,
-            IPartitionCodeReaderInScannerHelper helper) {
+            IPartitionCodeReaderInScannerHelper helper, ICustomPartitionTokenScanner scanner) {
         this.helper = helper;
         this.fDocument = doc;
+        this.fScanner = scanner;
         helper.setDocument(doc);
         setPartialRange(doc, offset, length, contentType, partitionOffset);
+    }
+
+    public IToken nextToken(ICustomPartitionTokenScanner scanner) {
+        scanner.nextToken(this);
+        return this.getToken();
     }
 
     /**
@@ -138,19 +147,19 @@ public class ScannerRange
     private int rangeEndOffset;
 
     public int getRangeStartOffset() {
-		return rangeStartOffset;
-	}
+        return rangeStartOffset;
+    }
 
     public int getRangeEndOffset() {
-		return rangeEndOffset;
-	}
+        return rangeEndOffset;
+    }
 
     /*
      * @see ITokenScanner#setRange(IDocument, int, int)
      */
     public void setRange(final IDocument document, int offset, int length) {
-    	rangeStartOffset = offset;
-    	rangeEndOffset = offset + length;
+        rangeStartOffset = offset;
+        rangeEndOffset = offset + length;
 
         fDocumentLength = document.getLength();
         shiftBuffer(offset);
@@ -333,10 +342,11 @@ public class ScannerRange
         private final int offset;
         private final int rangeEnd;
         private final int lastRegexpMatchOffset;
-		private final int rangeStartOffset;
-		private final int rangeEndOffset;
+        private final int rangeStartOffset;
+        private final int rangeEndOffset;
 
-        public TempStacked(int offset, int rangeEnd, int lastRegexpMatchOffset, int rangeStartOffset, int rangeEndOffset) {
+        public TempStacked(int offset, int rangeEnd, int lastRegexpMatchOffset, int rangeStartOffset,
+                int rangeEndOffset) {
             this.offset = offset;
             this.rangeEnd = rangeEnd;
             this.lastRegexpMatchOffset = lastRegexpMatchOffset;
@@ -420,7 +430,7 @@ public class ScannerRange
     }
 
     public LineInfo getLineAsString(int currLine) {
-    	return helper.getLineAsString(currLine);
+        return helper.getLineAsString(currLine);
     }
 
     public Tuple<Utf8WithCharLen, Integer> getLineFromLineAsBytes(int currLine) {

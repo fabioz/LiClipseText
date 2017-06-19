@@ -2,13 +2,13 @@ package org.brainwy.liclipsetext.editor.common.partitioning;
 
 import java.io.InputStream;
 
-import junit.framework.TestCase;
-
 import org.brainwy.liclipsetext.editor.languages.LanguageLoaderTest;
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.brainwy.liclipsetext.shared_core.io.FileUtils;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocument;
+
+import junit.framework.TestCase;
 
 public class Partitioning2Test extends TestCase {
 
@@ -33,7 +33,7 @@ public class Partitioning2Test extends TestCase {
         LiClipseLanguage partitioningSetup = TestUtils.loadLanguageFile("python.liclipse");
         partitioningSetup.connect(document);
 
-        TestUtils.updateDocumentPartitions(document);
+        //        TestUtils.updateDocumentPartitions(document);
 
         //        LiClipseOutlineCreator creator = new LiClipseOutlineCreator(new ILiClipseEditor() {
         //

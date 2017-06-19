@@ -87,14 +87,14 @@ public class SwitchLanguageRule extends PatternRule implements ISwitchLanguageRu
                 List<SubLanguageToken> subTokens = new ArrayList<SubLanguageToken>();
                 subTokens.add(new SubLanguageToken("this", (String) token.getData(), tokenScanner.getTokenOffset(),
                         fStartSequence.length));
-                this.fScanner.nextToken(range);
+                IToken tok = range.nextToken(this.fScanner);
                 String baseLanguage = (String) ret.getData();
-                while (!range.getToken().isEOF()) {
+                while (!tok.isEOF()) {
                     subTokens.add(
                             new SubLanguageToken(baseLanguage, (String) range.getToken().getData(),
                                     range.getTokenOffset(),
                                     range.getTokenLength()));
-                    this.fScanner.nextToken(range);
+                    tok = range.nextToken(this.fScanner);
                 }
                 int offset2 = offset + len;
                 subTokens.add(new SubLanguageToken("this", (String) token.getData(), offset2, fEndSequence.length));

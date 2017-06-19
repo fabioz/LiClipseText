@@ -1,11 +1,10 @@
 package org.brainwy.liclipsetext.editor.common.partitioning;
 
-import junit.framework.TestCase;
-
-import org.brainwy.liclipsetext.editor.common.partitioning.LiClipseDocumentPartitioner;
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocument;
+
+import junit.framework.TestCase;
 
 public class PartitioningSwitchLanguageTest extends TestCase {
 
@@ -100,8 +99,7 @@ public class PartitioningSwitchLanguageTest extends TestCase {
                 "this&singleQuotedString:69:77",
                 "this&__dftl_partition_content_type:77:78",
                 "this&bracket:78:79",
-                "source.css&source.css.include.1:79:81",
-                "source.css&source.css.3:81:96",
+                "source.css&__dftl_partition_content_type:79:96",
                 "this&close_tag:96:98",
                 "this&close_class:98:103",
                 "this&bracket:103:104",

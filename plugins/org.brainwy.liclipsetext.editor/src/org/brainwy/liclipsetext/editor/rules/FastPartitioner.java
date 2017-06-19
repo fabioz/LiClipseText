@@ -177,7 +177,7 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
                 fScanner.clearCache(doc, 0);
 
                 try {
-                    fScanner.nextToken(scannerRange);
+                    scannerRange.nextToken(fScanner);
                     while (!scannerRange.getToken().isEOF()) {
                         //                System.out.println("tok:" + token.getData() + " " + fScanner.getTokenOffset() + " "
                         //                        + fScanner.getTokenLength());
@@ -212,7 +212,7 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
                             }
                         }
 
-                        fScanner.nextToken(scannerRange);
+                        scannerRange.nextToken(fScanner);
                     }
                 } catch (BadLocationException x) {
                     // cannot happen as offsets come from scanner
@@ -416,7 +416,7 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
                     fScanner.clearCache(fDocument, reparseStart);
 
                     int behindLastScannedPosition = reparseStart;
-                    fScanner.nextToken(scannerRange);
+                    scannerRange.nextToken(fScanner);
 
                     while (!scannerRange.getToken().isEOF()) {
 
@@ -542,7 +542,7 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
                             }
 
                         }
-                        fScanner.nextToken(scannerRange);
+                        scannerRange.nextToken(fScanner);
 
                     }
 
@@ -845,7 +845,8 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
 
                 current = (TypedPosition) category[i];
                 TypedPositionWithSubTokens typedPositionWithSubTokens = (TypedPositionWithSubTokens) (current instanceof TypedPositionWithSubTokens
-                        ? current : null);
+                        ? current
+                        : null);
 
                 gapOffset = (previous != null) ? previous.getOffset() + previous.getLength() : 0;
                 gap.setOffset(gapOffset);

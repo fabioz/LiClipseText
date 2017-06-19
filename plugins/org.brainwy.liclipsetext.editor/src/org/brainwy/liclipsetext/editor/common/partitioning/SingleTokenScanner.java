@@ -42,12 +42,12 @@ public class SingleTokenScanner implements ICustomPartitionTokenScanner {
     public ScannerRange createPartialScannerRange(IDocument document, int offset, int length, String contentType,
             int partitionOffset) {
         return new ScannerRange(document, offset, length, contentType, partitionOffset,
-                new PartitionCodeReaderInScannerHelper());
+                new PartitionCodeReaderInScannerHelper(), this);
     }
 
     @Override
     public ScannerRange createScannerRange(IDocument document, int offset, int length) {
-        return new ScannerRange(document, offset, length, new PartitionCodeReaderInScannerHelper());
+        return new ScannerRange(document, offset, length, new PartitionCodeReaderInScannerHelper(), this);
     }
 
     @Override

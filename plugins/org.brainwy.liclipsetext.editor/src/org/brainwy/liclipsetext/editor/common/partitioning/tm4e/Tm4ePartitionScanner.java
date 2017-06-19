@@ -142,7 +142,7 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
             int partitionOffset) {
         checkCache(document, offset);
         return new ScannerRange(document, offset, length, contentType, partitionOffset,
-                new PartitionCodeReaderInScannerHelper());
+                new PartitionCodeReaderInScannerHelper(), this);
     }
 
     private void checkCache(IDocument document, int offset) {
@@ -156,7 +156,7 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
         if (this.fLines == null || document.getNumberOfLines() != this.fLines.length) {
             this.fLines = new StackElement[document.getNumberOfLines()];
         }
-        return new ScannerRange(document, offset, length, new PartitionCodeReaderInScannerHelper());
+        return new ScannerRange(document, offset, length, new PartitionCodeReaderInScannerHelper(), this);
     }
 
     @Override

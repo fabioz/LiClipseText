@@ -299,12 +299,12 @@ public class SwitchLanguageHtmlRule implements IPredicateRule, IChangeTokenRule,
 
         if (len > 0) {
             if (otherLanguageScanner != null && range != null) {
-                otherLanguageScanner.nextToken(range);
-                while (!range.getToken().isEOF()) {
+                IToken tok = range.nextToken(otherLanguageScanner);
+                while (!tok.isEOF()) {
                     subTokens.add(new SubLanguageToken(base, (String) range.getToken().getData(),
                             range.getTokenOffset(),
                             range.getTokenLength()));
-                    otherLanguageScanner.nextToken(range);
+                    tok = range.nextToken(otherLanguageScanner);
                 }
             } else {
                 subTokens.add(new SubLanguageToken("this", IDocument.DEFAULT_CONTENT_TYPE, initialEndScript, len));
