@@ -26,6 +26,8 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
 
     private IGrammar fGrammar;
     private StackElement[] fLines;
+
+    @SuppressWarnings("unused")
     private LiClipseLanguage language;
 
     public Tm4ePartitionScanner(LiClipseLanguage language) throws Exception {
@@ -41,6 +43,11 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
     public void setDefaultReturnToken(IToken defaultReturnToken) {
         Assert.isNotNull(defaultReturnToken.getData());
         fDefaultReturnToken = defaultReturnToken;
+    }
+
+    @Override
+    public IToken getDefaultReturnToken() {
+        return fDefaultReturnToken;
     }
 
     @Override

@@ -15,6 +15,8 @@ public interface ICustomPartitionTokenScanner {
 
     void nextToken(ScannerRange scannerRange);
 
+    IToken getDefaultReturnToken();
+
     /**
      * Akin to IPartitionTokenScanner.setPartialRange
      *
@@ -44,11 +46,11 @@ public interface ICustomPartitionTokenScanner {
      */
     ScannerRange createScannerRange(IDocument document, int offset, int length);
 
-	void setDefaultReturnToken(IToken defaultReturnToken);
+    void setDefaultReturnToken(IToken defaultReturnToken);
 
-	/**
-	 * Scanner should clear the cache (starting at the passed offset).
-	 */
-	void clearCache(IDocument document, int startAtOffset);
+    /**
+     * Scanner should clear the cache (starting at the passed offset).
+     */
+    void clearCache(IDocument document, int startAtOffset);
 
 }

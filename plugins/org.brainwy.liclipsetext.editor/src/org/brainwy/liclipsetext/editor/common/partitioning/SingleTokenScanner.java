@@ -26,6 +26,11 @@ public class SingleTokenScanner implements ICustomPartitionTokenScanner {
     }
 
     @Override
+    public IToken getDefaultReturnToken() {
+        return fDefaultReturnToken;
+    }
+
+    @Override
     public void nextToken(ScannerRange range) {
         range.startNextToken();
 

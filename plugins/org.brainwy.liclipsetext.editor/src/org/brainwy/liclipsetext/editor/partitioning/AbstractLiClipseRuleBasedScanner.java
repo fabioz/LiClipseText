@@ -29,6 +29,7 @@ public abstract class AbstractLiClipseRuleBasedScanner implements ICustomPartiti
         fRules = rules;
     }
 
+    @Override
     public void setDefaultReturnToken(IToken defaultReturnToken) {
         Assert.isNotNull(defaultReturnToken.getData());
         fDefaultReturnToken = defaultReturnToken;
@@ -38,6 +39,12 @@ public abstract class AbstractLiClipseRuleBasedScanner implements ICustomPartiti
         }
     }
 
+    @Override
+    public IToken getDefaultReturnToken() {
+        return fDefaultReturnToken;
+    }
+
+    @Override
     public void nextToken(ScannerRange range) {
         //Treat case where we have no rules (read to the end).
         range.startNextToken();
