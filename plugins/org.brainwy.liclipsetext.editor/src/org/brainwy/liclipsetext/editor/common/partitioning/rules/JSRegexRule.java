@@ -100,6 +100,7 @@ public class JSRegexRule implements IPredicateRule, IChangeTokenRule {
 
             @Override
             public void unread() {
+                throw new RuntimeException("Not implemented");
             }
 
             @Override
@@ -111,7 +112,8 @@ public class JSRegexRule implements IPredicateRule, IChangeTokenRule {
                 try {
                     c = doc.getChar(fOffset);
                 } catch (BadLocationException e) {
-                    throw new RuntimeException("Error at offset: " + fOffset, e);
+                    Log.log(e);
+                    return PartitionCodeReader.EOF;
                 }
                 fOffset--;
                 return c;
