@@ -1,4 +1,4 @@
-package org.brainwy.liclipsetext.editor.common.cache;
+package org.brainwy.liclipsetext.shared_core.lru_space_cache;
 
 /**
  * Types implementing this interface can occupy a variable amount of space

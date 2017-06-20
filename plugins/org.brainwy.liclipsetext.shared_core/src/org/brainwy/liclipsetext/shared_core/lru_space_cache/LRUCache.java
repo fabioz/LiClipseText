@@ -1,4 +1,4 @@
-package org.brainwy.liclipsetext.editor.common.cache;
+package org.brainwy.liclipsetext.shared_core.lru_space_cache;
 
 import java.text.NumberFormat;
 import java.util.HashMap;
@@ -18,7 +18,7 @@ import java.util.Set;
  * <p>This implementation is NOT thread-safe.  Synchronization wrappers would
  * have to be added to ensure atomic insertions and deletions from the cache.
  *
- * @see com.aptana.core.epl.util.ILRUCacheable
+ * @see org.brainwy.liclipsetext.shared_core.lru_space_cache.aptana.core.epl.util.ILRUCacheable
  */
 public class LRUCache<K, V> {
 

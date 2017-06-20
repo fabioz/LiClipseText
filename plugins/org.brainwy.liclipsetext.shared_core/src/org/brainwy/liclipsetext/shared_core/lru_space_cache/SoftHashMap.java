@@ -1,4 +1,4 @@
-package org.brainwy.liclipsetext.editor.common.cache;
+package org.brainwy.liclipsetext.shared_core.lru_space_cache;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
