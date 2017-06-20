@@ -68,6 +68,7 @@ public class ScannerRange
     }
 
     private final IPartitionCodeReaderInScannerHelper helper;
+    @SuppressWarnings("unused")
     private ICustomPartitionTokenScanner fScanner;
 
     public ScannerRange(IDocument doc, int offset, int length, IPartitionCodeReaderInScannerHelper helper,
