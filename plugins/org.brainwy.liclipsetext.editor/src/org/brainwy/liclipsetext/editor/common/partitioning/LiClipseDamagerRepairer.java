@@ -11,6 +11,7 @@ import org.brainwy.liclipsetext.editor.common.partitioning.tokens.ITextAttribute
 import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.partitioner.DummyToken;
+import org.brainwy.liclipsetext.shared_core.string.StringUtils;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
@@ -147,11 +148,14 @@ public final class LiClipseDamagerRepairer implements IPresentationDamager, IPre
             final int tokenLength = subTokensProvider.getTokenLength();
 
             if (tokenOffset < minOffset) {
-                Log.log("Error in scanning partition: tokenOffset < minOffset.");
+                Log.log(StringUtils.format(
+                        "Error in scanning partition: tokenOffset (%s) < minOffset (%s).", tokenOffset, minOffset));
                 continue;
             }
             if (tokenOffset + tokenLength > maxOffset) {
-                Log.log("Error in scanning partition: tokenOffset + tokenLength > maxOffset.");
+                Log.log(StringUtils.format(
+                        "Error in scanning partition: tokenOffset (%s) + tokenLength (%s) > maxOffset (%s).",
+                        tokenOffset, tokenLength, maxOffset));
                 continue;
             }
 

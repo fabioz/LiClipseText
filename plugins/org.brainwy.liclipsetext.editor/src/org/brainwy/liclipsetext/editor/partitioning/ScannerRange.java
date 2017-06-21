@@ -222,6 +222,7 @@ public class ScannerRange
     /*
      * @see ICharacterScanner#getColumn()
      */
+    @Override
     public int getColumn() {
         if (fColumn == UNDEFINED) {
             try {
@@ -239,6 +240,7 @@ public class ScannerRange
     /*
      * @see ICharacterScanner#getLegalLineDelimiters()
      */
+    @Override
     public char[][] getLegalLineDelimiters() {
         return fDelimiters;
     }
@@ -252,6 +254,7 @@ public class ScannerRange
      * (non-Javadoc)
      * @see org.brainwy.liclipsetext.editor.epl.rules.IDocumentScanner#getDocument()
      */
+    @Override
     public IDocument getDocument() {
         return fDocument;
     }
@@ -302,10 +305,12 @@ public class ScannerRange
         }
     }
 
+    @Override
     public int getMark() {
         return fOffset;
     }
 
+    @Override
     public void getContents(int offset, int length, FastStringBuffer buffer) {
         buffer.resizeForMinimum(buffer.length() + length);
         int mark = this.getMark();
@@ -319,6 +324,7 @@ public class ScannerRange
         }
     }
 
+    @Override
     public void setMark(int offset) {
         fOffset = offset;
         fColumn = UNDEFINED;
@@ -413,6 +419,7 @@ public class ScannerRange
         fColumn = UNDEFINED;
     }
 
+    @Override
     public PartitionCodeReader getOffPartitionCodeReader(int currOffset) {
         return helper.getOffPartitionCodeReader(currOffset);
     }
