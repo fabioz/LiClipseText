@@ -174,7 +174,6 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
             public Object call(IDocument doc) {
                 Assert.isTrue(doc == fDocument); // Make sure no copy is done here.
                 ScannerRange scannerRange = fScanner.createScannerRange(doc, 0, doc.getLength());
-                fScanner.clearCache(doc, 0);
 
                 try {
                     scannerRange.nextToken(fScanner);
@@ -413,7 +412,6 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
                     ScannerRange scannerRange = fScanner.createPartialScannerRange(fDocument, reparseStart,
                             fDocument.getLength() - reparseStart,
                             contentType, partitionStart);
-                    fScanner.clearCache(fDocument, reparseStart);
 
                     int behindLastScannedPosition = reparseStart;
                     scannerRange.nextToken(fScanner);

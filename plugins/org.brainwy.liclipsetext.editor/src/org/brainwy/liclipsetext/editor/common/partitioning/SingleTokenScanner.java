@@ -55,9 +55,4 @@ public class SingleTokenScanner implements ICustomPartitionTokenScanner {
         return new ScannerRange(document, offset, length, new PartitionCodeReaderInScannerHelper(), this);
     }
 
-    @Override
-    public void clearCache(IDocument document, int startAtOffset) {
-        // No cache
-    }
-
 }

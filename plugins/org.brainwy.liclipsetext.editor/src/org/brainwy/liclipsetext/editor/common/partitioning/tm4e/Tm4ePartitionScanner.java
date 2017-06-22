@@ -20,12 +20,10 @@ import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.tm4e.core.grammar.IGrammar;
 import org.eclipse.tm4e.core.grammar.ITokenizeLineResult;
-import org.eclipse.tm4e.core.grammar.StackElement;
 
 public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
 
     private IGrammar fGrammar;
-    private StackElement[] fLines;
 
     @SuppressWarnings("unused")
     private LiClipseLanguage language;
@@ -77,14 +75,9 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
 
         LineInfo lineInfo = range.getLineAsString(lineFromOffset);
         String s = lineInfo.str;
-        StackElement prevState = null;
-        if (lineFromOffset > 0) {
-            prevState = fLines[lineFromOffset - 1];
-        }
 
         if (currOffset > lineInfo.lineOffset) {
             // Starting in the middle of a line (can't use prev state and must get line substring).
-            prevState = null;
             s = s.substring(currOffset - lineInfo.lineOffset);
         }
 
@@ -110,10 +103,9 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
             range.unread();
         }
 
-        ITokenizeLineResult tokenizeLine = fGrammar.tokenizeLine(s, prevState);
-        fLines[lineFromOffset] = tokenizeLine.getRuleStack();
-
+        ITokenizeLineResult tokenizeLine = range.tokenizeLine(lineFromOffset, s, fGrammar);
         org.eclipse.tm4e.core.grammar.IToken[] tokens = tokenizeLine.getTokens();
+
         if (tokens == null || tokens.length == 0) {
             SubRuleToken wholeMatchSubRuleToken = new SubRuleToken(fDefaultReturnToken, currOffset,
                     range.getMark() - currOffset);
@@ -134,7 +126,20 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
 
             // Check last one to cover full range
             int endOffset = subRuleToken.offset + subRuleToken.len;
-            subRuleToken.len += range.getMark() - endOffset;
+            int diff = range.getMark() - endOffset;
+            if (diff != 0) {
+                if (diff > 0) {
+                    subRuleToken.len += diff;
+                } else {
+                    // diff < 0
+                    if (Math.abs(diff) >= subRuleToken.len) {
+                        subRuleToken.len = 0;
+                    } else {
+                        subRuleToken.len += diff;
+                    }
+                }
+
+            }
         }
         return;
     }
@@ -147,47 +152,13 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
     @Override
     public ScannerRange createPartialScannerRange(IDocument document, int offset, int length, String contentType,
             int partitionOffset) {
-        checkCache(document, offset);
         return new ScannerRange(document, offset, length, contentType, partitionOffset,
                 new PartitionCodeReaderInScannerHelper(), this);
     }
 
-    private void checkCache(IDocument document, int offset) {
-        if (this.fLines == null || document.getNumberOfLines() != this.fLines.length) {
-            this.clearCache(document, offset);
-        }
-    }
-
     @Override
     public ScannerRange createScannerRange(IDocument document, int offset, int length) {
-        if (this.fLines == null || document.getNumberOfLines() != this.fLines.length) {
-            this.fLines = new StackElement[document.getNumberOfLines()];
-        }
         return new ScannerRange(document, offset, length, new PartitionCodeReaderInScannerHelper(), this);
     }
 
-    @Override
-    public void clearCache(IDocument document, int startAtOffset) {
-        if (fLines == null) {
-            fLines = new StackElement[document.getNumberOfLines()];
-            return;
-        }
-        try {
-            int lineOfOffset = document.getLineOfOffset(startAtOffset);
-            int numberOfLines = document.getNumberOfLines();
-
-            if (numberOfLines != fLines.length) {
-                StackElement[] newStack = new StackElement[numberOfLines];
-                System.arraycopy(fLines, 0, newStack, 0, Math.min(fLines.length, lineOfOffset));
-                fLines = newStack;
-            } else {
-                for (int i = lineOfOffset; i < numberOfLines; i++) {
-                    fLines[i] = null;
-                }
-            }
-
-        } catch (BadLocationException e) {
-            Log.log(e);
-        }
-    }
 }

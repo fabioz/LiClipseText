@@ -48,9 +48,4 @@ public interface ICustomPartitionTokenScanner {
 
     void setDefaultReturnToken(IToken defaultReturnToken);
 
-    /**
-     * Scanner should clear the cache (starting at the passed offset).
-     */
-    void clearCache(IDocument document, int startAtOffset);
-
 }

@@ -16,12 +16,14 @@ public class Partitioning2Test extends TestCase {
     protected void setUp() throws Exception {
         super.setUp();
         TestUtils.configLanguagesManager();
+        LiClipseDamagerRepairer.MERGE_TOKENS = false;
     }
 
     @Override
     protected void tearDown() throws Exception {
         super.tearDown();
         TestUtils.clearLanguagesManager();
+        LiClipseDamagerRepairer.MERGE_TOKENS = true;
     }
 
     public void testPythonPartitioningHugeFile() throws Exception {
@@ -57,6 +59,41 @@ public class Partitioning2Test extends TestCase {
         assertEquals(1, dummyTextViewer.appliedPresentations.size());
         assertEquals(TestUtils.listToExpected("null:0:4",
                 "singleQuotedString:4:11"),
+                TestUtils.textPresentationToExpected(dummyTextViewer.appliedPresentations.remove(0)));
+    }
+
+    public void testTmPartitioningChanges() throws Exception {
+        final IDocument document = new Document("p {color:red}");
+
+        LiClipseLanguage language = TestUtils.loadLanguageFile("css.tmbundle",
+                "css.tmbundle-master/Syntaxes/CSS.plist");
+        language.connect(document);
+
+        DummyTextViewer dummyTextViewer = new DummyTextViewer(document);
+
+        // Upon being connected it does: processDamage(new Region(0, newDocument.getLength()), newDocument);
+        TestUtils.connectPresentationReconciler(dummyTextViewer);
+        assertEquals(1, dummyTextViewer.appliedPresentations.size());
+        assertEquals(TestUtils.listToExpected("meta.selector.css:0:1",
+                "punctuation.section.property-list.begin.css:1:1",
+                "support.type.property-name.css:2:1",
+                "punctuation.separator.key-value.css:3:5",
+                "support.constant.color.w3c-standard-color-name.css:8:1",
+                "punctuation.section.property-list.end.css:9:3",
+                "punctuation.section.property-list.end.css:12:1"),
+                TestUtils.textPresentationToExpected(dummyTextViewer.appliedPresentations.remove(0)));
+
+        // Our changes always damage whole lines (so, the whole line is damaged/repaired).
+        document.replace(9, 3, "black");
+        assertEquals("p {color:black}", document.get());
+        assertEquals(1, dummyTextViewer.appliedPresentations.size());
+        assertEquals(TestUtils.listToExpected("meta.selector.css:0:1",
+                "punctuation.section.property-list.begin.css:1:1",
+                "support.type.property-name.css:2:1",
+                "punctuation.separator.key-value.css:3:5",
+                "support.constant.color.w3c-standard-color-name.css:8:1",
+                "punctuation.section.property-list.end.css:9:5",
+                "punctuation.section.property-list.end.css:14:1"),
                 TestUtils.textPresentationToExpected(dummyTextViewer.appliedPresentations.remove(0)));
     }
 

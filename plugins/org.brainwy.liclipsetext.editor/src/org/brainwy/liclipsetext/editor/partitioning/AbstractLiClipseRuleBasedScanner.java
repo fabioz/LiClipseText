@@ -114,8 +114,4 @@ public abstract class AbstractLiClipseRuleBasedScanner implements ICustomPartiti
         return new ScannerRange(document, offset, length, new PartitionCodeReaderInScannerHelper(), this);
     }
 
-    @Override
-    public void clearCache(IDocument document, int startAtOffset) {
-        // No internal cache.
-    }
 }

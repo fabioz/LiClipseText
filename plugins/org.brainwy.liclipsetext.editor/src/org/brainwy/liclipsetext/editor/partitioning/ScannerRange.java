@@ -8,6 +8,7 @@ package org.brainwy.liclipsetext.editor.partitioning;
 
 import java.util.Queue;
 
+import org.brainwy.liclipsetext.editor.common.partitioning.tm4e.Tm4ePartitioner;
 import org.brainwy.liclipsetext.editor.partitioning.IPartitionCodeReaderInScannerHelper.LineInfo;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.partitioner.IContentsScanner;
@@ -23,10 +24,13 @@ import org.brainwy.liclipsetext.shared_core.structure.Tuple;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IDocumentExtension3;
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IPredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
+import org.eclipse.tm4e.core.grammar.IGrammar;
+import org.eclipse.tm4e.core.grammar.ITokenizeLineResult;
 
 public class ScannerRange
         implements ICharacterScanner, IDocumentScanner, IMarkScanner, IContentsScanner, IScannerWithOffPartition {
@@ -527,6 +531,46 @@ public class ScannerRange
 
     public void clearEndRuleMatchFromStack() {
         endRuleMatchFromStack = null;
+    }
+
+    // Things related to TM4e
+
+    private static final String TM4E_LICLIPSE_PARTITIONING = "TM4E_LICLIPSE_PARTITIONING";
+    private static final Object addPartitionerLock = new Object();
+    private Tm4ePartitioner tm4eDocumentPartitioner;
+
+    public ITokenizeLineResult tokenizeLine(int lineFromOffset, String lineContents, IGrammar grammar) {
+        return obtainTm4ePartitioner().tokenizeLine(lineFromOffset, lineContents, grammar, this);
+    }
+
+    public Tm4ePartitioner obtainTm4ePartitioner() {
+        if (this.tm4eDocumentPartitioner != null) {
+            return this.tm4eDocumentPartitioner;
+        }
+        IDocumentExtension3 docExt3 = (IDocumentExtension3) fDocument;
+        Tm4ePartitioner documentPartitioner = (Tm4ePartitioner) docExt3
+                .getDocumentPartitioner(TM4E_LICLIPSE_PARTITIONING);
+        if (documentPartitioner == null) {
+            synchronized (addPartitionerLock) {
+                documentPartitioner = (Tm4ePartitioner) docExt3.getDocumentPartitioner(TM4E_LICLIPSE_PARTITIONING);
+                if (documentPartitioner == null) {
+                    documentPartitioner = new Tm4ePartitioner();
+                    try {
+                        documentPartitioner.connect(fDocument);
+                    } catch (Exception e) {
+                        Log.log("Error connecting partitioner", e);
+                    }
+                    docExt3.setDocumentPartitioner(TM4E_LICLIPSE_PARTITIONING, documentPartitioner);
+
+                    //I.e.: LiClipseDocumentPartitioner.PARTITION_TYPE == IDocumentExtension3.DEFAULT_PARTITIONING
+                    this.tm4eDocumentPartitioner = documentPartitioner;
+                }
+                return documentPartitioner;
+            }
+        } else {
+            this.tm4eDocumentPartitioner = documentPartitioner;
+            return documentPartitioner;
+        }
     }
 
 }

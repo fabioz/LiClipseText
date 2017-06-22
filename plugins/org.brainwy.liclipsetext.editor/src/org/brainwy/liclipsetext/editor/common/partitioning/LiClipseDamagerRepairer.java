@@ -29,6 +29,7 @@ import org.eclipse.swt.custom.StyleRange;
 
 public final class LiClipseDamagerRepairer implements IPresentationDamager, IPresentationRepairer {
 
+    public static boolean MERGE_TOKENS = true;
     private static final boolean DEBUG = false;
     private final CustomTextAttributeTokenCreator defaultTokenCreator;
     private ICustomPartitionTokenScanner fScanner;
@@ -161,7 +162,7 @@ public final class LiClipseDamagerRepairer implements IPresentationDamager, IPre
             }
 
             lastToken = token;
-            if (lastAttribute != null && lastAttribute.equals(attribute)) {
+            if (MERGE_TOKENS && lastAttribute != null && lastAttribute.equals(attribute)) {
                 length += tokenLength;
                 firstToken = false;
             } else {

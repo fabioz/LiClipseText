@@ -15,11 +15,13 @@ import java.util.HashMap;
 
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.BadPartitioningException;
 import org.eclipse.jface.text.BadPositionCategoryException;
 import org.eclipse.jface.text.DefaultLineTracker;
 import org.eclipse.jface.text.DocumentRewriteSession;
 import org.eclipse.jface.text.DocumentRewriteSessionType;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IDocumentExtension3;
 import org.eclipse.jface.text.IDocumentExtension4;
 import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.IDocumentPartitioner;
@@ -35,7 +37,7 @@ import org.eclipse.jface.text.Position;
  * Partial implementation of a document to be used as a throw-away copy
  * (things which change the document should not be implemented).
  */
-public class DocCopy implements IDocument, IDocumentExtension4 {
+public class DocCopy implements IDocument, IDocumentExtension4, IDocumentExtension3 {
 
     private String contents;
     private IDocument document;
@@ -90,15 +92,16 @@ public class DocCopy implements IDocument, IDocumentExtension4 {
         return this.contents;
     }
 
-	@Override
-	public String get(int offset, int length) throws BadLocationException {
-		try {
-			return this.contents.substring(offset, offset + length);
-		} catch (StringIndexOutOfBoundsException e) {
-			throw new BadLocationException("Bad location. Start Offset: " + offset + " Final offset: " + (offset + length)
-					+ " len: " + length + " doc len: " + this.contents.length());
-		}
-	}
+    @Override
+    public String get(int offset, int length) throws BadLocationException {
+        try {
+            return this.contents.substring(offset, offset + length);
+        } catch (StringIndexOutOfBoundsException e) {
+            throw new BadLocationException(
+                    "Bad location. Start Offset: " + offset + " Final offset: " + (offset + length)
+                            + " len: " + length + " doc len: " + this.contents.length());
+        }
+    }
 
     @Override
     public void set(String text) {
@@ -352,6 +355,44 @@ public class DocCopy implements IDocument, IDocumentExtension4 {
     @Override
     public void setInitialLineDelimiter(String lineDelimiter) {
         throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public String[] getPartitionings() {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public String[] getLegalContentTypes(String partitioning) throws BadPartitioningException {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public String getContentType(String partitioning, int offset, boolean preferOpenPartitions)
+            throws BadLocationException, BadPartitioningException {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public ITypedRegion getPartition(String partitioning, int offset, boolean preferOpenPartitions)
+            throws BadLocationException, BadPartitioningException {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public ITypedRegion[] computePartitioning(String partitioning, int offset, int length,
+            boolean includeZeroLengthPartitions) throws BadLocationException, BadPartitioningException {
+        throw new RuntimeException("not implemented");
+    }
+
+    @Override
+    public void setDocumentPartitioner(String partitioning, IDocumentPartitioner partitioner) {
+        ((IDocumentExtension3) document).setDocumentPartitioner(partitioning, partitioner);
+    }
+
+    @Override
+    public IDocumentPartitioner getDocumentPartitioner(String partitioning) {
+        return ((IDocumentExtension3) document).getDocumentPartitioner(partitioning);
     }
 
 }
