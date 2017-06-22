@@ -1,9 +1,11 @@
 package org.brainwy.liclipsetext.editor.common.partitioning;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -23,8 +25,12 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TextAttribute;
+import org.eclipse.jface.text.TextPresentation;
+import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.ITokenScanner;
+import org.eclipse.jface.text.rules.Token;
+import org.eclipse.swt.custom.StyleRange;
 
 public class TestUtils {
 
@@ -231,6 +237,31 @@ public class TestUtils {
         }
     }
 
+    public static String textPresentationToExpected(TextPresentation textPresentation) {
+        List<String> lst = TestUtils.textPresentationToLst(textPresentation);
+        return TestUtils.listToExpected(lst);
+    }
+
+    public static List<String> textPresentationToLst(TextPresentation textPresentation) {
+        Iterator<StyleRange> allStyleRangeIterator = textPresentation
+                .getAllStyleRangeIterator();
+        List<String> lst = new ArrayList<>();
+        FastStringBuffer buf = new FastStringBuffer();
+        while (allStyleRangeIterator.hasNext()) {
+            StyleRange styleRange = allStyleRangeIterator.next();
+            buf.clear();
+            Token token = (Token) styleRange.data;
+            lst.add(buf
+                    .appendObject(token.getData())
+                    .append(':')
+                    .append(styleRange.start)
+                    .append(':')
+                    .append(styleRange.length)
+                    .toString());
+        }
+        return lst;
+    }
+
     public static LiClipseLanguage connectDocumentToLanguage(IDocument doc, String loadLanguage) throws Exception {
         return connectDocumentToLanguage(doc, loadLanguage, null);
     }
@@ -299,222 +330,14 @@ public class TestUtils {
 
     private static IColorCache colorManager = new DummyColorCache(false);
 
-    //    public static void updateDocumentPartitions(final IDocument document) throws NoSuchMethodException,
-    //            IllegalAccessException, InvocationTargetException {
-    //        LiClipseDocumentPartitioner partitioner = (LiClipseDocumentPartitioner) document.getDocumentPartitioner();
-    //        IPresentationReconciler presentationReconciler = partitioner
-    //                .getPresentationReconciler(colorManager);
-    //        presentationReconciler.install(new ITextViewer() {
-    //
-    //            public void setVisibleRegion(int offset, int length) {
-    //                // TODO Auto-generated method stub
-    //
-    //            }
-    //
-    //            public void setUndoManager(IUndoManager undoManager) {
-    //                // TODO Auto-generated method stub
-    //
-    //            }
-    //
-    //            public void setTopIndex(int index) {
-    //                // TODO Auto-generated method stub
-    //
-    //            }
-    //
-    //            public void setTextHover(ITextHover textViewerHover, String contentType) {
-    //                // TODO Auto-generated method stub
-    //
-    //            }
-    //
-    //            public void setTextDoubleClickStrategy(ITextDoubleClickStrategy strategy, String contentType) {
-    //                // TODO Auto-generated method stub
-    //
-    //            }
-    //
-    //            public void setTextColor(Color color, int offset, int length, boolean controlRedraw) {
-    //                // TODO Auto-generated method stub
-    //
-    //            }
-    //
-    //            public void setTextColor(Color color) {
-    //                // TODO Auto-generated method stub
-    //
-    //            }
-    //
-    //            public void setSelectedRange(int offset, int length) {
-    //                // TODO Auto-generated method stub
-    //
-    //            }
-    //
-    //            public void setIndentPrefixes(String[] indentPrefixes, String contentType) {
-    //                // TODO Auto-generated method stub
-    //
-    //            }
-    //
-    //            public void setEventConsumer(IEventConsumer consumer) {
-    //                // TODO Auto-generated method stub
-    //
-    //            }
-    //
-    //            public void setEditable(boolean editable) {
-    //                // TODO Auto-generated method stub
-    //
-    //            }
-    //
-    //            public void setDocument(IDocument document, int modelRangeOffset, int modelRangeLength) {
-    //                // TODO Auto-generated method stub
-    //
-    //            }
-    //
-    //            public void setDocument(IDocument document) {
-    //                // TODO Auto-generated method stub
-    //
-    //            }
-    //
-    //            public void setDefaultPrefixes(String[] defaultPrefixes, String contentType) {
-    //                // TODO Auto-generated method stub
-    //
-    //            }
-    //
-    //            public void setAutoIndentStrategy(IAutoIndentStrategy strategy, String contentType) {
-    //                // TODO Auto-generated method stub
-    //
-    //            }
-    //
-    //            public void revealRange(int offset, int length) {
-    //                // TODO Auto-generated method stub
-    //
-    //            }
-    //
-    //            public void resetVisibleRegion() {
-    //                // TODO Auto-generated method stub
-    //
-    //            }
-    //
-    //            public void resetPlugins() {
-    //                // TODO Auto-generated method stub
-    //
-    //            }
-    //
-    //            public void removeViewportListener(IViewportListener listener) {
-    //                // TODO Auto-generated method stub
-    //
-    //            }
-    //
-    //            public void removeTextListener(ITextListener listener) {
-    //                // TODO Auto-generated method stub
-    //
-    //            }
-    //
-    //            public void removeTextInputListener(ITextInputListener listener) {
-    //                // TODO Auto-generated method stub
-    //
-    //            }
-    //
-    //            public boolean overlapsWithVisibleRegion(int offset, int length) {
-    //                // TODO Auto-generated method stub
-    //                return false;
-    //            }
-    //
-    //            public boolean isEditable() {
-    //                // TODO Auto-generated method stub
-    //                return false;
-    //            }
-    //
-    //            public void invalidateTextPresentation() {
-    //                // TODO Auto-generated method stub
-    //
-    //            }
-    //
-    //            public IRegion getVisibleRegion() {
-    //                // TODO Auto-generated method stub
-    //                return null;
-    //            }
-    //
-    //            public int getTopInset() {
-    //                // TODO Auto-generated method stub
-    //                return 0;
-    //            }
-    //
-    //            public int getTopIndexStartOffset() {
-    //                // TODO Auto-generated method stub
-    //                return 0;
-    //            }
-    //
-    //            public int getTopIndex() {
-    //                // TODO Auto-generated method stub
-    //                return 0;
-    //            }
-    //
-    //            public StyledText getTextWidget() {
-    //                // TODO Auto-generated method stub
-    //                return null;
-    //            }
-    //
-    //            public ITextOperationTarget getTextOperationTarget() {
-    //                // TODO Auto-generated method stub
-    //                return null;
-    //            }
-    //
-    //            public ISelectionProvider getSelectionProvider() {
-    //                // TODO Auto-generated method stub
-    //                return null;
-    //            }
-    //
-    //            public Point getSelectedRange() {
-    //                // TODO Auto-generated method stub
-    //                return null;
-    //            }
-    //
-    //            public IFindReplaceTarget getFindReplaceTarget() {
-    //                // TODO Auto-generated method stub
-    //                return null;
-    //            }
-    //
-    //            public IDocument getDocument() {
-    //                return document;
-    //            }
-    //
-    //            public int getBottomIndexEndOffset() {
-    //                // TODO Auto-generated method stub
-    //                return 0;
-    //            }
-    //
-    //            public int getBottomIndex() {
-    //                // TODO Auto-generated method stub
-    //                return 0;
-    //            }
-    //
-    //            public void changeTextPresentation(TextPresentation presentation, boolean controlRedraw) {
-    //                // TODO Auto-generated method stub
-    //
-    //            }
-    //
-    //            public void addViewportListener(IViewportListener listener) {
-    //                // TODO Auto-generated method stub
-    //
-    //            }
-    //
-    //            public void addTextListener(ITextListener listener) {
-    //                // TODO Auto-generated method stub
-    //
-    //            }
-    //
-    //            public void addTextInputListener(ITextInputListener listener) {
-    //                // TODO Auto-generated method stub
-    //
-    //            }
-    //
-    //            public void activatePlugins() {
-    //                // TODO Auto-generated method stub
-    //
-    //            }
-    //        });
-    //        Method createPresentation = LiClipsePresentationReconciler.class.getDeclaredMethod("createPresentation",
-    //                IRegion.class, IDocument.class);
-    //        createPresentation.setAccessible(true);
-    //        createPresentation.invoke(presentationReconciler, new Region(0, document.getLength()), document);
-    //    }
+    public static void connectPresentationReconciler(DummyTextViewer dummyTextViewer) throws NoSuchMethodException,
+            IllegalAccessException, InvocationTargetException {
+        IDocument document = dummyTextViewer.getDocument();
+        LiClipseDocumentPartitioner partitioner = (LiClipseDocumentPartitioner) document.getDocumentPartitioner();
+        IPresentationReconciler presentationReconciler = partitioner
+                .getPresentationReconciler(colorManager);
+        presentationReconciler.install(dummyTextViewer);
+    }
 
     public static String scanAll(LiClipseLanguage language, IDocument document, List<String> asList) {
         String last = null;

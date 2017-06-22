@@ -41,7 +41,7 @@ public final class LiClipseDamagerRepairer implements IPresentationDamager, IPre
         this.defaultTokenCreator = defaultTokenCreator;
     }
 
-    private void addRange(TextPresentation presentation, int offset, int length, TextAttribute attr) {
+    private void addRange(TextPresentation presentation, int offset, int length, TextAttribute attr, IToken token) {
         try {
             if (attr != null) {
                 int style = attr.getStyle();
@@ -51,6 +51,7 @@ public final class LiClipseDamagerRepairer implements IPresentationDamager, IPre
                 styleRange.strikeout = (style & TextAttribute.STRIKETHROUGH) != 0;
                 styleRange.underline = (style & TextAttribute.UNDERLINE) != 0;
                 styleRange.font = attr.getFont();
+                styleRange.data = token;
                 presentation.addStyleRange(styleRange);
             }
         } catch (Exception e) {
@@ -159,22 +160,22 @@ public final class LiClipseDamagerRepairer implements IPresentationDamager, IPre
                 continue;
             }
 
+            lastToken = token;
             if (lastAttribute != null && lastAttribute.equals(attribute)) {
                 length += tokenLength;
                 firstToken = false;
             } else {
                 if (!firstToken) {
-                    addRange(presentation, lastStart, length, lastAttribute);
+                    addRange(presentation, lastStart, length, lastAttribute, token);
                 }
                 firstToken = false;
-                lastToken = token;
                 lastAttribute = attribute;
                 lastStart = tokenOffset;
                 length = tokenLength;
             }
         }
 
-        addRange(presentation, lastStart, length, lastAttribute);
+        addRange(presentation, lastStart, length, lastAttribute, lastToken);
     }
 
     private TextAttribute getTokenTextAttribute(IToken token) {

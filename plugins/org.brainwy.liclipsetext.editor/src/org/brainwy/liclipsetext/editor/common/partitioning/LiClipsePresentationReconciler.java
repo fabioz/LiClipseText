@@ -61,6 +61,8 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
     /** Prefix of the name of the position category for tracking damage regions. */
     protected final static String TRACKED_PARTITION = "__reconciler_tracked_partition"; //$NON-NLS-1$
 
+    private static final boolean UPDATE_ASYNC = true;
+
     /**
      * Internal listener class.
      */
@@ -492,7 +494,7 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
                         totalDamageLen += r.getLength();
                     }
                 }
-                if (totalDamageLen > 2000) {
+                if (UPDATE_ASYNC && totalDamageLen > 10000) {
                     if (DEBUG) {
                         System.out.println("Making async damage update");
                     }
@@ -766,7 +768,12 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
      * @param presentation the text presentation to be applied to the text viewer
      */
     private void applyTextRegionCollection(TextPresentation presentation) {
+        // System.out.println("Start fViewer.changeTextPresentation(presentation, false) -- " + presentation.getCoverage()
+        //         + " -- " + presentation.getDenumerableRanges());
+        // long start = System.currentTimeMillis();
         fViewer.changeTextPresentation(presentation, false);
+        // System.out.println("Time Elapsed (secs):" + (System.currentTimeMillis() - start) / 1000.0);
+        // Note: faster with StyledText subclass which precomputes ranges.
     }
 
     /**

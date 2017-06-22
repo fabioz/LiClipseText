@@ -131,9 +131,10 @@ public class LanguagesManagerTest extends TestCase {
                 "Django",
                 "Go",
                 "HTML",
-                "HTML",
-                "HTML (Ruby - ERB)",
+                "HTML", // TM Bundle
+                "HTML (Ruby - ERB)", // TM Bundle
                 "Java",
+                "JavaScript", // TM Bundle
                 "Javascript",
                 "Jinja2",
                 "Kivy",
@@ -149,6 +150,7 @@ public class LanguagesManagerTest extends TestCase {
                 "Python",
                 "RAML",
                 "ReStructured Text",
+                "Regular Expressions (JavaScript)",
                 "Regular Expressions (Oniguruma)",
                 "Ruby",
                 "SCSS",
@@ -187,6 +189,8 @@ public class LanguagesManagerTest extends TestCase {
                 "source.cmake",
                 "source.css",
                 "source.dosbatch",
+                "source.js",
+                "source.js.regexp",
                 "source.perl",
                 "source.perl.6",
                 "source.raml",

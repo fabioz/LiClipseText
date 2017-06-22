@@ -29,19 +29,35 @@ public class Partitioning2Test extends TestCase {
         String txt = FileUtils.getStreamContents(resourceAsStream, "utf-8", null);
 
         final IDocument document = new Document(txt);
+        LiClipseLanguage partitioningSetup = TestUtils.loadLanguageFile("python.liclipse");
+        partitioningSetup.connect(document);
+
+    }
+
+    public void testPythonPartitioningChanges() throws Exception {
+        final IDocument document = new Document("a = 'test'\nb = 'another'\n");
 
         LiClipseLanguage partitioningSetup = TestUtils.loadLanguageFile("python.liclipse");
         partitioningSetup.connect(document);
 
-        //        TestUtils.updateDocumentPartitions(document);
+        DummyTextViewer dummyTextViewer = new DummyTextViewer(document);
 
-        //        LiClipseOutlineCreator creator = new LiClipseOutlineCreator(new ILiClipseEditor() {
-        //
-        //            public IDocument getDocument() {
-        //                return document;
-        //            }
-        //        });
-        //        TreeNode<OutlineData> node = creator.createOutline();
-        //        assertEquals(1820, node.getChildren().size());
+        // Upon being connected it does: processDamage(new Region(0, newDocument.getLength()), newDocument);
+        TestUtils.connectPresentationReconciler(dummyTextViewer);
+        assertEquals(1, dummyTextViewer.appliedPresentations.size());
+        assertEquals(TestUtils.listToExpected("null:0:4",
+                "singleQuotedString:4:6",
+                "null:10:5",
+                "singleQuotedString:15:9",
+                "null:24:1"), TestUtils.textPresentationToExpected(dummyTextViewer.appliedPresentations.remove(0)));
+
+        // Our changes always damage whole lines (so, the whole line is damaged/repaired).
+        document.replace(7, 0, "_foo_");
+        assertEquals("a = 'te_foo_st'\nb = 'another'\n", document.get());
+        assertEquals(1, dummyTextViewer.appliedPresentations.size());
+        assertEquals(TestUtils.listToExpected("null:0:4",
+                "singleQuotedString:4:11"),
+                TestUtils.textPresentationToExpected(dummyTextViewer.appliedPresentations.remove(0)));
     }
+
 }
