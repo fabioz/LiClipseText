@@ -47,9 +47,16 @@ public class Partitioning2Test extends TestCase {
         // Upon being connected it does: processDamage(new Region(0, newDocument.getLength()), newDocument);
         TestUtils.connectPresentationReconciler(dummyTextViewer);
         assertEquals(1, dummyTextViewer.appliedPresentations.size());
-        assertEquals(TestUtils.listToExpected("null:0:4",
+        assertEquals(TestUtils.listToExpected("null:0:1",
+                "operator:1:1",
+                "null:2:1",
+                "null:3:1",
                 "singleQuotedString:4:6",
-                "null:10:5",
+                "foreground:10:1",
+                "null:11:1",
+                "operator:12:1",
+                "null:13:1",
+                "null:14:1",
                 "singleQuotedString:15:9",
                 "null:24:1"), TestUtils.textPresentationToExpected(dummyTextViewer.appliedPresentations.remove(0)));
 
@@ -57,7 +64,10 @@ public class Partitioning2Test extends TestCase {
         document.replace(7, 0, "_foo_");
         assertEquals("a = 'te_foo_st'\nb = 'another'\n", document.get());
         assertEquals(1, dummyTextViewer.appliedPresentations.size());
-        assertEquals(TestUtils.listToExpected("null:0:4",
+        assertEquals(TestUtils.listToExpected("null:0:1",
+                "operator:1:1",
+                "null:2:1",
+                "null:3:1",
                 "singleQuotedString:4:11"),
                 TestUtils.textPresentationToExpected(dummyTextViewer.appliedPresentations.remove(0)));
     }

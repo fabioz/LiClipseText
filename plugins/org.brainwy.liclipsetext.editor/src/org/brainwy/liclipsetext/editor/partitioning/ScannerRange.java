@@ -75,6 +75,7 @@ public class ScannerRange
     @SuppressWarnings("unused")
     private ICustomPartitionTokenScanner fScanner;
 
+    // Used without resume (either the whole document for partitioning or a given partition).
     public ScannerRange(IDocument doc, int offset, int length, IPartitionCodeReaderInScannerHelper helper,
             ICustomPartitionTokenScanner scanner) {
         helper.setDocument(doc);
@@ -84,7 +85,7 @@ public class ScannerRange
         this.setRange(doc, offset, length);
     }
 
-    // Used in place of setPartialRange.
+    // Used to resume
     public ScannerRange(IDocument doc, int offset, int length, String contentType, int partitionOffset,
             IPartitionCodeReaderInScannerHelper helper, ICustomPartitionTokenScanner scanner) {
         this.helper = helper;
@@ -538,9 +539,14 @@ public class ScannerRange
     private static final String TM4E_LICLIPSE_PARTITIONING = "TM4E_LICLIPSE_PARTITIONING";
     private static final Object addPartitionerLock = new Object();
     private Tm4ePartitioner tm4eDocumentPartitioner;
+    public Object tm4eCache;
 
     public ITokenizeLineResult tokenizeLine(int lineFromOffset, String lineContents, IGrammar grammar) {
         return obtainTm4ePartitioner().tokenizeLine(lineFromOffset, lineContents, grammar, this);
+    }
+
+    public void finishTm4ePartition(IGrammar grammar) {
+        obtainTm4ePartitioner().finishTm4ePartition(grammar, this);
     }
 
     public Tm4ePartitioner obtainTm4ePartitioner() {

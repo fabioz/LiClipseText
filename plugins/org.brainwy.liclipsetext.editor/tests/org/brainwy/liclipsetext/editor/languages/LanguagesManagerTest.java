@@ -204,7 +204,7 @@ public class LanguagesManagerTest extends TestCase {
                 "text.html.erb",
                 "text.html.markdown",
                 "text.html.php"));
-        assertEquals(39, languagesMetadata.size());
+        assertEquals(41, languagesMetadata.size());
         for (LanguageMetadata languageMetadata : languagesMetadata) {
             LiClipseLanguage language = languageMetadata.file.loadLanguage(true);
             assertNotNull(language);

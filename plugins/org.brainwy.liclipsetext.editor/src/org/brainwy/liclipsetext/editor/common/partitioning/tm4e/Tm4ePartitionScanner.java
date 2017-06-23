@@ -8,13 +8,11 @@ import org.brainwy.liclipsetext.editor.languages.LanguagesManager;
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner;
 import org.brainwy.liclipsetext.editor.partitioning.IPartitionCodeReaderInScannerHelper.LineInfo;
-import org.brainwy.liclipsetext.editor.partitioning.PartitionCodeReaderInScannerHelper;
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.partitioner.SubRuleToken;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
@@ -60,6 +58,7 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
         final int currOffset = range.getMark();
         int c = range.read();
         if (c == ICharacterScanner.EOF) {
+            range.finishTm4ePartition(fGrammar);
             range.setToken(Token.EOF);
             return;
         }
@@ -147,18 +146,6 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
     private IToken getToken(org.eclipse.tm4e.core.grammar.IToken iToken) {
         List<String> scopes = iToken.getScopes();
         return new ContentTypeToken(scopes.get(scopes.size() - 1));
-    }
-
-    @Override
-    public ScannerRange createPartialScannerRange(IDocument document, int offset, int length, String contentType,
-            int partitionOffset) {
-        return new ScannerRange(document, offset, length, contentType, partitionOffset,
-                new PartitionCodeReaderInScannerHelper(), this);
-    }
-
-    @Override
-    public ScannerRange createScannerRange(IDocument document, int offset, int length) {
-        return new ScannerRange(document, offset, length, new PartitionCodeReaderInScannerHelper(), this);
     }
 
 }

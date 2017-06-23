@@ -102,16 +102,4 @@ public abstract class AbstractLiClipseRuleBasedScanner implements ICustomPartiti
         range.setToken(fDefaultReturnToken);
     }
 
-    @Override
-    public ScannerRange createPartialScannerRange(IDocument document, int offset, int length, String contentType,
-            int partitionOffset) {
-        return new ScannerRange(document, offset, length, contentType, partitionOffset,
-                new PartitionCodeReaderInScannerHelper(), this);
-    }
-
-    @Override
-    public ScannerRange createScannerRange(IDocument document, int offset, int length) {
-        return new ScannerRange(document, offset, length, new PartitionCodeReaderInScannerHelper(), this);
-    }
-
 }

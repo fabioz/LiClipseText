@@ -20,10 +20,7 @@ public interface ICustomPartitionTokenScanner {
     /**
      * Akin to IPartitionTokenScanner.setPartialRange
      *
-     * Configures the scanner by providing access to the document range that should be scanned. The
-     * range may not only contain complete partitions but starts at the beginning of a line in the
-     * middle of a partition of the given content type. This requires that a partition delimiter can
-     * not contain a line delimiter.
+     * This method should be used to create a partitioner (which can resume at a given point).
      *
      * @param document the document to scan
      * @param offset the offset of the document range to scan
@@ -31,20 +28,26 @@ public interface ICustomPartitionTokenScanner {
      * @param contentType the content type at the given offset
      * @param partitionOffset the offset at which the partition of the given offset starts
      */
-    ScannerRange createPartialScannerRange(IDocument document, int offset, int length, String contentType,
-            int partitionOffset);
+    default public ScannerRange createResumableScannerRange(IDocument document, int offset, int length,
+            String contentType,
+            int partitionOffset) {
+        return new ScannerRange(document, offset, length, contentType, partitionOffset,
+                new PartitionCodeReaderInScannerHelper(), this);
+    }
 
     /**
-     * Akin to ITokenScanner.setRange
-     *
-     * Configures the scanner by providing access to the document range that should
-     * be scanned.
-     *
-     * @param document the document to scan
-     * @param offset the offset of the document range to scan
-     * @param length the length of the document range to scan
+     * This method should be used to create a partitioner for the whole document (without resuming).
      */
-    ScannerRange createScannerRange(IDocument document, int offset, int length);
+    default public ScannerRange createScannerRange(IDocument document) {
+        return createScannerRange(document, 0, document.getLength());
+    }
+
+    /**
+     * This method should be used to create a scanner (which will provide coloring for a given partition).
+     */
+    default public ScannerRange createScannerRange(IDocument document, int offset, int length) {
+        return new ScannerRange(document, offset, length, new PartitionCodeReaderInScannerHelper(), this);
+    }
 
     void setDefaultReturnToken(IToken defaultReturnToken);
 
