@@ -24,7 +24,7 @@ import org.brainwy.liclipsetext.shared_core.structure.Tuple;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IDocumentExtension3;
+import org.eclipse.jface.text.IDocumentExtension4;
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IPredicateRule;
 import org.eclipse.jface.text.rules.IToken;
@@ -74,12 +74,15 @@ public class ScannerRange
     private final IPartitionCodeReaderInScannerHelper helper;
     @SuppressWarnings("unused")
     private ICustomPartitionTokenScanner fScanner;
+    private long fCreationModificationStamp;
 
     // Used without resume (either the whole document for partitioning or a given partition).
     public ScannerRange(IDocument doc, int offset, int length, IPartitionCodeReaderInScannerHelper helper,
             ICustomPartitionTokenScanner scanner) {
         helper.setDocument(doc);
         this.fDocument = doc;
+        IDocumentExtension4 docExt4 = (IDocumentExtension4) doc;
+        this.fCreationModificationStamp = docExt4.getModificationStamp();
         this.helper = helper;
         this.fScanner = scanner;
         this.setRange(doc, offset, length);
@@ -90,12 +93,14 @@ public class ScannerRange
             IPartitionCodeReaderInScannerHelper helper, ICustomPartitionTokenScanner scanner) {
         this.helper = helper;
         this.fDocument = doc;
+        IDocumentExtension4 docExt4 = (IDocumentExtension4) doc;
+        this.fCreationModificationStamp = docExt4.getModificationStamp();
         this.fScanner = scanner;
         helper.setDocument(doc);
         setPartialRange(doc, offset, length, contentType, partitionOffset);
     }
 
-    public IToken nextToken(ICustomPartitionTokenScanner scanner) {
+    public IToken nextToken(ICustomPartitionTokenScanner scanner) throws DocumentTimeStampChangedException {
         scanner.nextToken(this);
         return this.getToken();
     }
@@ -536,12 +541,11 @@ public class ScannerRange
 
     // Things related to TM4e
 
-    private static final String TM4E_LICLIPSE_PARTITIONING = "TM4E_LICLIPSE_PARTITIONING";
-    private static final Object addPartitionerLock = new Object();
     private Tm4ePartitioner tm4eDocumentPartitioner;
     public Object tm4eCache;
 
-    public ITokenizeLineResult tokenizeLine(int lineFromOffset, String lineContents, IGrammar grammar) {
+    public ITokenizeLineResult tokenizeLine(int lineFromOffset, String lineContents, IGrammar grammar)
+            throws DocumentTimeStampChangedException {
         return obtainTm4ePartitioner().tokenizeLine(lineFromOffset, lineContents, grammar, this);
     }
 
@@ -553,30 +557,16 @@ public class ScannerRange
         if (this.tm4eDocumentPartitioner != null) {
             return this.tm4eDocumentPartitioner;
         }
-        IDocumentExtension3 docExt3 = (IDocumentExtension3) fDocument;
-        Tm4ePartitioner documentPartitioner = (Tm4ePartitioner) docExt3
-                .getDocumentPartitioner(TM4E_LICLIPSE_PARTITIONING);
-        if (documentPartitioner == null) {
-            synchronized (addPartitionerLock) {
-                documentPartitioner = (Tm4ePartitioner) docExt3.getDocumentPartitioner(TM4E_LICLIPSE_PARTITIONING);
-                if (documentPartitioner == null) {
-                    documentPartitioner = new Tm4ePartitioner();
-                    try {
-                        documentPartitioner.connect(fDocument);
-                    } catch (Exception e) {
-                        Log.log("Error connecting partitioner", e);
-                    }
-                    docExt3.setDocumentPartitioner(TM4E_LICLIPSE_PARTITIONING, documentPartitioner);
+        this.tm4eDocumentPartitioner = Tm4ePartitioner.getTm4eDocumentPartitioner(fDocument);
+        return this.tm4eDocumentPartitioner;
+    }
 
-                    //I.e.: LiClipseDocumentPartitioner.PARTITION_TYPE == IDocumentExtension3.DEFAULT_PARTITIONING
-                    this.tm4eDocumentPartitioner = documentPartitioner;
-                }
-                return documentPartitioner;
-            }
-        } else {
-            this.tm4eDocumentPartitioner = documentPartitioner;
-            return documentPartitioner;
+    public void checkDocumentTimeStampChanged() throws DocumentTimeStampChangedException {
+        IDocumentExtension4 docExt4 = (IDocumentExtension4) fDocument;
+        if (this.fCreationModificationStamp != docExt4.getModificationStamp()) {
+            throw new DocumentTimeStampChangedException();
         }
+
     }
 
 }

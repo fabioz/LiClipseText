@@ -95,7 +95,8 @@ public class PatternRule implements IPredicateRule, IChangeTokenRule {
      * @param escapeCharacter any character following this one will be ignored
      * @param breaksOnEOL indicates whether the end of the line also terminates the pattern
      */
-    public PatternRule(String startSequence, String endSequence, IToken token, char escapeCharacter, boolean breaksOnEOL) {
+    public PatternRule(String startSequence, String endSequence, IToken token, char escapeCharacter,
+            boolean breaksOnEOL) {
         Assert.isTrue(startSequence != null && startSequence.length() > 0);
         Assert.isTrue(endSequence != null || breaksOnEOL);
         Assert.isNotNull(token);

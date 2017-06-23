@@ -15,6 +15,7 @@ import org.brainwy.liclipsetext.editor.languages.LanguageMetadataInMemoryFileInf
 import org.brainwy.liclipsetext.editor.languages.LanguageMetadataTmBundleZipFileInfo;
 import org.brainwy.liclipsetext.editor.languages.LanguagesManager;
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
+import org.brainwy.liclipsetext.editor.partitioning.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner;
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
 import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
@@ -365,72 +366,81 @@ public class TestUtils {
     }
 
     public static String scan(ICustomPartitionTokenScanner scanner, ScannerRange range, boolean join) {
-        if (!join) {
-            return scanNoJoin(scanner, range);
-        }
-        ArrayList<String> found = new ArrayList<String>();
-        FastStringBuffer buf = new FastStringBuffer();
-        range.nextToken(scanner);
-        Tuple3<IToken, Integer, Integer> tup = new Tuple3<>(range.getToken(), range.getTokenOffset(),
-                range.getTokenLength());
-
-        while (tup != null && !tup.o1.isEOF()) {
-            Tuple3<IToken, Integer, Integer> lookaheadTup = null;
-
-            while (true) {
-                range.nextToken(scanner);
-                lookaheadTup = new Tuple3<>(range.getToken(), range.getTokenOffset(), range.getTokenLength());
-                if (lookaheadTup.o1.isEOF()) {
-                    break;
-                }
-                String contentTypeFromTokenLookahead = getTokenRep(lookaheadTup.o1);
-                String contentTypeFromToken = getTokenRep(tup.o1);
-                //only null can be joined!
-                if ("null".equals(contentTypeFromToken) && contentTypeFromTokenLookahead.equals(contentTypeFromToken)
-                        && tup.o2 + tup.o3 == lookaheadTup.o2) {
-                    tup.o3 += lookaheadTup.o3;
-                } else {
-                    break;
-                }
+        ArrayList<String> found;
+        try {
+            if (!join) {
+                return scanNoJoin(scanner, range);
             }
+            found = new ArrayList<String>();
+            FastStringBuffer buf = new FastStringBuffer();
+            range.nextToken(scanner);
+            Tuple3<IToken, Integer, Integer> tup = new Tuple3<>(range.getToken(), range.getTokenOffset(),
+                    range.getTokenLength());
+            while (tup != null && !tup.o1.isEOF()) {
+                Tuple3<IToken, Integer, Integer> lookaheadTup = null;
 
-            buf.clear();
-            buf.append(getTokenRep(tup.o1));
-            buf.append(":");
-            buf.append(tup.o2).append(":");
-            buf.append(tup.o3);
-            found.add(buf.toString());
-            tup = lookaheadTup;
+                while (true) {
+                    range.nextToken(scanner);
+                    lookaheadTup = new Tuple3<>(range.getToken(), range.getTokenOffset(), range.getTokenLength());
+                    if (lookaheadTup.o1.isEOF()) {
+                        break;
+                    }
+                    String contentTypeFromTokenLookahead = getTokenRep(lookaheadTup.o1);
+                    String contentTypeFromToken = getTokenRep(tup.o1);
+                    //only null can be joined!
+                    if ("null".equals(contentTypeFromToken)
+                            && contentTypeFromTokenLookahead.equals(contentTypeFromToken)
+                            && tup.o2 + tup.o3 == lookaheadTup.o2) {
+                        tup.o3 += lookaheadTup.o3;
+                    } else {
+                        break;
+                    }
+                }
+
+                buf.clear();
+                buf.append(getTokenRep(tup.o1));
+                buf.append(":");
+                buf.append(tup.o2).append(":");
+                buf.append(tup.o3);
+                found.add(buf.toString());
+                tup = lookaheadTup;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
         return listToExpected(found);
     }
 
     private static String scanNoJoin(ICustomPartitionTokenScanner scanner, ScannerRange range) {
-        ArrayList<String> found = new ArrayList<String>();
-        FastStringBuffer buf = new FastStringBuffer();
-        range.nextToken(scanner);
-        while (!range.getToken().isEOF()) {
-            Object data = range.getToken().getData();
-            int tokenLength = range.getTokenLength();
-            if (tokenLength != 0) {
-                if (data != null) {
-                    buf.clear();
-                    String contentTypeFromToken = LiClipseTextAttribute.getContentTypeFromToken(range.getToken());
-                    buf.append(contentTypeFromToken).append(":");
-                    buf.append(range.getTokenOffset()).append(":");
-                    buf.append(tokenLength);
-                    found.add(buf.toString());
-                } else {
-                    buf.clear();
-                    buf.append("null").append(":");
-                    buf.append(range.getTokenOffset()).append(":");
-                    buf.append(tokenLength);
-                    found.add(buf.toString());
-                }
-            }
+        try {
+            ArrayList<String> found = new ArrayList<String>();
+            FastStringBuffer buf = new FastStringBuffer();
             range.nextToken(scanner);
+            while (!range.getToken().isEOF()) {
+                Object data = range.getToken().getData();
+                int tokenLength = range.getTokenLength();
+                if (tokenLength != 0) {
+                    if (data != null) {
+                        buf.clear();
+                        String contentTypeFromToken = LiClipseTextAttribute.getContentTypeFromToken(range.getToken());
+                        buf.append(contentTypeFromToken).append(":");
+                        buf.append(range.getTokenOffset()).append(":");
+                        buf.append(tokenLength);
+                        found.add(buf.toString());
+                    } else {
+                        buf.clear();
+                        buf.append("null").append(":");
+                        buf.append(range.getTokenOffset()).append(":");
+                        buf.append(tokenLength);
+                        found.add(buf.toString());
+                    }
+                }
+                range.nextToken(scanner);
+            }
+            return listToExpected(found);
+        } catch (DocumentTimeStampChangedException e) {
+            throw new RuntimeException(e);
         }
-        return listToExpected(found);
     }
 
     public static String scan(ICustomPartitionTokenScanner scannerForContentType, ScannerRange range) {

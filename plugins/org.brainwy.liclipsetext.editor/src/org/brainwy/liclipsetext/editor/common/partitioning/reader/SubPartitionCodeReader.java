@@ -235,7 +235,7 @@ public class SubPartitionCodeReader {
      */
     private List<TypedPosition> calculatePositions(IDocument document,
             LiClipseDocumentPartitioner liClipseDocumentPartitioner)
-                    throws BadPositionCategoryException {
+            throws BadPositionCategoryException {
         //Ok, we have all the types and position (and whatever is not there is 'default').
         Position[] positions = PartitionCodeReader.getDocumentTypedPositions(document, IDocument.DEFAULT_CONTENT_TYPE);
 

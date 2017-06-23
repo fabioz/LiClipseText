@@ -7,7 +7,9 @@
 package org.brainwy.liclipsetext.editor.common.partitioning;
 
 import org.brainwy.liclipsetext.editor.common.partitioning.reader.SubTokensTokensProvider;
+import org.brainwy.liclipsetext.editor.common.partitioning.tm4e.Tm4ePartitionScanner;
 import org.brainwy.liclipsetext.editor.common.partitioning.tokens.ITextAttributeProviderToken;
+import org.brainwy.liclipsetext.editor.partitioning.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.partitioner.DummyToken;
@@ -62,13 +64,17 @@ public final class LiClipseDamagerRepairer implements IPresentationDamager, IPre
 
     @Override
     public IRegion getDamageRegion(ITypedRegion partition, DocumentEvent e, boolean documentPartitioningChanged) {
-
         IDocument document = e.getDocument();
         IRegion ret = partition;
         if (!documentPartitioningChanged) {
             try {
-
                 IRegion info = document.getLineInformationOfOffset(e.getOffset());
+                if (fScanner instanceof Tm4ePartitionScanner) {
+                    // Dealing with textmate grammar: damage must be done from line start or start of partition to end of partition.
+                    int offset = Math.max(info.getOffset(), partition.getOffset());
+                    int partitionEndOffset = partition.getOffset() + partition.getLength();
+                    return new Region(offset, partitionEndOffset - offset);
+                }
                 IRegion infoEnd = document.getLineInformationOfOffset(e.getOffset() + e.getLength());
                 if (info.getOffset() == infoEnd.getOffset()) {
                     return info;
@@ -106,7 +112,14 @@ public final class LiClipseDamagerRepairer implements IPresentationDamager, IPre
     @Override
     public void createPresentation(TextPresentation presentation, ITypedRegion region) {
         try {
-            internalCreatePresentation(presentation, region);
+            while (true) {
+                try {
+                    internalCreatePresentation(presentation, region);
+                    break;
+                } catch (DocumentTimeStampChangedException e) {
+                    // Try to do it again if we stopped because the document changed.
+                }
+            }
         } catch (Exception e) {
             Log.log(e);
         }
@@ -117,7 +130,8 @@ public final class LiClipseDamagerRepairer implements IPresentationDamager, IPre
         fDocument = document;
     }
 
-    private void internalCreatePresentation(TextPresentation presentation, ITypedRegion region) {
+    private void internalCreatePresentation(TextPresentation presentation, ITypedRegion region)
+            throws DocumentTimeStampChangedException {
         int lastStart = region.getOffset();
         int length = 0;
         boolean firstToken = true;

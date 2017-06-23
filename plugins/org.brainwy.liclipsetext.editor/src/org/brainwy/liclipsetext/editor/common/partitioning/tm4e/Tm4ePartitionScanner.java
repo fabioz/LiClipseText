@@ -6,6 +6,7 @@ import org.brainwy.liclipsetext.editor.LiClipseTextEditorPlugin;
 import org.brainwy.liclipsetext.editor.common.partitioning.tokens.ContentTypeToken;
 import org.brainwy.liclipsetext.editor.languages.LanguagesManager;
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
+import org.brainwy.liclipsetext.editor.partitioning.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner;
 import org.brainwy.liclipsetext.editor.partitioning.IPartitionCodeReaderInScannerHelper.LineInfo;
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
@@ -47,7 +48,7 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
     }
 
     @Override
-    public void nextToken(ScannerRange range) {
+    public void nextToken(ScannerRange range) throws DocumentTimeStampChangedException {
         if (range.nextOfferedToken()) {
             return;
         }
@@ -137,10 +138,8 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
                         subRuleToken.len += diff;
                     }
                 }
-
             }
         }
-        return;
     }
 
     private IToken getToken(org.eclipse.tm4e.core.grammar.IToken iToken) {

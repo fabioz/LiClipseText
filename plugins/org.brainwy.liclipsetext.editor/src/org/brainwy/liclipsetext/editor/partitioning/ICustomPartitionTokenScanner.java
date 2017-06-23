@@ -13,7 +13,7 @@ public interface ICustomPartitionTokenScanner {
 
     String DEFAULT_CONTENT_TYPE = IDocument.DEFAULT_CONTENT_TYPE;
 
-    void nextToken(ScannerRange scannerRange);
+    void nextToken(ScannerRange scannerRange) throws DocumentTimeStampChangedException;
 
     IToken getDefaultReturnToken();
 

@@ -107,4 +107,113 @@ public class Partitioning2Test extends TestCase {
                 TestUtils.textPresentationToExpected(dummyTextViewer.appliedPresentations.remove(0)));
     }
 
+    public void testTmPartitioningChanges2() throws Exception {
+        final IDocument document = new Document("p { \n" +
+                "/* comment */\n" +
+                "}");
+
+        LiClipseLanguage language = TestUtils.loadLanguageFile("css.tmbundle",
+                "css.tmbundle-master/Syntaxes/CSS.plist");
+        language.connect(document);
+
+        DummyTextViewer dummyTextViewer = new DummyTextViewer(document);
+
+        // Upon being connected it does: processDamage(new Region(0, newDocument.getLength()), newDocument);
+        TestUtils.connectPresentationReconciler(dummyTextViewer);
+        assertEquals(1, dummyTextViewer.appliedPresentations.size());
+        assertEquals(TestUtils.listToExpected("meta.selector.css:0:1",
+                "punctuation.section.property-list.begin.css:1:1",
+                "meta.property-list.css:2:1",
+                "punctuation.definition.comment.css:3:2",
+                "comment.block.css:5:2",
+                "punctuation.definition.comment.css:7:9",
+                "punctuation.section.property-list.end.css:16:3",
+                "punctuation.section.property-list.end.css:19:1"),
+                TestUtils.textPresentationToExpected(dummyTextViewer.appliedPresentations.remove(0)));
+
+        // For text mate grammars, always damage from the current offset to the end of the partition (or doc).
+        document.replace(17, 1, ""); // delete operation
+        assertEquals("p { \n" +
+                "/* comment *\n" +
+                "}", document.get());
+        assertEquals(1, dummyTextViewer.appliedPresentations.size());
+        assertEquals(TestUtils.listToExpected("comment.block.css:5:2",
+                "comment.block.css:7:11",
+                "comment.block.css:18:1"),
+                TestUtils.textPresentationToExpected(dummyTextViewer.appliedPresentations.remove(0)));
+    }
+
+    public void testTmPartitioningChanges3() throws Exception {
+        final IDocument document = new Document("p { \n" +
+                "/* comment */\n" +
+                "}");
+
+        LiClipseLanguage language = TestUtils.loadLanguageFile("css.tmbundle",
+                "css.tmbundle-master/Syntaxes/CSS.plist");
+        language.connect(document);
+
+        DummyTextViewer dummyTextViewer = new DummyTextViewer(document);
+
+        // Upon being connected it does: processDamage(new Region(0, newDocument.getLength()), newDocument);
+        TestUtils.connectPresentationReconciler(dummyTextViewer);
+        assertEquals(1, dummyTextViewer.appliedPresentations.size());
+        assertEquals(TestUtils.listToExpected("meta.selector.css:0:1",
+                "punctuation.section.property-list.begin.css:1:1",
+                "meta.property-list.css:2:1",
+                "punctuation.definition.comment.css:3:2",
+                "comment.block.css:5:2",
+                "punctuation.definition.comment.css:7:9",
+                "punctuation.section.property-list.end.css:16:3",
+                "punctuation.section.property-list.end.css:19:1"),
+                TestUtils.textPresentationToExpected(dummyTextViewer.appliedPresentations.remove(0)));
+
+        // For text mate grammars, always damage from the current offset to the end of the partition (or doc).
+        document.replace(17, 0, " "); // add operation
+        assertEquals("p { \n" +
+                "/* comment * /\n" +
+                "}", document.get());
+        assertEquals(1, dummyTextViewer.appliedPresentations.size());
+        assertEquals(TestUtils.listToExpected("comment.block.css:5:2",
+                "comment.block.css:7:13",
+                "comment.block.css:20:1"),
+                TestUtils.textPresentationToExpected(dummyTextViewer.appliedPresentations.remove(0)));
+    }
+
+    public void testTmPartitioningChanges4() throws Exception {
+        final IDocument document = new Document("p { \n" +
+                "/*\ncomment\n*/\n" +
+                "}");
+
+        LiClipseLanguage language = TestUtils.loadLanguageFile("css.tmbundle",
+                "css.tmbundle-master/Syntaxes/CSS.plist");
+        language.connect(document);
+
+        DummyTextViewer dummyTextViewer = new DummyTextViewer(document);
+
+        // Upon being connected it does: processDamage(new Region(0, newDocument.getLength()), newDocument);
+        TestUtils.connectPresentationReconciler(dummyTextViewer);
+        assertEquals(1, dummyTextViewer.appliedPresentations.size());
+        assertEquals(TestUtils.listToExpected("meta.selector.css:0:1",
+                "punctuation.section.property-list.begin.css:1:1",
+                "meta.property-list.css:2:1",
+                "punctuation.definition.comment.css:3:2",
+                "comment.block.css:5:3",
+                "punctuation.definition.comment.css:8:8",
+                "punctuation.section.property-list.end.css:16:3",
+                "punctuation.section.property-list.end.css:19:1"),
+                TestUtils.textPresentationToExpected(dummyTextViewer.appliedPresentations.remove(0)));
+
+        // In this case, we have to use a previous line cache (or redo from the start of the partition).
+        // For text mate grammars, always damage from the current offset to the end of the partition (or doc).
+        document.replace(17, 0, " "); // add operation
+        assertEquals("p { \n" +
+                "/*\ncomment\n* /\n" +
+                "}", document.get());
+        assertEquals(1, dummyTextViewer.appliedPresentations.size());
+        assertEquals(TestUtils.listToExpected("comment.block.css:5:2",
+                "comment.block.css:7:13",
+                "comment.block.css:20:1"),
+                TestUtils.textPresentationToExpected(dummyTextViewer.appliedPresentations.remove(0)));
+    }
+
 }

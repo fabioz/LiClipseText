@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.brainwy.liclipsetext.editor.partitioning.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner;
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
 import org.brainwy.liclipsetext.shared_core.callbacks.ICallback;
@@ -218,8 +219,13 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
                     }
                 } catch (BadLocationException x) {
                     // cannot happen as offsets come from scanner
+                    Log.log(x);
                 } catch (BadPositionCategoryException x) {
                     // cannot happen if document has been connected before
+                    Log.log(x);
+                } catch (DocumentTimeStampChangedException e) {
+                    // This one *should* be done in the main thread, so, this *shouldn't* happen.
+                    Log.log(e);
                 }
                 return null;
             }
@@ -563,7 +569,11 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
 
                 } catch (BadPositionCategoryException x) {
                     // should never happen on connected documents
+                    Log.log(x);
                 } catch (BadLocationException x) {
+                    Log.log(x);
+                } catch (DocumentTimeStampChangedException e1) {
+                    Log.log(e1); // Shouldn't happen as this should *not* be in a thread.
                 } finally {
                     clearPositionCache();
                 }

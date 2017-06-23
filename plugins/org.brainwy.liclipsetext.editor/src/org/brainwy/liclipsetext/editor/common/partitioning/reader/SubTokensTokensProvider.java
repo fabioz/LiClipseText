@@ -9,6 +9,7 @@ package org.brainwy.liclipsetext.editor.common.partitioning.reader;
 import java.util.Iterator;
 import java.util.List;
 
+import org.brainwy.liclipsetext.editor.partitioning.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner;
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
 import org.brainwy.liclipsetext.editor.rules.TypedRegionWithSubTokens;
@@ -64,7 +65,7 @@ public class SubTokensTokensProvider {
         }
     }
 
-    public IToken nextToken() {
+    public IToken nextToken() throws DocumentTimeStampChangedException {
         if (subTokensIterator != null) {
             if (subTokensIterator.hasNext()) {
                 currSubToken = subTokensIterator.next();
