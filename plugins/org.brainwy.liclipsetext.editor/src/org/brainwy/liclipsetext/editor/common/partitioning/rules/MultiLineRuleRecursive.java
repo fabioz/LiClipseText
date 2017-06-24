@@ -8,10 +8,11 @@ package org.brainwy.liclipsetext.editor.common.partitioning.rules;
 
 import java.util.List;
 
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.brainwy.liclipsetext.shared_core.partitioner.IMarkScanner;
 import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
 import org.eclipse.jface.text.rules.ICharacterScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
@@ -23,12 +24,12 @@ import org.eclipse.jface.text.rules.Token;
 public class MultiLineRuleRecursive extends MultiLineRuleWithSkip {
 
     public MultiLineRuleRecursive(String startSequence, String endSequence, IToken token, char escapeCharacter,
-            List<IPredicateRule> loadedSubRules) {
+            List<ILiClipsePredicateRule> loadedSubRules) {
         super(startSequence, endSequence, token, escapeCharacter, loadedSubRules);
     }
 
     @Override
-    public IToken evaluate(ICharacterScanner scanner, boolean resume) {
+    public IToken evaluate(ICharacterScanner scanner, boolean resume) throws DocumentTimeStampChangedException {
         if (resume) {
             return Token.UNDEFINED;
         }

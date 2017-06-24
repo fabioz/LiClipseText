@@ -32,7 +32,7 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentCommand;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TextSelection;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 
 public class AutoCloseScopesAutoEditRule extends AbstractScopedAutoEditRule {
@@ -125,24 +125,24 @@ public class AutoCloseScopesAutoEditRule extends AbstractScopedAutoEditRule {
 
         LiClipseLanguage language = liClipseLanguage.get();
         if (language != null) {
-            List<IPredicateRule> rules = language.rules;
-            for (IPredicateRule iPredicateRule : rules) {
-                IToken successToken = iPredicateRule.getSuccessToken();
+            List<ILiClipsePredicateRule> rules = language.rules;
+            for (ILiClipsePredicateRule ILiClipsePredicateRule : rules) {
+                IToken successToken = ILiClipsePredicateRule.getSuccessToken();
                 if (successToken == null || successToken.getData() == null) {
                     continue;
                 }
                 String contentTypeFromToken = LiClipseTextAttribute.getContentTypeFromToken(successToken);
                 if (this.autoCloseScopes.contains(contentTypeFromToken)) {
 
-                    if (iPredicateRule instanceof CompositeRule) {
+                    if (ILiClipsePredicateRule instanceof CompositeRule) {
                         //If we're in a composite rule with only a single non-empty rule, consider it.
-                        CompositeRule compositeRule = (CompositeRule) iPredicateRule;
-                        IPredicateRule[] subRules = compositeRule.getSubRules();
-                        List<IPredicateRule> filtered = ArrayUtils.filter(subRules,
-                                new ICallback<Boolean, IPredicateRule>() {
+                        CompositeRule compositeRule = (CompositeRule) ILiClipsePredicateRule;
+                        ILiClipsePredicateRule[] subRules = compositeRule.getSubRules();
+                        List<ILiClipsePredicateRule> filtered = ArrayUtils.filter(subRules,
+                                new ICallback<Boolean, ILiClipsePredicateRule>() {
 
                                     @Override
-                                    public Boolean call(IPredicateRule arg) {
+                                    public Boolean call(ILiClipsePredicateRule arg) {
                                         if (!(arg instanceof IEmptyMatchRule)) {
                                             return true;
                                         }
@@ -150,17 +150,17 @@ public class AutoCloseScopesAutoEditRule extends AbstractScopedAutoEditRule {
                                     }
                                 });
                         if (filtered.size() == 1) {
-                            iPredicateRule = filtered.get(0);
+                            ILiClipsePredicateRule = filtered.get(0);
                         }
                     }
 
-                    if (iPredicateRule instanceof MultiLineRuleWithSkip) { // MultiLineRule is a subclass
-                        MultiLineRuleWithSkip multiLineRule = (MultiLineRuleWithSkip) iPredicateRule;
+                    if (ILiClipsePredicateRule instanceof MultiLineRuleWithSkip) { // MultiLineRule is a subclass
+                        MultiLineRuleWithSkip multiLineRule = (MultiLineRuleWithSkip) ILiClipsePredicateRule;
                         Tuple<String, String> startEndSequence = multiLineRule.getStartEndSequence();
                         multiLineStartEnd.add(startEndSequence);
 
-                    } else if (iPredicateRule instanceof SingleLineRule) {
-                        SingleLineRule singleLineRule = (SingleLineRule) iPredicateRule;
+                    } else if (ILiClipsePredicateRule instanceof SingleLineRule) {
+                        SingleLineRule singleLineRule = (SingleLineRule) ILiClipsePredicateRule;
                         char[] sequence = singleLineRule.getSequence();
                         if (sequence.length == 1) {
                             addToAutoClose(sequence[0], this.scope);
@@ -168,7 +168,7 @@ public class AutoCloseScopesAutoEditRule extends AbstractScopedAutoEditRule {
                         }
                     } else {
                         Log.log("Unable to handle auto close scope (" + this.scope
-                                + ") because rule cannot be handled: " + iPredicateRule);
+                                + ") because rule cannot be handled: " + ILiClipsePredicateRule);
                     }
                 }
             }

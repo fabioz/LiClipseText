@@ -17,11 +17,11 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.BadPositionCategoryException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.rules.ICharacterScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
-public class JSRegexRule implements IPredicateRule, IChangeTokenRule {
+public class JSRegexRule implements ILiClipsePredicateRule, IChangeTokenRule {
 
     private IToken fToken;
     private SingleLineRule rule;

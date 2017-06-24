@@ -7,25 +7,25 @@
 package org.brainwy.liclipsetext.editor.partitioning;
 
 import org.brainwy.liclipsetext.editor.rules.IRuleWithSubRules;
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.log.Log;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.brainwy.liclipsetext.shared_core.partitioner.SubRuleToken;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.rules.ICharacterScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
-import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
 public abstract class AbstractLiClipseRuleBasedScanner implements ICustomPartitionTokenScanner {
 
-    protected IRule[] fRules;
+    protected ILiClipsePredicateRule[] fRules;
     protected IToken fDefaultReturnToken = new Token(null);
 
     public AbstractLiClipseRuleBasedScanner() {
     }
 
-    public void setRules(IRule[] rules) {
+    public void setRules(ILiClipsePredicateRule[] rules) {
         fRules = rules;
     }
 
@@ -45,7 +45,7 @@ public abstract class AbstractLiClipseRuleBasedScanner implements ICustomPartiti
     }
 
     @Override
-    public void nextToken(ScannerRange range) {
+    public void nextToken(ScannerRange range) throws DocumentTimeStampChangedException {
         //Treat case where we have no rules (read to the end).
         range.startNextToken();
 
@@ -68,7 +68,7 @@ public abstract class AbstractLiClipseRuleBasedScanner implements ICustomPartiti
 
         int length = fRules.length;
         for (int i = 0; i < length; i++) {
-            IRule rule = fRules[i];
+            ILiClipsePredicateRule rule = fRules[i];
             if (rule instanceof IRuleWithSubRules) {
                 IRuleWithSubRules iRuleWithSubRules = (IRuleWithSubRules) rule;
                 SubRuleToken subRuleToken = iRuleWithSubRules.evaluateSubRules(range, true);
@@ -77,7 +77,7 @@ public abstract class AbstractLiClipseRuleBasedScanner implements ICustomPartiti
                     continue;
                 } else {
                     range.setSubRuleToken(subRuleToken);
-                    range.setToken(((IPredicateRule) rule).getSuccessToken());
+                    range.setToken(rule.getSuccessToken());
                     return;
                 }
             } else {

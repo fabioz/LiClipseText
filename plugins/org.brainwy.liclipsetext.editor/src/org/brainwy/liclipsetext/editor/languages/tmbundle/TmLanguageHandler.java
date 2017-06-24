@@ -26,12 +26,12 @@ import org.brainwy.liclipsetext.editor.common.partitioning.rules.ITextMateRule;
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.brainwy.liclipsetext.editor.languages.ScopeSelector;
 import org.brainwy.liclipsetext.shared_core.log.Log;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
 import org.brainwy.liclipsetext.shared_core.string.StringUtils;
 import org.brainwy.liclipsetext.shared_core.structure.FastStack;
 import org.brainwy.liclipsetext.shared_core.structure.LinkedListWarningOnSlowOperations;
 import org.brainwy.liclipsetext.shared_core.structure.OrderedMap;
-import org.eclipse.jface.text.rules.IPredicateRule;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.EntityResolver;
@@ -130,7 +130,7 @@ public class TmLanguageHandler {
         @Override
         final public void startElement(final String namespace, final String localname, final String type,
                 final Attributes attributes)
-                        throws SAXException {
+                throws SAXException {
             switch (type) {
                 case "dict":
                     OrderedMap item = new OrderedMap();
@@ -535,10 +535,10 @@ public class TmLanguageHandler {
         out.print("]");
     }
 
-    public Map<String, IPredicateRule> loadRepositoryRules(LiClipseLanguage language) {
+    public Map<String, ILiClipsePredicateRule> loadRepositoryRules(LiClipseLanguage language) {
         TmRulesConverter converter = new TmRulesConverter(language);
 
-        Map<String, IPredicateRule> ruleAliases = new TreeMap<>();
+        Map<String, ILiClipsePredicateRule> ruleAliases = new TreeMap<>();
         Map repo = this.getMap(REPOSITORY);
         if (repo != null) {
             loadRepositoryRules(converter, ruleAliases, repo);
@@ -546,7 +546,8 @@ public class TmLanguageHandler {
         return ruleAliases;
     }
 
-    private void loadRepositoryRules(TmRulesConverter converter, Map<String, IPredicateRule> ruleAliases, Map repo) {
+    private void loadRepositoryRules(TmRulesConverter converter, Map<String, ILiClipsePredicateRule> ruleAliases,
+            Map repo) {
         Set<Map.Entry> entrySet = repo.entrySet();
         for (Map.Entry object : entrySet) {
             String key = object.getKey().toString();

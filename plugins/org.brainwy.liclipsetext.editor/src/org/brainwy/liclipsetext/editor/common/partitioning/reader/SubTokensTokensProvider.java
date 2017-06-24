@@ -9,10 +9,10 @@ package org.brainwy.liclipsetext.editor.common.partitioning.reader;
 import java.util.Iterator;
 import java.util.List;
 
-import org.brainwy.liclipsetext.editor.partitioning.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner;
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
 import org.brainwy.liclipsetext.editor.rules.TypedRegionWithSubTokens;
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.partitioner.SubRuleToken;
 import org.brainwy.liclipsetext.shared_core.partitioner.TypedPositionWithSubTokens;
 import org.eclipse.jface.text.IDocument;

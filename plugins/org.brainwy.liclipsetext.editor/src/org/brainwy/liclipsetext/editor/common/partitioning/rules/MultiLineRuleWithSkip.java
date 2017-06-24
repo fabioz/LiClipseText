@@ -8,46 +8,51 @@ package org.brainwy.liclipsetext.editor.common.partitioning.rules;
 
 import java.util.List;
 
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.partitioner.IChangeTokenRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.brainwy.liclipsetext.shared_core.partitioner.IMarkScanner;
 import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
 import org.brainwy.liclipsetext.shared_core.structure.Tuple;
 import org.eclipse.jface.text.rules.ICharacterScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
-public class MultiLineRuleWithSkip implements IPredicateRule, IChangeTokenRule {
+public class MultiLineRuleWithSkip implements ILiClipsePredicateRule, IChangeTokenRule {
 
     protected IToken fToken;
     protected final char[] fStartSequence;
     protected final char[] fEndSequence;
     protected final char fEscapeCharacter;
-    protected final IPredicateRule[] subRules;
+    protected final ILiClipsePredicateRule[] subRules;
 
+    @Override
     public void setToken(IToken token) {
         this.fToken = token;
     }
 
     public MultiLineRuleWithSkip(String start, String end, IToken token, char escapeCharacter,
-            List<IPredicateRule> loadedSubRules) {
+            List<ILiClipsePredicateRule> loadedSubRules) {
         this.fStartSequence = start.toCharArray();
         this.fEndSequence = end.toCharArray();
         this.fToken = token;
         this.fEscapeCharacter = escapeCharacter;
         this.subRules = loadedSubRules != null && loadedSubRules.size() > 0 ? loadedSubRules
-                .toArray(new IPredicateRule[loadedSubRules.size()]) : null;
+                .toArray(new ILiClipsePredicateRule[loadedSubRules.size()]) : null;
     }
 
-    public IToken evaluate(ICharacterScanner scanner) {
+    @Override
+    public IToken evaluate(ICharacterScanner scanner) throws DocumentTimeStampChangedException {
         return evaluate(scanner, false);
     }
 
+    @Override
     public IToken getSuccessToken() {
         return fToken;
     }
 
-    public IToken evaluate(ICharacterScanner scanner, boolean resume) {
+    @Override
+    public IToken evaluate(ICharacterScanner scanner, boolean resume) throws DocumentTimeStampChangedException {
         if (resume) {
             return Token.UNDEFINED;
         }

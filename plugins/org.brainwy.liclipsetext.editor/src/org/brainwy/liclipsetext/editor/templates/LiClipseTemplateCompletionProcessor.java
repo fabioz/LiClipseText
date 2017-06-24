@@ -16,6 +16,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.brainwy.liclipsetext.editor.common.partitioning.reader.SubPartitionCodeReader;
+import org.brainwy.liclipsetext.editor.common.partitioning.reader.SubPartitionCodeReader.TypedPart;
+import org.brainwy.liclipsetext.editor.languages.GlobalLanguageTemplates;
+import org.brainwy.liclipsetext.editor.languages.LanguageTemplates;
+import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
+import org.brainwy.liclipsetext.editor.rules.TypedRegionWithSubTokens;
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
+import org.brainwy.liclipsetext.shared_core.log.Log;
+import org.brainwy.liclipsetext.shared_core.partitioner.SubRuleToken;
+import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
+import org.brainwy.liclipsetext.shared_core.string.TextSelectionUtils;
+import org.brainwy.liclipsetext.shared_core.structure.ImmutableTuple;
+import org.brainwy.liclipsetext.shared_core.structure.LowMemoryArrayList;
+import org.brainwy.liclipsetext.shared_core.structure.Tuple;
+import org.brainwy.liclipsetext.shared_core.utils.ArrayUtils;
+import org.brainwy.liclipsetext.shared_ui.ImageCache;
+import org.brainwy.liclipsetext.shared_ui.SharedUiPlugin;
+import org.brainwy.liclipsetext.shared_ui.UIConstants;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -29,26 +47,6 @@ import org.eclipse.jface.text.templates.Template;
 import org.eclipse.jface.text.templates.TemplateException;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
-import org.brainwy.liclipsetext.editor.common.ILiClipseEditor;
-import org.brainwy.liclipsetext.editor.common.ILiClipseSourceViewer;
-import org.brainwy.liclipsetext.editor.common.partitioning.LiClipseDocumentPartitioner;
-import org.brainwy.liclipsetext.editor.common.partitioning.reader.SubPartitionCodeReader;
-import org.brainwy.liclipsetext.editor.common.partitioning.reader.SubPartitionCodeReader.TypedPart;
-import org.brainwy.liclipsetext.editor.languages.GlobalLanguageTemplates;
-import org.brainwy.liclipsetext.editor.languages.LanguageTemplates;
-import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
-import org.brainwy.liclipsetext.editor.rules.TypedRegionWithSubTokens;
-import org.brainwy.liclipsetext.shared_core.log.Log;
-import org.brainwy.liclipsetext.shared_core.partitioner.SubRuleToken;
-import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
-import org.brainwy.liclipsetext.shared_core.string.TextSelectionUtils;
-import org.brainwy.liclipsetext.shared_core.structure.ImmutableTuple;
-import org.brainwy.liclipsetext.shared_core.structure.LowMemoryArrayList;
-import org.brainwy.liclipsetext.shared_core.structure.Tuple;
-import org.brainwy.liclipsetext.shared_core.utils.ArrayUtils;
-import org.brainwy.liclipsetext.shared_ui.ImageCache;
-import org.brainwy.liclipsetext.shared_ui.SharedUiPlugin;
-import org.brainwy.liclipsetext.shared_ui.UIConstants;
 
 public final class LiClipseTemplateCompletionProcessor {// implements IContentAssistProcessor {
 
@@ -334,7 +332,13 @@ public final class LiClipseTemplateCompletionProcessor {// implements IContentAs
             SubPartitionCodeReader reader = new SubPartitionCodeReader();
 
             reader.configurePartitions(false, doc, documentOffset, matchSub.o1);
-            TypedPart read = reader.read();
+            TypedPart read;
+            try {
+                read = reader.read();
+            } catch (DocumentTimeStampChangedException e1) {
+                Log.log(e1);
+                read = null;
+            }
             if (read != null) {
                 try {
                     String val = doc.get(read.offset, read.length);

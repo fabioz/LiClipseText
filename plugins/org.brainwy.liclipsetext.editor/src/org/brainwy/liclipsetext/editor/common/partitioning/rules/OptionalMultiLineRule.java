@@ -6,6 +6,7 @@
  */
 package org.brainwy.liclipsetext.editor.common.partitioning.rules;
 
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IToken;
@@ -17,7 +18,7 @@ public class OptionalMultiLineRule extends MultiLineRule {
     }
 
     @Override
-    public IToken evaluate(ICharacterScanner scanner, boolean resume) {
+    public IToken evaluate(ICharacterScanner scanner, boolean resume) throws DocumentTimeStampChangedException {
         IToken ret = super.evaluate(scanner, resume);
         if (ret.isUndefined()) {
             return this.fToken; //never return undefined as it's optional!

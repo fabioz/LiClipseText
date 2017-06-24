@@ -10,7 +10,7 @@ import java.util.List;
 
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.brainwy.liclipsetext.editor.partitioning.LiClipseRuleBasedPartitionScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 
 public class LiClipseContentTypeDefinitionScanner extends LiClipseRuleBasedPartitionScanner {
 
@@ -19,18 +19,18 @@ public class LiClipseContentTypeDefinitionScanner extends LiClipseRuleBasedParti
     public LiClipseContentTypeDefinitionScanner(LiClipseLanguage language) {
         helper.setLanguage(language);
 
-        List<IPredicateRule> rules = language.rules;
-        setPredicateRules(rules.toArray(new IPredicateRule[rules.size()]));
+        List<ILiClipsePredicateRule> rules = language.rules;
+        setRules(rules.toArray(new ILiClipsePredicateRule[rules.size()]));
     }
 
-    public LiClipseContentTypeDefinitionScanner(IPredicateRule... rules) {
-        setPredicateRules(rules);
+    public LiClipseContentTypeDefinitionScanner(ILiClipsePredicateRule... rules) {
+        setRules(rules);
     }
 
     @Override
-    public void setPredicateRules(IPredicateRule[] rules) {
+    public void setRules(ILiClipsePredicateRule[] rules) {
         rules = helper.getRulesWithBeforeAndAfterRules(helper.getTopLevelScope(), rules);
-        super.setPredicateRules(rules);
+        super.setRules(rules);
     }
 
 }

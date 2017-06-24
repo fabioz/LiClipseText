@@ -1,14 +1,14 @@
 package org.brainwy.liclipsetext.editor.rules;
 
-import junit.framework.TestCase;
-
+import org.brainwy.liclipsetext.editor.common.partitioning.rules.SingleLineRule;
 import org.brainwy.liclipsetext.shared_core.partitioner.CustomRuleBasedPartitionScanner;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.brainwy.liclipsetext.shared_core.testutils.TestUtils;
 import org.eclipse.jface.text.Document;
-import org.eclipse.jface.text.rules.IPredicateRule;
 import org.eclipse.jface.text.rules.IToken;
-import org.eclipse.jface.text.rules.SingleLineRule;
 import org.eclipse.jface.text.rules.Token;
+
+import junit.framework.TestCase;
 
 public class RuleBasedPartitionScannerTest extends TestCase {
 
@@ -17,7 +17,8 @@ public class RuleBasedPartitionScannerTest extends TestCase {
         String str = "var foo = 'test str'\nfoo";
         Document doc = new Document(str);
         CustomRuleBasedPartitionScanner partitionScanner = new CustomRuleBasedPartitionScanner();
-        partitionScanner.setPredicateRules(new IPredicateRule[] { new SingleLineRule("'", "'", new Token("string")) });
+        partitionScanner
+                .setRules(new ILiClipsePredicateRule[] { new SingleLineRule("'", new Token("string"), '\0', false) });
 
         partitionScanner.setRange(doc, 0, doc.getLength());
 

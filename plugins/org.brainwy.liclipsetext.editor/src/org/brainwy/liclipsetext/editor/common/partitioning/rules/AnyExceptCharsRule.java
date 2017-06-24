@@ -10,11 +10,11 @@ import java.util.HashSet;
 
 import org.brainwy.liclipsetext.shared_core.partitioner.IChangeTokenRule;
 import org.eclipse.jface.text.rules.ICharacterScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
-public class AnyExceptCharsRule implements IPredicateRule, IChangeTokenRule {
+public class AnyExceptCharsRule implements ILiClipsePredicateRule, IChangeTokenRule {
 
     private IToken fToken;
     private HashSet<Character> exceptChars;

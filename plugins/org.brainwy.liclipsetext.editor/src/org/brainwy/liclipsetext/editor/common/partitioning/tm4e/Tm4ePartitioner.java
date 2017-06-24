@@ -3,8 +3,8 @@ package org.brainwy.liclipsetext.editor.common.partitioning.tm4e;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.brainwy.liclipsetext.editor.partitioning.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;

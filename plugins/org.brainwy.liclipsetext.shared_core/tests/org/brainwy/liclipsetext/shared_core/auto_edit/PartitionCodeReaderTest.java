@@ -14,8 +14,6 @@ package org.brainwy.liclipsetext.shared_core.auto_edit;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.TestCase;
-
 import org.brainwy.liclipsetext.shared_core.partitioner.PartitionCodeReader;
 import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
 import org.brainwy.liclipsetext.shared_core.testutils.TestUtils;
@@ -25,6 +23,8 @@ import org.eclipse.jface.text.TypedPosition;
 import org.eclipse.jface.text.rules.FastPartitioner;
 import org.eclipse.jface.text.rules.IPartitionTokenScanner;
 import org.eclipse.jface.text.rules.RuleBasedPartitionScanner;
+
+import junit.framework.TestCase;
 
 public class PartitionCodeReaderTest extends TestCase {
 

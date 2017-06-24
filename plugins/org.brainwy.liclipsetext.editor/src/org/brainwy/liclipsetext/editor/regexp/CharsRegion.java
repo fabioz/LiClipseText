@@ -18,6 +18,7 @@ import org.brainwy.liclipsetext.editor.common.partitioning.rules.IEvalCaptures;
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
 import org.brainwy.liclipsetext.editor.partitioning.Utf8WithCharLen;
 import org.brainwy.liclipsetext.editor.rules.IRuleWithSubRules;
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.partitioner.SubRuleToken;
 import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
@@ -122,7 +123,7 @@ public class CharsRegion {
     }
 
     public List<SubRuleToken> createSubTokens(int initialOffset, SortedMap<Integer, IEvalCaptures> captures,
-            ScannerRange scanner) {
+            ScannerRange scanner) throws DocumentTimeStampChangedException {
 
         LinkedList<SubRuleToken> lst = new LinkedListWarningOnSlowOperations<>();
         if (captures != null && captures.size() > 0) {

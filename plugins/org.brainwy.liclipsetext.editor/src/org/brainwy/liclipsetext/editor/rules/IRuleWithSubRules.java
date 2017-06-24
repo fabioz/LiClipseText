@@ -7,6 +7,7 @@
 package org.brainwy.liclipsetext.editor.rules;
 
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.partitioner.SubRuleToken;
 
 public interface IRuleWithSubRules {
@@ -22,7 +23,9 @@ public interface IRuleWithSubRules {
      *
      * @return null if we did not have a match -- or a SubRuleToken with the match (note that
      * it may have children if generateSubRuleTokens is true, so, it may have to be post-processed).
+     * @throws DocumentTimeStampChangedException
      */
-    public SubRuleToken evaluateSubRules(ScannerRange scanner, boolean generateSubRuleTokens);
+    public SubRuleToken evaluateSubRules(ScannerRange scanner, boolean generateSubRuleTokens)
+            throws DocumentTimeStampChangedException;
 
 }

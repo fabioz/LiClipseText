@@ -9,8 +9,8 @@ package org.brainwy.liclipsetext.editor.common.partitioning;
 import org.brainwy.liclipsetext.editor.common.partitioning.reader.SubTokensTokensProvider;
 import org.brainwy.liclipsetext.editor.common.partitioning.tm4e.Tm4ePartitionScanner;
 import org.brainwy.liclipsetext.editor.common.partitioning.tokens.ITextAttributeProviderToken;
-import org.brainwy.liclipsetext.editor.partitioning.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner;
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.partitioner.DummyToken;
 import org.brainwy.liclipsetext.shared_core.string.StringUtils;
@@ -112,14 +112,10 @@ public final class LiClipseDamagerRepairer implements IPresentationDamager, IPre
     @Override
     public void createPresentation(TextPresentation presentation, ITypedRegion region) {
         try {
-            while (true) {
-                try {
-                    internalCreatePresentation(presentation, region);
-                    break;
-                } catch (DocumentTimeStampChangedException e) {
-                    // Try to do it again if we stopped because the document changed.
-                }
-            }
+            DocumentTimeStampChangedException.retryUntilNoDocChanges(() -> {
+                internalCreatePresentation(presentation, region);
+                return null;
+            });
         } catch (Exception e) {
             Log.log(e);
         }

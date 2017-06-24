@@ -6,6 +6,7 @@
  */
 package org.brainwy.liclipsetext.editor.partitioning;
 
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.rules.IToken;
 

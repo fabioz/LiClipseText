@@ -14,16 +14,17 @@ package org.brainwy.liclipsetext.editor.rules;
 import java.util.Arrays;
 import java.util.Comparator;
 
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.partitioner.IChangeTokenRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.rules.ICharacterScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
 /**
- * Standard implementation of <code>IPredicateRule</code>.
+ * Standard implementation of <code>ILiClipsePredicateRule</code>.
  * Is is capable of detecting a pattern which begins with a given start
  * sequence and ends with a given end sequence. If the end sequence is
  * not specified, it can be either end of line, end or file, or both. Additionally,
@@ -31,7 +32,7 @@ import org.eclipse.jface.text.rules.Token;
  * be used to check whether the text to scan covers half of the pattern, i.e. contains
  * the end sequence required by the rule.
  */
-public class PatternRule implements IPredicateRule, IChangeTokenRule {
+public class PatternRule implements ILiClipsePredicateRule, IChangeTokenRule {
 
     /**
      * Comparator that orders <code>char[]</code> in decreasing array lengths.
@@ -39,6 +40,7 @@ public class PatternRule implements IPredicateRule, IChangeTokenRule {
      * @since 3.1
      */
     private static class DecreasingCharArrayLengthComparator implements Comparator {
+        @Override
         public int compare(Object o1, Object o2) {
             return ((char[]) o2).length - ((char[]) o1).length;
         }
@@ -108,6 +110,7 @@ public class PatternRule implements IPredicateRule, IChangeTokenRule {
         fBreaksOnEOL = breaksOnEOL;
     }
 
+    @Override
     public void setToken(IToken token) {
         this.fToken = token;
     }
@@ -177,8 +180,9 @@ public class PatternRule implements IPredicateRule, IChangeTokenRule {
      *
      * @param scanner the character scanner to be used
      * @return the token resulting from this evaluation
+     * @throws DocumentTimeStampChangedException
      */
-    protected IToken doEvaluate(ICharacterScanner scanner) {
+    protected IToken doEvaluate(ICharacterScanner scanner) throws DocumentTimeStampChangedException {
         return doEvaluate(scanner, false);
     }
 
@@ -190,9 +194,10 @@ public class PatternRule implements IPredicateRule, IChangeTokenRule {
      * @param scanner the character scanner to be used
      * @param resume <code>true</code> if detection should be resumed, <code>false</code> otherwise
      * @return the token resulting from this evaluation
+     * @throws DocumentTimeStampChangedException
      * @since 2.0
      */
-    protected IToken doEvaluate(ICharacterScanner scanner, boolean resume) {
+    protected IToken doEvaluate(ICharacterScanner scanner, boolean resume) throws DocumentTimeStampChangedException {
 
         if (resume) {
 
@@ -219,7 +224,8 @@ public class PatternRule implements IPredicateRule, IChangeTokenRule {
     /*
      * @see IRule#evaluate(ICharacterScanner)
      */
-    public IToken evaluate(ICharacterScanner scanner) {
+    @Override
+    public IToken evaluate(ICharacterScanner scanner) throws DocumentTimeStampChangedException {
         return evaluate(scanner, false);
     }
 
@@ -324,10 +330,11 @@ public class PatternRule implements IPredicateRule, IChangeTokenRule {
     }
 
     /*
-     * @see IPredicateRule#evaluate(ICharacterScanner, boolean)
+     * @see ILiClipsePredicateRule#evaluate(ICharacterScanner, boolean)
      * @since 2.0
      */
-    public IToken evaluate(ICharacterScanner scanner, boolean resume) {
+    @Override
+    public IToken evaluate(ICharacterScanner scanner, boolean resume) throws DocumentTimeStampChangedException {
         if (fColumn == UNDEFINED) {
             return doEvaluate(scanner, resume);
         }
@@ -341,9 +348,10 @@ public class PatternRule implements IPredicateRule, IChangeTokenRule {
     }
 
     /*
-     * @see IPredicateRule#getSuccessToken()
+     * @see ILiClipsePredicateRule#getSuccessToken()
      * @since 2.0
      */
+    @Override
     public IToken getSuccessToken() {
         return fToken;
     }

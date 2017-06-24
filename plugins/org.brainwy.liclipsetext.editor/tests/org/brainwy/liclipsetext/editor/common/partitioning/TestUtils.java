@@ -15,9 +15,10 @@ import org.brainwy.liclipsetext.editor.languages.LanguageMetadataInMemoryFileInf
 import org.brainwy.liclipsetext.editor.languages.LanguageMetadataTmBundleZipFileInfo;
 import org.brainwy.liclipsetext.editor.languages.LanguagesManager;
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
-import org.brainwy.liclipsetext.editor.partitioning.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner;
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipseTokenScanner;
 import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
 import org.brainwy.liclipsetext.shared_core.string.StringUtils;
 import org.brainwy.liclipsetext.shared_core.structure.Tuple3;
@@ -29,7 +30,6 @@ import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.rules.IToken;
-import org.eclipse.jface.text.rules.ITokenScanner;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.swt.custom.StyleRange;
 
@@ -137,85 +137,94 @@ public class TestUtils {
     }
 
     //    public static String scan(Object scanner, IDocument document) {
-    //        return scan((ITokenScanner) scanner, document);
+    //        return scan((ILiClipseTokenScanner) scanner, document);
     //    }
 
-    public static String scan(ITokenScanner scanner, IDocument document) {
+    public static String scan(ILiClipseTokenScanner scanner, IDocument document) {
         scanner.setRange(document, 0, document.getLength());
         return scan(scanner);
     }
 
-    public static String scan(ITokenScanner scanner) {
+    public static String scan(ILiClipseTokenScanner scanner) {
         return scan(scanner, true);
     }
 
-    public static String scan(ITokenScanner scanner, boolean join) {
-        if (!join) {
-            return scanNoJoin(scanner);
-        }
-        ArrayList<String> found = new ArrayList<String>();
-        FastStringBuffer buf = new FastStringBuffer();
-        IToken token = scanner.nextToken();
-        Tuple3<IToken, Integer, Integer> tup = new Tuple3<>(token, scanner.getTokenOffset(),
-                scanner.getTokenLength());
-
-        while (tup != null && !tup.o1.isEOF()) {
-            Tuple3<IToken, Integer, Integer> lookaheadTup = null;
-
-            while (true) {
-                token = scanner.nextToken();
-                lookaheadTup = new Tuple3<>(token, scanner.getTokenOffset(), scanner.getTokenLength());
-                if (lookaheadTup.o1.isEOF()) {
-                    break;
-                }
-                String contentTypeFromTokenLookahead = getTokenRep(lookaheadTup.o1);
-                String contentTypeFromToken = getTokenRep(tup.o1);
-                //only null can be joined!
-                if ("null".equals(contentTypeFromToken) && contentTypeFromTokenLookahead.equals(contentTypeFromToken)
-                        && tup.o2 + tup.o3 == lookaheadTup.o2) {
-                    tup.o3 += lookaheadTup.o3;
-                } else {
-                    break;
-                }
+    public static String scan(ILiClipseTokenScanner scanner, boolean join) {
+        try {
+            if (!join) {
+                return scanNoJoin(scanner);
             }
+            ArrayList<String> found = new ArrayList<String>();
+            FastStringBuffer buf = new FastStringBuffer();
+            IToken token = scanner.nextToken();
+            Tuple3<IToken, Integer, Integer> tup = new Tuple3<>(token, scanner.getTokenOffset(),
+                    scanner.getTokenLength());
 
-            buf.clear();
-            buf.append(getTokenRep(tup.o1));
-            buf.append(":");
-            buf.append(tup.o2).append(":");
-            buf.append(tup.o3);
-            found.add(buf.toString());
-            tup = lookaheadTup;
+            while (tup != null && !tup.o1.isEOF()) {
+                Tuple3<IToken, Integer, Integer> lookaheadTup = null;
+
+                while (true) {
+                    token = scanner.nextToken();
+                    lookaheadTup = new Tuple3<>(token, scanner.getTokenOffset(), scanner.getTokenLength());
+                    if (lookaheadTup.o1.isEOF()) {
+                        break;
+                    }
+                    String contentTypeFromTokenLookahead = getTokenRep(lookaheadTup.o1);
+                    String contentTypeFromToken = getTokenRep(tup.o1);
+                    //only null can be joined!
+                    if ("null".equals(contentTypeFromToken)
+                            && contentTypeFromTokenLookahead.equals(contentTypeFromToken)
+                            && tup.o2 + tup.o3 == lookaheadTup.o2) {
+                        tup.o3 += lookaheadTup.o3;
+                    } else {
+                        break;
+                    }
+                }
+
+                buf.clear();
+                buf.append(getTokenRep(tup.o1));
+                buf.append(":");
+                buf.append(tup.o2).append(":");
+                buf.append(tup.o3);
+                found.add(buf.toString());
+                tup = lookaheadTup;
+            }
+            return listToExpected(found);
+        } catch (DocumentTimeStampChangedException e) {
+            throw new RuntimeException(e);
         }
-        return listToExpected(found);
     }
 
-    private static String scanNoJoin(ITokenScanner scanner) {
-        ArrayList<String> found = new ArrayList<String>();
-        FastStringBuffer buf = new FastStringBuffer();
-        IToken token = scanner.nextToken();
-        while (!token.isEOF()) {
-            Object data = token.getData();
-            int tokenLength = scanner.getTokenLength();
-            if (tokenLength != 0) {
-                if (data != null) {
-                    buf.clear();
-                    String contentTypeFromToken = LiClipseTextAttribute.getContentTypeFromToken(token);
-                    buf.append(contentTypeFromToken).append(":");
-                    buf.append(scanner.getTokenOffset()).append(":");
-                    buf.append(tokenLength);
-                    found.add(buf.toString());
-                } else {
-                    buf.clear();
-                    buf.append("null").append(":");
-                    buf.append(scanner.getTokenOffset()).append(":");
-                    buf.append(tokenLength);
-                    found.add(buf.toString());
+    private static String scanNoJoin(ILiClipseTokenScanner scanner) {
+        try {
+            ArrayList<String> found = new ArrayList<String>();
+            FastStringBuffer buf = new FastStringBuffer();
+            IToken token = scanner.nextToken();
+            while (!token.isEOF()) {
+                Object data = token.getData();
+                int tokenLength = scanner.getTokenLength();
+                if (tokenLength != 0) {
+                    if (data != null) {
+                        buf.clear();
+                        String contentTypeFromToken = LiClipseTextAttribute.getContentTypeFromToken(token);
+                        buf.append(contentTypeFromToken).append(":");
+                        buf.append(scanner.getTokenOffset()).append(":");
+                        buf.append(tokenLength);
+                        found.add(buf.toString());
+                    } else {
+                        buf.clear();
+                        buf.append("null").append(":");
+                        buf.append(scanner.getTokenOffset()).append(":");
+                        buf.append(tokenLength);
+                        found.add(buf.toString());
+                    }
                 }
+                token = scanner.nextToken();
             }
-            token = scanner.nextToken();
+            return listToExpected(found);
+        } catch (DocumentTimeStampChangedException e) {
+            throw new RuntimeException(e);
         }
-        return listToExpected(found);
     }
 
     private static String getTokenRep(IToken o1) {

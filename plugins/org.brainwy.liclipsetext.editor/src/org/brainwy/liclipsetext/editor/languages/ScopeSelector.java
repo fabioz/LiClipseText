@@ -10,12 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.brainwy.liclipsetext.editor.common.partitioning.rules.ITextMateRule;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 
 public class ScopeSelector {
 
     private final String fScope;
-    private final List<IPredicateRule> rules;
+    private final List<ILiClipsePredicateRule> rules;
 
     public ScopeSelector(String scope, List<ITextMateRule> lst) {
         this.fScope = scope;
@@ -23,21 +23,21 @@ public class ScopeSelector {
         this.rules.addAll(lst);
     }
 
-    public List<IPredicateRule> getRulesAfterScope(String scope2) {
+    public List<ILiClipsePredicateRule> getRulesAfterScope(String scope2) {
         if (fScope.startsWith(scope2) || fScope.startsWith("R:" + scope2)) {
             return this.rules;
         }
         return null;
     }
 
-    public List<IPredicateRule> getRulesBeforeScope(String scope2) {
+    public List<ILiClipsePredicateRule> getRulesBeforeScope(String scope2) {
         if (fScope.startsWith("L:" + scope2)) {
             return this.rules;
         }
         return null;
     }
 
-    public List<IPredicateRule> getRules() {
+    public List<ILiClipsePredicateRule> getRules() {
         return rules;
     }
 

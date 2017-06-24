@@ -10,11 +10,9 @@
  *******************************************************************************/
 package org.brainwy.liclipsetext.shared_core.partitioner;
 
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.rules.IPartitionTokenScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
-import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.IToken;
 
 /**
@@ -28,7 +26,7 @@ import org.eclipse.jface.text.rules.IToken;
  * @since 2.0
  */
 public class CustomRuleBasedPartitionScanner extends AbstractCustomBufferedRuleBasedScanner implements
-        IPartitionTokenScanner {
+        ILiClipsePartitionTokenScanner {
 
     /** The content type of the partition in which to resume scanning. */
     protected String fContentType;
@@ -42,24 +40,6 @@ public class CustomRuleBasedPartitionScanner extends AbstractCustomBufferedRuleB
     @Override
     public IDocument getDocument() {
         return fDocument;
-    }
-
-    /**
-     * Disallow setting the rules since this scanner
-     * exclusively uses predicate rules.
-     *
-     * @param rules the sequence of rules controlling this scanner
-     */
-    @Override
-    public void setRules(IRule[] rules) {
-        throw new UnsupportedOperationException();
-    }
-
-    /*
-     * @see RuleBasedScanner#setRules(IRule[])
-     */
-    public void setPredicateRules(IPredicateRule[] rules) {
-        super.setRules(rules);
     }
 
     /*
@@ -96,7 +76,7 @@ public class CustomRuleBasedPartitionScanner extends AbstractCustomBufferedRuleB
      * @see ITokenScanner#nextToken()
      */
     @Override
-    public IToken nextToken() {
+    public IToken nextToken() throws DocumentTimeStampChangedException {
         if (fContentType == null || fRules == null) {
             //don't try to resume
             return super.nextToken();
@@ -107,11 +87,11 @@ public class CustomRuleBasedPartitionScanner extends AbstractCustomBufferedRuleB
         boolean resume = (fPartitionOffset > -1 && fPartitionOffset < fOffset);
         fTokenOffset = resume ? fPartitionOffset : fOffset;
 
-        IPredicateRule rule;
+        ILiClipsePredicateRule rule;
         IToken token;
 
         for (int i = 0; i < fRules.length; i++) {
-            rule = (IPredicateRule) fRules[i];
+            rule = fRules[i];
             token = rule.getSuccessToken();
             if (token == null) {
                 Log.log("Rule: " + rule + " returned null as getSuccessToken.");

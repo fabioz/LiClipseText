@@ -12,8 +12,10 @@ import org.brainwy.liclipsetext.editor.common.partitioning.IRuleWithSubRules2;
 import org.brainwy.liclipsetext.editor.common.partitioning.LiClipseTextAttribute;
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
 import org.brainwy.liclipsetext.editor.rules.IRuleWithSubRules;
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.partitioner.IChangeTokenRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.brainwy.liclipsetext.shared_core.partitioner.IMarkScanner;
 import org.brainwy.liclipsetext.shared_core.partitioner.IScannerWithOffPartition;
 import org.brainwy.liclipsetext.shared_core.partitioner.PartitionCodeReader;
@@ -21,28 +23,27 @@ import org.brainwy.liclipsetext.shared_core.partitioner.SubRuleToken;
 import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
 import org.eclipse.core.runtime.AssertionFailedException;
 import org.eclipse.jface.text.rules.ICharacterScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
 /**
  * The CompositeRule must match all the sub-rules it contains to be valid.
  */
-public class CompositeRule implements IPredicateRule, IRuleWithSubRules, IRuleWithSubRules2, IChangeTokenRule {
+public class CompositeRule implements ILiClipsePredicateRule, IRuleWithSubRules, IRuleWithSubRules2, IChangeTokenRule {
 
-    private IPredicateRule[] subRules;
+    private ILiClipsePredicateRule[] subRules;
     private boolean[] offPartition;
     private IToken fToken;
 
-    public CompositeRule(IPredicateRule... subRules) {
+    public CompositeRule(ILiClipsePredicateRule... subRules) {
         setSubRules(subRules);
     }
 
-    public CompositeRule(List<IPredicateRule> subRules) {
-        setSubRules(subRules.toArray(new IPredicateRule[subRules.size()]));
+    public CompositeRule(List<ILiClipsePredicateRule> subRules) {
+        setSubRules(subRules.toArray(new ILiClipsePredicateRule[subRules.size()]));
     }
 
-    private void setSubRules(IPredicateRule[] subRules) {
+    private void setSubRules(ILiClipsePredicateRule[] subRules) {
         this.subRules = subRules;
         int len = this.subRules.length;
 
@@ -67,15 +68,17 @@ public class CompositeRule implements IPredicateRule, IRuleWithSubRules, IRuleWi
         }
     }
 
-    public IPredicateRule[] getSubRules() {
+    public ILiClipsePredicateRule[] getSubRules() {
         return subRules;
     }
 
     /**
      * Either will return null if it did not match or a list with the sub tokens matched.
+     * @throws DocumentTimeStampChangedException
      */
     @Override
-    public SubRuleToken evaluateSubRules(final ScannerRange scanner, boolean generateSubRuleTokens) {
+    public SubRuleToken evaluateSubRules(final ScannerRange scanner, boolean generateSubRuleTokens)
+            throws DocumentTimeStampChangedException {
         IMarkScanner markScanner = scanner;
         final int mark = markScanner.getMark();
 
@@ -85,7 +88,7 @@ public class CompositeRule implements IPredicateRule, IRuleWithSubRules, IRuleWi
 
             int currOffset = markScanner.getMark();
 
-            IPredicateRule subRule = subRules[i];
+            ILiClipsePredicateRule subRule = subRules[i];
             boolean isOffPartition = this.offPartition[i];
             if (isOffPartition) {
                 //Ok, this means that from now on, we'll have a different scanner as we matched
@@ -133,19 +136,23 @@ public class CompositeRule implements IPredicateRule, IRuleWithSubRules, IRuleWi
 
     }
 
-    public IToken evaluate(ICharacterScanner scanner) {
+    @Override
+    public IToken evaluate(ICharacterScanner scanner) throws DocumentTimeStampChangedException {
         return evaluate(scanner, false);
     }
 
+    @Override
     public IToken getSuccessToken() {
         return fToken;
     }
 
+    @Override
     public void setToken(IToken token) {
         fToken = token;
     }
 
-    public IToken evaluate(ICharacterScanner scanner, boolean resume) {
+    @Override
+    public IToken evaluate(ICharacterScanner scanner, boolean resume) throws DocumentTimeStampChangedException {
         if (resume) {
             return Token.UNDEFINED;
         }
@@ -159,7 +166,7 @@ public class CompositeRule implements IPredicateRule, IRuleWithSubRules, IRuleWi
     @Override
     public String toString() {
         FastStringBuffer buf = new FastStringBuffer("CompositeRule[", this.subRules.length * 20);
-        for (IPredicateRule rule : this.subRules) {
+        for (ILiClipsePredicateRule rule : this.subRules) {
             buf.append("  ").append(rule.toString()).append('\n');
         }
         buf.append("]");

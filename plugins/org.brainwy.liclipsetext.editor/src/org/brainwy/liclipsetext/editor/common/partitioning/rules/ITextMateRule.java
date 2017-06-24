@@ -7,7 +7,7 @@
 package org.brainwy.liclipsetext.editor.common.partitioning.rules;
 
 import org.brainwy.liclipsetext.editor.rules.IRuleWithSubRules;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 
 /**
  * When it comes to TextMate rules, we can actually mix them with regular rules, but
@@ -17,6 +17,6 @@ import org.eclipse.jface.text.rules.IPredicateRule;
  * when dealing with grammars that only have TM rules (i.e.: a single parse should create
  * the inner tokens too and keep it to use later on).
  */
-public interface ITextMateRule extends IPredicateRule, IRuleWithSubRules {
+public interface ITextMateRule extends ILiClipsePredicateRule, IRuleWithSubRules {
 
 }

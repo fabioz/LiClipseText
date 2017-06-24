@@ -15,7 +15,7 @@ import org.brainwy.liclipsetext.editor.regexp.RegexpHelper.ReplaceInfo;
 import org.brainwy.liclipsetext.shared_core.partitioner.SubRuleToken;
 import org.brainwy.liclipsetext.shared_core.structure.Tuple;
 import org.eclipse.jface.text.Document;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 import org.joni.Matcher;
@@ -53,7 +53,7 @@ public class TmBeginEndRuleTest extends TestCase {
     }
 
     public void testTmBeginEndRuleApplyLast0() throws Exception {
-        List<IPredicateRule> subRules = new ArrayList<>();
+        List<ILiClipsePredicateRule> subRules = new ArrayList<>();
         subRules.add(new TmMatchRule("b", new Token("pattern"), (SortedMap<Integer, IEvalCaptures>) null));
 
         TmBeginEndRule rule = new TmBeginEndRule("a", "b", new HashMap<>(), new HashMap<>(), subRules,
@@ -70,7 +70,7 @@ public class TmBeginEndRuleTest extends TestCase {
     }
 
     public void testTmBeginEndRuleApplyLast1() throws Exception {
-        List<IPredicateRule> subRules = new ArrayList<>();
+        List<ILiClipsePredicateRule> subRules = new ArrayList<>();
         subRules.add(new TmMatchRule("b", new Token("pattern"), (SortedMap<Integer, IEvalCaptures>) null));
 
         TmBeginEndRule rule = new TmBeginEndRule("a", "b", new HashMap<>(), new HashMap<>(), subRules,
@@ -133,7 +133,7 @@ public class TmBeginEndRuleTest extends TestCase {
         Map<Object, Object> captures = new HashMap<>();
         captures.put(1, new Token("capture"));
 
-        List<IPredicateRule> subRules = new ArrayList<IPredicateRule>();
+        List<ILiClipsePredicateRule> subRules = new ArrayList<ILiClipsePredicateRule>();
         // stop right before a new line
         subRules.add(new TmBeginEndRule("//", "(?=\n)", null, null, subRules, new Token("comment1"), null, 0));
 

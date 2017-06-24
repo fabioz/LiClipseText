@@ -11,7 +11,7 @@ import org.brainwy.liclipsetext.editor.common.partitioning.rules.TmBeginWhileRul
 import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner;
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
 import org.eclipse.jface.text.Document;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.eclipse.jface.text.rules.Token;
 
 import junit.framework.TestCase;
@@ -19,7 +19,7 @@ import junit.framework.TestCase;
 public class TmBeginWhileRuleTest extends TestCase {
 
     public void testTmBeginEndRule() throws Exception {
-        List<IPredicateRule> subRules = Arrays.asList((IPredicateRule) new TmBeginEndRule(
+        List<ILiClipsePredicateRule> subRules = Arrays.asList((ILiClipsePredicateRule) new TmBeginEndRule(
                 "c", "d", null, null, null,
                 new Token("cd"), null, 0));
 
@@ -38,7 +38,7 @@ public class TmBeginWhileRuleTest extends TestCase {
     }
 
     public void testTmBeginEndRule2() throws Exception {
-        List<IPredicateRule> subRules = Arrays.asList((IPredicateRule) new TmBeginEndRule(
+        List<ILiClipsePredicateRule> subRules = Arrays.asList((ILiClipsePredicateRule) new TmBeginEndRule(
                 "c", "d", null, null, null,
                 new Token("cd"), null, 0));
 

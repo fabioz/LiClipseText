@@ -22,17 +22,18 @@ import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
 import org.brainwy.liclipsetext.editor.rules.SubLanguageToken;
 import org.brainwy.liclipsetext.editor.rules.SwitchLanguageToken;
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.partitioner.IChangeTokenRule;
 import org.brainwy.liclipsetext.shared_core.partitioner.IDocumentScanner;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.brainwy.liclipsetext.shared_core.partitioner.IMarkScanner;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.rules.ICharacterScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
-public class SwitchLanguageHtmlRule implements IPredicateRule, IChangeTokenRule, ISwitchLanguageRule {
+public class SwitchLanguageHtmlRule implements ILiClipsePredicateRule, IChangeTokenRule, ISwitchLanguageRule {
 
     private final Map<String, String> typeAttr;
     private final Map<String, String> languageAttr;
@@ -58,6 +59,7 @@ public class SwitchLanguageHtmlRule implements IPredicateRule, IChangeTokenRule,
         setToken(token);
     }
 
+    @Override
     public void setToken(IToken token) {
         this.fToken = token;
     }
@@ -83,10 +85,12 @@ public class SwitchLanguageHtmlRule implements IPredicateRule, IChangeTokenRule,
 
     }
 
-    public IToken evaluate(ICharacterScanner scanner) {
+    @Override
+    public IToken evaluate(ICharacterScanner scanner) throws DocumentTimeStampChangedException {
         return evaluate(scanner, false);
     }
 
+    @Override
     public IToken getSuccessToken() {
         return this.fToken;
     }
@@ -95,7 +99,8 @@ public class SwitchLanguageHtmlRule implements IPredicateRule, IChangeTokenRule,
         int c;
     }
 
-    public IToken evaluate(ICharacterScanner scanner, boolean resume) {
+    @Override
+    public IToken evaluate(ICharacterScanner scanner, boolean resume) throws DocumentTimeStampChangedException {
         if (resume) {
             //Non-resumable rule!
             return Token.UNDEFINED;
@@ -249,7 +254,8 @@ public class SwitchLanguageHtmlRule implements IPredicateRule, IChangeTokenRule,
     }
 
     public IToken skipWhitespaces(ICharacterScanner scanner, String switchToLanguage, final int initialStartScript,
-            final int initialEndScript, final int finalStartScript, final int finalEndScript, CharWrapper c) {
+            final int initialEndScript, final int finalStartScript, final int finalEndScript, CharWrapper c)
+            throws DocumentTimeStampChangedException {
         c.c = scanner.read();
         if (c.c == ICharacterScanner.EOF) {
             return createSwitchLanguageToken(scanner, parseHtmlTagHelper, null, switchToLanguage, initialStartScript,
@@ -269,7 +275,8 @@ public class SwitchLanguageHtmlRule implements IPredicateRule, IChangeTokenRule,
 
     private IToken createSwitchLanguageToken(ICharacterScanner scanner, ParseHtmlTagHelper parseHtmlTagHelper,
             ParseHtmlTagHelper closeHtmlTagHelper, String switchToLanguage, final int initialStartScript,
-            final int initialEndScript, final int finalStartScript, final int finalEndScript) {
+            final int initialEndScript, final int finalStartScript, final int finalEndScript)
+            throws DocumentTimeStampChangedException {
         //if it got here, it matched it.
         IDocumentScanner docScanner = (IDocumentScanner) scanner;
         ScannerRange tokenScanner = (ScannerRange) scanner;
@@ -343,6 +350,7 @@ public class SwitchLanguageHtmlRule implements IPredicateRule, IChangeTokenRule,
         }
     }
 
+    @Override
     public List<LiClipseLanguage> getLanguages() {
         Set<String> languageNames = new HashSet<String>();
         languageNames.addAll(this.languageAttr.values());

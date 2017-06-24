@@ -40,7 +40,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.AssertionFailedException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.yaml.snakeyaml.Yaml;
 
@@ -437,9 +437,9 @@ public class LiClipseLanguageIO {
         }
     }
 
-    private int fixTopLevelRulesToHaveValidTokens(LiClipseLanguage ret, List<IPredicateRule> rules, Set<String> found,
+    private int fixTopLevelRulesToHaveValidTokens(LiClipseLanguage ret, List<ILiClipsePredicateRule> rules, Set<String> found,
             int nextId) {
-        for (IPredicateRule rule : rules) {
+        for (ILiClipsePredicateRule rule : rules) {
             IToken successToken = rule.getSuccessToken();
             if (successToken == null || successToken.getData() == null) {
                 successToken = new DummyToken(ret.name + "." + nextId++);
@@ -493,7 +493,7 @@ public class LiClipseLanguageIO {
                 if (value instanceof Map) {
                     List<Object> asList = (List<Object>) RulesFactory.copyObject(Arrays.asList(value));
                     Map rule = (Map) RulesFactory.copyObject(ruleAliases);
-                    List<IPredicateRule> loadedAlias = factory.load(asList, rule);
+                    List<ILiClipsePredicateRule> loadedAlias = factory.load(asList, rule);
                     if (loadedAlias.size() != 1) {
                         throw new AssertionFailedException("Error in alias definition: " + entry.getKey()
                                 + " (should point to a single rule).");
@@ -511,7 +511,7 @@ public class LiClipseLanguageIO {
 
             Set<Entry<String, String>> entrySet2 = delayed.entrySet();
             for (Entry<String, String> entry : entrySet2) {
-                IPredicateRule value = ret.ruleAliases.get(entry.getValue());
+                ILiClipsePredicateRule value = ret.ruleAliases.get(entry.getValue());
                 if (value == null) {
                     Log.log("Cannot resolve alias: " + entry.getKey() + " -> " + entry.getValue());
                 } else {
@@ -549,7 +549,7 @@ public class LiClipseLanguageIO {
 
         // Commenting out: we no longer handle textmate with our own rules (it now uses tm4e
         // to do the parsing).
-        // Map<String, IPredicateRule> ruleAliases = tmLanguageHandler.loadRepositoryRules(ret);
+        // Map<String, ILiClipsePredicateRule> ruleAliases = tmLanguageHandler.loadRepositoryRules(ret);
         // ret.ruleAliases.putAll(ruleAliases);
         // LinkedList<ITextMateRule> regularRules = tmLanguageHandler.loadRegularRules(ret);
         // ret.rules.addAll(regularRules);
@@ -559,11 +559,11 @@ public class LiClipseLanguageIO {
         fixTopLevelRulesToHaveValidTokens(ret);
 
         Map<String, ScopeColorScanning> scopeToScopeColorScanning = ret.scopeToScopeColorScanning;
-        for (IPredicateRule rule : ret.rules) {
+        for (ILiClipsePredicateRule rule : ret.rules) {
             createPartitionScanning(ret, scopeToScopeColorScanning, rule);
         }
         for (ScopeSelector s : ret.injectionRules) {
-            for (IPredicateRule rule : s.getRules()) {
+            for (ILiClipsePredicateRule rule : s.getRules()) {
                 createPartitionScanning(ret, scopeToScopeColorScanning, rule);
             }
         }
@@ -578,12 +578,12 @@ public class LiClipseLanguageIO {
     }
 
     private void createPartitionScanning(LiClipseLanguage ret,
-            Map<String, ScopeColorScanning> scopeToScopeColorScanning, IPredicateRule rule) {
+            Map<String, ScopeColorScanning> scopeToScopeColorScanning, ILiClipsePredicateRule rule) {
         IToken successToken = rule.getSuccessToken();
         Object data = successToken.getData();
         if (data instanceof String) {
             ScopeColorScanning scopeScanning = new ScopeColorScanning(false, ret);
-            scopeScanning.setSubRules(new IPredicateRule[] { rule });
+            scopeScanning.setSubRules(new ILiClipsePredicateRule[] { rule });
             scopeToScopeColorScanning.put((String) data, scopeScanning);
         }
     }

@@ -12,11 +12,11 @@ import java.util.Set;
 import org.brainwy.liclipsetext.shared_core.partitioner.IChangeTokenRule;
 import org.brainwy.liclipsetext.shared_core.partitioner.IMarkScanner;
 import org.eclipse.jface.text.rules.ICharacterScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
-public class PrevCharNotIn implements IPredicateRule, IChangeTokenRule, IEmptyMatchRule {
+public class PrevCharNotIn implements ILiClipsePredicateRule, IChangeTokenRule, IEmptyMatchRule {
 
     private IToken fToken;
     private final Set<Character> chars = new HashSet<>();

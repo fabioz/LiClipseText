@@ -20,22 +20,23 @@ import org.brainwy.liclipsetext.editor.partitioning.Utf8WithCharLen;
 import org.brainwy.liclipsetext.editor.regexp.CharsRegion;
 import org.brainwy.liclipsetext.editor.regexp.RegexpHelper;
 import org.brainwy.liclipsetext.editor.rules.IRuleWithSubRules;
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.partitioner.IChangeTokenRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.brainwy.liclipsetext.shared_core.partitioner.IMarkScanner;
 import org.brainwy.liclipsetext.shared_core.partitioner.SubRuleToken;
 import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
 import org.brainwy.liclipsetext.shared_core.string.StringUtils;
 import org.brainwy.liclipsetext.shared_core.structure.Tuple;
 import org.eclipse.jface.text.rules.ICharacterScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 import org.joni.Matcher;
 import org.joni.Option;
 import org.joni.Regex;
 
-public class TmMatchRule implements IPredicateRule, IChangeTokenRule, IRuleWithSubRules, IRuleWithSubRules2,
+public class TmMatchRule implements ILiClipsePredicateRule, IChangeTokenRule, IRuleWithSubRules, IRuleWithSubRules2,
         ITextMateRule, IPrintableRule {
 
     public final SortedMap<Integer, IEvalCaptures> fCaptures;
@@ -146,7 +147,7 @@ public class TmMatchRule implements IPredicateRule, IChangeTokenRule, IRuleWithS
 
         @Override
         public IToken getToken() {
-            return ((IPredicateRule) ruleWithSubRules).getSuccessToken();
+            return ((ILiClipsePredicateRule) ruleWithSubRules).getSuccessToken();
         }
 
         @Override
@@ -162,9 +163,11 @@ public class TmMatchRule implements IPredicateRule, IChangeTokenRule, IRuleWithS
 
     /**
      * Either will return null if it did not match or a list with the sub tokens matched.
+     * @throws DocumentTimeStampChangedException
      */
     @Override
-    public SubRuleToken evaluateSubRules(ScannerRange scanner, boolean generateSubRuleTokens) {
+    public SubRuleToken evaluateSubRules(ScannerRange scanner, boolean generateSubRuleTokens)
+            throws DocumentTimeStampChangedException {
         final int initialOffset = scanner.getMark();
         CharsRegion charsRegion = evaluateRegexp(scanner);
 
@@ -248,6 +251,7 @@ public class TmMatchRule implements IPredicateRule, IChangeTokenRule, IRuleWithS
         }
     }
 
+    @Override
     public IToken getSuccessToken() {
         return fToken;
     }
@@ -263,6 +267,7 @@ public class TmMatchRule implements IPredicateRule, IChangeTokenRule, IRuleWithS
         return Token.UNDEFINED;
     }
 
+    @Override
     public void setToken(IToken token) {
         this.fToken = token;
     }
@@ -309,7 +314,7 @@ public class TmMatchRule implements IPredicateRule, IChangeTokenRule, IRuleWithS
         return buf.toString();
     }
 
-    public static String getPatternsYaml(IPredicateRule[] subRules, int level) {
+    public static String getPatternsYaml(ILiClipsePredicateRule[] subRules, int level) {
         String indent = new FastStringBuffer().appendN("    ", level + 1).toString();
 
         int length = subRules.length;
@@ -318,7 +323,7 @@ public class TmMatchRule implements IPredicateRule, IChangeTokenRule, IRuleWithS
         buf.append(indent);
 
         for (int i = 0; i < length; i++) {
-            IPredicateRule rule = subRules[i];
+            ILiClipsePredicateRule rule = subRules[i];
             if (rule instanceof IPrintableRule) {
                 buf.append(((IPrintableRule) rule).toTmYaml(level + 1));
             } else {

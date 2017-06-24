@@ -7,15 +7,12 @@ import java.util.Map;
 
 import org.brainwy.liclipsetext.editor.common.partitioning.LiClipseContentTypeDefinitionScanner;
 import org.brainwy.liclipsetext.editor.common.partitioning.LiClipsePartitionScanner;
-import org.brainwy.liclipsetext.editor.common.partitioning.rules.AnyWordRule;
-import org.brainwy.liclipsetext.editor.common.partitioning.rules.MatchWhileAnySubRuleMatches;
-import org.brainwy.liclipsetext.editor.common.partitioning.rules.TmMatchRule;
 import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner;
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.brainwy.liclipsetext.shared_core.partitioner.SubRuleToken;
 import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
 import org.eclipse.jface.text.Document;
-import org.eclipse.jface.text.rules.IPredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
@@ -170,8 +167,8 @@ public class TmMatchRuleTest extends TestCase {
     public void testMatchCaptures() throws Exception {
         ////Test: {1={patterns=[{match=[a-zA-Z0-9_]+, name=entity.other.inherited-class.php}, {match=,, name=punctuation.separator.classes.php}]}, 2={name=entity.other.inherited-class.php}}
         Map<Object, Object> captures = new HashMap<>();
-        List<IPredicateRule> rules = Arrays.asList((IPredicateRule) new AnyWordRule(new Token("any")));
-        IPredicateRule rule = new MatchWhileAnySubRuleMatches(rules, new Token("inner"));
+        List<ILiClipsePredicateRule> rules = Arrays.asList((ILiClipsePredicateRule) new AnyWordRule(new Token("any")));
+        ILiClipsePredicateRule rule = new MatchWhileAnySubRuleMatches(rules, new Token("inner"));
         captures.put(1, rule);
         TmMatchRule tmMatchRule = new TmMatchRule(
                 "a(.*)b",

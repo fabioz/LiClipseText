@@ -19,6 +19,7 @@ import org.brainwy.liclipsetext.editor.common.partitioning.LiClipseDocumentParti
 import org.brainwy.liclipsetext.editor.common.partitioning.LiClipseTextAttribute;
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner;
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.partitioner.PartitionCodeReader;
 import org.brainwy.liclipsetext.shared_core.partitioner.PartitionMerger;
@@ -269,7 +270,7 @@ public class SubPartitionCodeReader {
         }
     }
 
-    public TypedPart read() {
+    public TypedPart read() throws DocumentTimeStampChangedException {
         boolean filterRequireOnlyTop = false;
         if (filter != null) {
             filterRequireOnlyTop = filter.getRequireOnlyTop();
@@ -339,7 +340,7 @@ public class SubPartitionCodeReader {
 
     private List<TypedPart> findMatchesInTypedPosition(ICustomPartitionTokenScanner tokenScanner,
             TypedPosition typedPosition,
-            SubPartitionInfo subPartitionInfo) {
+            SubPartitionInfo subPartitionInfo) throws DocumentTimeStampChangedException {
         SubTokensTokensProvider subTokensProvider = new SubTokensTokensProvider(document,
                 typedPosition, tokenScanner);
         List<TypedPart> ret = new ArrayList<TypedPart>();

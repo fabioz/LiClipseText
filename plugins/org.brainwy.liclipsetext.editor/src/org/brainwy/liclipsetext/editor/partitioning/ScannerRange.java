@@ -10,6 +10,7 @@ import java.util.Queue;
 
 import org.brainwy.liclipsetext.editor.common.partitioning.tm4e.Tm4ePartitioner;
 import org.brainwy.liclipsetext.editor.partitioning.IPartitionCodeReaderInScannerHelper.LineInfo;
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.partitioner.IContentsScanner;
 import org.brainwy.liclipsetext.shared_core.partitioner.IDocumentScanner;
@@ -26,7 +27,7 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentExtension4;
 import org.eclipse.jface.text.rules.ICharacterScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.tm4e.core.grammar.IGrammar;
@@ -498,9 +499,9 @@ public class ScannerRange
 
     // ----- Matching the end rule scope
 
-    public final FastStack<IPredicateRule> beginEndRuleStack = new FastStack<>(15);
+    public final FastStack<ILiClipsePredicateRule> beginEndRuleStack = new FastStack<>(15);
 
-    public void pushBeginEndRule(IPredicateRule tmBeginEndRule) {
+    public void pushBeginEndRule(ILiClipsePredicateRule tmBeginEndRule) {
         beginEndRuleStack.push(tmBeginEndRule);
     }
 
@@ -512,12 +513,12 @@ public class ScannerRange
 
     public static class EndRuleMatchFromStack {
 
-        public final IPredicateRule endRule;
+        public final ILiClipsePredicateRule endRule;
         public final SubRuleToken endRuleRegion;
         public final int initialMark;
         public final int finalMark;
 
-        public EndRuleMatchFromStack(int initialMark, int finalMark, IPredicateRule endRule,
+        public EndRuleMatchFromStack(int initialMark, int finalMark, ILiClipsePredicateRule endRule,
                 SubRuleToken endRuleRegion) {
             this.initialMark = initialMark;
             this.finalMark = finalMark;
@@ -526,7 +527,7 @@ public class ScannerRange
         }
     }
 
-    public void setEndRuleMatchFromStack(int initialMark, int finalMark, IPredicateRule rule,
+    public void setEndRuleMatchFromStack(int initialMark, int finalMark, ILiClipsePredicateRule rule,
             SubRuleToken endRuleRegion) {
         this.endRuleMatchFromStack = new EndRuleMatchFromStack(initialMark, finalMark, rule, endRuleRegion);
     }

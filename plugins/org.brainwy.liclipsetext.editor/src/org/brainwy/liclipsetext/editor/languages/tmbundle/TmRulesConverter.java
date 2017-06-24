@@ -22,7 +22,7 @@ import org.brainwy.liclipsetext.editor.common.partitioning.tokens.ContentTypeTok
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.structure.OrderedMap;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 
 public class TmRulesConverter {
 
@@ -87,7 +87,7 @@ public class TmRulesConverter {
         Object contentName = map.get("contentName");
 
         if (begin instanceof String && whileStr instanceof String) {
-            List<IPredicateRule> subRules = creatuSubRulesFromPatterns(ruleName, patterns);
+            List<ILiClipsePredicateRule> subRules = creatuSubRulesFromPatterns(ruleName, patterns);
             TmBeginWhileRule rule = new TmBeginWhileRule((String) begin, (String) whileStr,
                     convertToCapturesmap(beginCaptures, token), convertToCapturesmap(whileCaptures, token),
                     subRules, token, new ContentTypeToken(contentName));
@@ -97,7 +97,7 @@ public class TmRulesConverter {
 
         if (begin instanceof String && end instanceof String && (beginCaptures == null || beginCaptures instanceof Map)
                 && (endCaptures == null || endCaptures instanceof Map)) {
-            List<IPredicateRule> subRules = creatuSubRulesFromPatterns(ruleName, patterns);
+            List<ILiClipsePredicateRule> subRules = creatuSubRulesFromPatterns(ruleName, patterns);
 
             int applyLast = 0;
             if (applyEndPatternLast != null) {
@@ -123,10 +123,10 @@ public class TmRulesConverter {
         Object object = map.get("patterns");
         if (object instanceof List) {
             List list = (List) object;
-            ArrayList<IPredicateRule> patternRules = new ArrayList<>(list.size());
+            ArrayList<ILiClipsePredicateRule> patternRules = new ArrayList<>(list.size());
             for (Object o : list) {
                 if (o instanceof Map) {
-                    IPredicateRule rule = convertDictToRule((Map) o, ruleName);
+                    ILiClipsePredicateRule rule = convertDictToRule((Map) o, ruleName);
                     patternRules.add(rule);
                 }
             }
@@ -144,14 +144,14 @@ public class TmRulesConverter {
         return null;
     }
 
-    private List<IPredicateRule> creatuSubRulesFromPatterns(String ruleName, Object patterns) {
-        List<IPredicateRule> subRules = null;
+    private List<ILiClipsePredicateRule> creatuSubRulesFromPatterns(String ruleName, Object patterns) {
+        List<ILiClipsePredicateRule> subRules = null;
         if (patterns instanceof List) {
             List list = (List) patterns;
             subRules = new ArrayList<>(list.size());
             for (Object object : list) {
                 if (object instanceof Map) {
-                    IPredicateRule converted = convertDictToRule((Map) object, ruleName);
+                    ILiClipsePredicateRule converted = convertDictToRule((Map) object, ruleName);
                     if (converted != null) {
                         subRules.add(converted);
                     }
@@ -163,7 +163,7 @@ public class TmRulesConverter {
         return subRules;
     }
 
-    private void onCreatedRule(IPredicateRule rule) {
+    private void onCreatedRule(ILiClipsePredicateRule rule) {
         if (rule instanceof ILanguageDependentRule) {
             ((ILanguageDependentRule) rule).setLanguage(language);
         }
@@ -198,7 +198,7 @@ public class TmRulesConverter {
                         //              {match=[a-zA-Z0-9_]+, name=entity.other.inherited-class.php},
                         //              {match=,, name=punctuation.separator.classes.php}]},
                         // 2={name=entity.other.inherited-class.php}}
-                        List<IPredicateRule> subRulesFromPatterns = creatuSubRulesFromPatterns(null, patterns);
+                        List<ILiClipsePredicateRule> subRulesFromPatterns = creatuSubRulesFromPatterns(null, patterns);
                         if (subRulesFromPatterns != null) {
                             MatchWhileAnySubRuleMatches matchWhileSubRulesMatches = new MatchWhileAnySubRuleMatches(
                                     subRulesFromPatterns, scopeName == null ? token : new ContentTypeToken(scopeName));

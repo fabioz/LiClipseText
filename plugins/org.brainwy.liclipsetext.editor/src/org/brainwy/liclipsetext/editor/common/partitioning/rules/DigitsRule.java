@@ -8,14 +8,14 @@ package org.brainwy.liclipsetext.editor.common.partitioning.rules;
 
 import org.brainwy.liclipsetext.shared_core.partitioner.IChangeTokenRule;
 import org.eclipse.jface.text.rules.ICharacterScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
 /**
  * A bit different from the number rule because it only accepts digits (not hexa or octal or floats).
  */
-public class DigitsRule implements IPredicateRule, IChangeTokenRule {
+public class DigitsRule implements ILiClipsePredicateRule, IChangeTokenRule {
 
     private IToken fToken;
 

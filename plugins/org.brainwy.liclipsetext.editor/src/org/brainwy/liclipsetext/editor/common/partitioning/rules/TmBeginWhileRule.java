@@ -17,17 +17,19 @@ import org.brainwy.liclipsetext.editor.regexp.CharsRegion;
 import org.brainwy.liclipsetext.editor.regexp.RegexpHelper;
 import org.brainwy.liclipsetext.editor.regexp.RegexpHelper.ReplaceInfo;
 import org.brainwy.liclipsetext.editor.rules.IRuleWithSubRules;
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.partitioner.IChangeTokenRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.brainwy.liclipsetext.shared_core.partitioner.SubRuleToken;
 import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
 import org.eclipse.jface.text.rules.ICharacterScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
-public class TmBeginWhileRule implements IPredicateRule, IRuleWithSubRules, IRuleWithSubRules2, IChangeTokenRule,
+public class TmBeginWhileRule
+        implements ILiClipsePredicateRule, IRuleWithSubRules, IRuleWithSubRules2, IChangeTokenRule,
         ITextMateRule, IPrintableRule {
 
     private IToken fToken;
@@ -39,7 +41,7 @@ public class TmBeginWhileRule implements IPredicateRule, IRuleWithSubRules, IRul
     private SortedMap<Integer, IEvalCaptures> whileCaptures;
 
     public TmBeginWhileRule(String begin, String whileStr, Map beginCaptures, Map whileCaptures,
-            List<IPredicateRule> subRules,
+            List<ILiClipsePredicateRule> subRules,
             IToken scope, IToken contentScope) {
         this.begin = new TmMatchRule(begin, scope, beginCaptures);
         // There's a catch, in while we reference the groups from the begin, so
@@ -58,12 +60,12 @@ public class TmBeginWhileRule implements IPredicateRule, IRuleWithSubRules, IRul
         }
     }
 
-    private void setSubRules(List<IPredicateRule> subRules) {
+    private void setSubRules(List<ILiClipsePredicateRule> subRules) {
         anySubRule = new MatchWhileAnySubRuleMatches(subRules,
                 TmMatchRule.isValidToken(fContentScope) ? fContentScope : fToken);
     }
 
-    public IPredicateRule[] getSubRules() {
+    public ILiClipsePredicateRule[] getSubRules() {
         return anySubRule == null ? null : anySubRule.getSubRules();
     }
 
@@ -72,9 +74,11 @@ public class TmBeginWhileRule implements IPredicateRule, IRuleWithSubRules, IRul
      *
      * @param tokenScope: if passed we'll generate a single token with the full range (for partitioning).
      * Otherwise we'll generate tokens for each partition (for scanning a partition).
+     * @throws DocumentTimeStampChangedException
      */
     @Override
-    public SubRuleToken evaluateSubRules(final ScannerRange scanner, boolean generateSubRuleTokens) {
+    public SubRuleToken evaluateSubRules(final ScannerRange scanner, boolean generateSubRuleTokens)
+            throws DocumentTimeStampChangedException {
         if (scanner.isInBeginWhile()) {
             return null;
         }
@@ -202,9 +206,10 @@ public class TmBeginWhileRule implements IPredicateRule, IRuleWithSubRules, IRul
      *    1 if some pattern matched
      *    2 if nothing matched
      *    3 if we reached EOL
+     * @throws DocumentTimeStampChangedException
      */
     private int matchRulesOrEof(ScannerRange scanner, boolean generateSubRuleTokens,
-            SubRuleToken subRuleToAddContentTokens, int markAfterLastMatch) {
+            SubRuleToken subRuleToAddContentTokens, int markAfterLastMatch) throws DocumentTimeStampChangedException {
         if (anySubRule != null) {
             SubRuleToken evaluated = anySubRule.evaluateSubRules(scanner, generateSubRuleTokens);
             if (evaluated != null) {
@@ -262,19 +267,23 @@ public class TmBeginWhileRule implements IPredicateRule, IRuleWithSubRules, IRul
         return 2; // walk char without matching anything
     }
 
-    public IToken evaluate(ICharacterScanner scanner) {
+    @Override
+    public IToken evaluate(ICharacterScanner scanner) throws DocumentTimeStampChangedException {
         return evaluate(scanner, false);
     }
 
+    @Override
     public IToken getSuccessToken() {
         return fToken;
     }
 
+    @Override
     public void setToken(IToken token) {
         fToken = token;
     }
 
-    public IToken evaluate(ICharacterScanner scanner, boolean resume) {
+    @Override
+    public IToken evaluate(ICharacterScanner scanner, boolean resume) throws DocumentTimeStampChangedException {
         if (resume) {
             //This rule is not resumable because it depends on things such as the begin to
             //set the end (\1) and whether we're in the end of another match (\G)
@@ -291,9 +300,9 @@ public class TmBeginWhileRule implements IPredicateRule, IRuleWithSubRules, IRul
     public String toString() {
         FastStringBuffer buf;
         if (this.anySubRule != null) {
-            IPredicateRule[] subRules = this.anySubRule.getSubRules();
+            ILiClipsePredicateRule[] subRules = this.anySubRule.getSubRules();
             buf = new FastStringBuffer("TmBeginWhileRule[", subRules.length * 20);
-            for (IPredicateRule rule : subRules) {
+            for (ILiClipsePredicateRule rule : subRules) {
                 buf.append("  ").append(rule.toString()).append('\n');
             }
             buf.append("]");
@@ -304,10 +313,12 @@ public class TmBeginWhileRule implements IPredicateRule, IRuleWithSubRules, IRul
         return buf.toString();
     }
 
+    @Override
     public String toTmYaml() {
         return toTmYaml(0);
     }
 
+    @Override
     public String toTmYaml(int level) {
         String baseIndent = new FastStringBuffer().appendN("    ", level).toString();
         String indent = new FastStringBuffer().appendN("    ", level + 1).toString();
@@ -337,7 +348,7 @@ public class TmBeginWhileRule implements IPredicateRule, IRuleWithSubRules, IRul
         }
 
         if (anySubRule != null) {
-            IPredicateRule[] subRules = anySubRule.getSubRules();
+            ILiClipsePredicateRule[] subRules = anySubRule.getSubRules();
             if (subRules != null && subRules.length > 0) {
                 buf.append("\n" + indent + "patterns: ");
                 buf.appendObject(TmMatchRule.getPatternsYaml(subRules, level + 1));

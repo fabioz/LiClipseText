@@ -20,6 +20,7 @@ import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
 import org.brainwy.liclipsetext.editor.rules.PatternRule;
 import org.brainwy.liclipsetext.editor.rules.SubLanguageToken;
 import org.brainwy.liclipsetext.editor.rules.SwitchLanguageToken;
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IToken;
@@ -68,7 +69,7 @@ public class SwitchLanguageRule extends PatternRule implements ISwitchLanguageRu
     }
 
     @Override
-    protected IToken doEvaluate(ICharacterScanner scanner, boolean resume) {
+    protected IToken doEvaluate(ICharacterScanner scanner, boolean resume) throws DocumentTimeStampChangedException {
         if (resume) {
             return Token.UNDEFINED;
         }

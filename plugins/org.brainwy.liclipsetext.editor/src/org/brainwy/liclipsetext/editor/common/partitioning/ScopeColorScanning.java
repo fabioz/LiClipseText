@@ -21,7 +21,7 @@ import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
 import org.brainwy.liclipsetext.shared_core.string.StringUtils;
 import org.brainwy.liclipsetext.shared_core.structure.OrderedMap;
 import org.eclipse.core.runtime.AssertionFailedException;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 
 /**
@@ -34,7 +34,7 @@ public class ScopeColorScanning {
     public final Map<String, List<String>> tokenToWords = new HashMap<String, List<String>>();
     private final Map<String, IToken> wordToToken = new HashMap<String, IToken>();
     private RulesFactory rulesFactory; //may be null if we have no rules in the scanning
-    private IPredicateRule[] subRules; //may be null if we have no rules in the scanning
+    private ILiClipsePredicateRule[] subRules; //may be null if we have no rules in the scanning
     private Set<Character> allValidCharsInWords = null;
     public final boolean caseInsensitive;
     private LiClipseLanguage language;
@@ -44,7 +44,7 @@ public class ScopeColorScanning {
         this.language = liClipseLanguage;
     }
 
-    public IPredicateRule[] getSubRules() {
+    public ILiClipsePredicateRule[] getSubRules() {
         return subRules;
     }
 
@@ -100,7 +100,7 @@ public class ScopeColorScanning {
         }
     }
 
-    public void setSubRules(IPredicateRule[] subRules) {
+    public void setSubRules(ILiClipsePredicateRule[] subRules) {
         this.subRules = subRules;
     }
 
@@ -136,9 +136,9 @@ public class ScopeColorScanning {
             if (key.equals("sub_rules")) {
                 List value = (List) entry.getValue();
                 rulesFactory = new RulesFactory(this.language);
-                List<IPredicateRule> r = rulesFactory.load(value, ruleAliases);
+                List<ILiClipsePredicateRule> r = rulesFactory.load(value, ruleAliases);
                 if (r != null) {
-                    this.subRules = r.toArray(new IPredicateRule[r.size()]);
+                    this.subRules = r.toArray(new ILiClipsePredicateRule[r.size()]);
                 }
 
             } else if (key.endsWith("-prefixes")) {
