@@ -210,8 +210,7 @@ public class Partitioning2Test extends TestCase {
                 "/*\ncomment\n* /\n" +
                 "}", document.get());
         assertEquals(1, dummyTextViewer.appliedPresentations.size());
-        assertEquals(TestUtils.listToExpected("comment.block.css:5:2",
-                "comment.block.css:7:13",
+        assertEquals(TestUtils.listToExpected("comment.block.css:16:4",
                 "comment.block.css:20:1"),
                 TestUtils.textPresentationToExpected(dummyTextViewer.appliedPresentations.remove(0)));
     }

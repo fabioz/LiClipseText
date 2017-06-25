@@ -14,11 +14,13 @@ import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedExc
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.partitioner.IContentsScanner;
 import org.brainwy.liclipsetext.shared_core.partitioner.IDocumentScanner;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.brainwy.liclipsetext.shared_core.partitioner.IMarkScanner;
 import org.brainwy.liclipsetext.shared_core.partitioner.IScannerWithOffPartition;
 import org.brainwy.liclipsetext.shared_core.partitioner.PartitionCodeReader;
 import org.brainwy.liclipsetext.shared_core.partitioner.SubRuleToken;
 import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
+import org.brainwy.liclipsetext.shared_core.string.StringUtils;
 import org.brainwy.liclipsetext.shared_core.structure.FastStack;
 import org.brainwy.liclipsetext.shared_core.structure.LinkedListWarningOnSlowOperations;
 import org.brainwy.liclipsetext.shared_core.structure.Tuple;
@@ -27,7 +29,6 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentExtension4;
 import org.eclipse.jface.text.rules.ICharacterScanner;
-import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.tm4e.core.grammar.IGrammar;
@@ -461,7 +462,12 @@ public class ScannerRange
     }
 
     public int getLineFromOffset(int offset) throws BadLocationException {
-        return helper.getLineFromOffset(offset);
+        try {
+            return helper.getLineFromOffset(offset);
+        } catch (BadLocationException e) {
+            throw new BadLocationException(StringUtils.format("Error getting line from offset: %s. Doc len: %s", offset,
+                    fDocument.getLength()));
+        }
     }
 
     public void setInBeginWhile(boolean b) {
