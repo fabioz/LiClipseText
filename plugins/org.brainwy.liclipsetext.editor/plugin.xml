@@ -170,7 +170,7 @@
     # Note: see: com.brainwy.liclipse.editor.common.BaseLiClipseEditor.setInitializationData(IConfigurationElement, String, Object)
     # for how we handle the language.
 
-    EDITORS_LST = [{'kind': 'html', 'ext': 'html,htm', 'img': 'html'}, {'kind': 'xml', 'base_type': 'org.eclipse.core.runtime.xml', 'ext': 'xml,xsd', 'img': 'xml', 'filenames': '.pydevproject,.project,.classpath'}, {'kind': 'javascript', 'ext': 'js', 'img': 'javascript'}, {'kind': 'java', 'ext': 'java', 'img': 'java'}, {'kind': 'liclipse', 'ext': 'liclipse', 'img': 'liclipse'}, {'kind': 'django', 'ext': 'djhtml', 'img': 'django'}, {'kind': 'python', 'ext': 'py,pyw', 'img': 'python', 'filenames': 'SConstruct,Sconstruct,sconstruct,SConscript'}, {'kind': 'cpp', 'ext': 'c,cpp,h,hpp', 'img': 'cpp'}, {'kind': 'source.css', 'ext': 'css', 'img': 'css'}, {'kind': 'source.scss', 'ext': 'scss', 'img': 'scss'}, {'kind': 'coffeescript', 'ext': 'coffee', 'img': 'coffee'}, {'kind': 'restructured text', 'ext': 'rst', 'img': 'rst'}, {'kind': 'dart', 'ext': 'dart', 'img': 'dart'}, {'kind': 'mako', 'ext': 'mako', 'img': 'mako'}, {'kind': 'xgui20', 'ext': 'xgui2,xgui2_', 'img': 'liclipse'}, {'kind': 'kivy', 'ext': 'kv', 'img': 'kivy'}, {'kind': 'julia', 'ext': 'jl', 'img': 'julia'}, {'kind': 'stringtemplate', 'ext': 'st,stg', 'img': 'stringtemplate'}, {'kind': 'yaml', 'ext': 'yml,yaml,liclipseprefs', 'img': 'yaml'}, {'kind': 'nim', 'ext': 'nim', 'img': 'nim'}, {'kind': 'go', 'ext': 'go', 'img': 'go'}, {'kind': 'jinja2', 'ext': 'jinja2', 'img': 'jinja2'}, {'kind': 'source.ruby', 'ext': 'rb,rbx,Rakefile,rake', 'img': 'source.ruby'}, {'kind': 'text.html.erb', 'ext': 'erb,rhtml,html.erb', 'img': 'text.html.erb'}, {'kind': 'text.html.php', 'ext': 'php,php3,php4,php5,phpt,phtml,aw,ctp', 'img': 'text.html.php'}, {'kind': 'text.html.markdown', 'ext': 'md,mdown,markdown,markdn', 'img': 'text.html.markdown'}, {'kind': 'source.swift', 'ext': 'swift', 'img': 'source.swift'}, {'kind': 'source.perl', 'ext': 'pl,pm,pod,t,PL,psgi', 'img': 'source.perl'}, {'kind': 'source.perl.6', 'ext': 'p6,pl6,pm6,nqp', 'img': 'source.perl.6'}, {'kind': 'source.dosbatch', 'ext': 'bat', 'img': 'source.dosbatch'}, {'kind': 'source.shell', 'ext': 'sh,bash,zsh,bashrc,bash_profile,bash_login,profile,bash_logout,textmate_init', 'img': 'source.shell'}, {'kind': 'source.raml', 'ext': 'raml', 'img': 'source.raml'}, {'kind': 'source.cmake', 'ext': 'cmake', 'img': 'source.cmake', 'filenames': 'CMakeLists.txt,cmake'}, {'kind': 'source.cache.cmake', 'ext': 'cmakecache', 'img': 'source.cache.cmake', 'filenames': 'CMakeCache.txt'}]
+    EDITORS_LST = [{'kind': 'html', 'ext': 'html,htm', 'img': 'html'}, {'kind': 'xml', 'base_type': 'org.eclipse.core.runtime.xml', 'ext': 'xml,xsd', 'img': 'xml', 'filenames': '.pydevproject,.project,.classpath'}, {'kind': 'javascript', 'ext': 'js', 'img': 'javascript'}, {'kind': 'java', 'ext': 'java', 'img': 'java'}, {'kind': 'liclipse', 'ext': 'liclipse', 'img': 'liclipse'}, {'kind': 'django', 'ext': 'djhtml', 'img': 'django'}, {'kind': 'python', 'ext': 'py,pyw', 'img': 'python', 'filenames': 'SConstruct,Sconstruct,sconstruct,SConscript'}, {'kind': 'cpp', 'ext': 'c,cpp,h,hpp', 'img': 'cpp'}, {'kind': 'source.css', 'ext': 'css', 'img': 'css'}, {'kind': 'source.scss', 'ext': 'scss', 'img': 'scss'}, {'kind': 'coffeescript', 'ext': 'coffee', 'img': 'coffee'}, {'kind': 'restructured text', 'ext': 'rst', 'img': 'rst'}, {'kind': 'dart', 'ext': 'dart', 'img': 'dart'}, {'kind': 'mako', 'ext': 'mako', 'img': 'mako'}, {'kind': 'xgui20', 'ext': 'xgui2,xgui2_,xinc', 'img': 'liclipse'}, {'kind': 'kivy', 'ext': 'kv', 'img': 'kivy'}, {'kind': 'julia', 'ext': 'jl', 'img': 'julia'}, {'kind': 'stringtemplate', 'ext': 'st,stg', 'img': 'stringtemplate'}, {'kind': 'yaml', 'ext': 'yml,yaml,liclipseprefs', 'img': 'yaml'}, {'kind': 'nim', 'ext': 'nim', 'img': 'nim'}, {'kind': 'go', 'ext': 'go', 'img': 'go'}, {'kind': 'jinja2', 'ext': 'jinja2', 'img': 'jinja2'}, {'kind': 'source.ruby', 'ext': 'rb,rbx,Rakefile,rake', 'img': 'source.ruby'}, {'kind': 'text.html.erb', 'ext': 'erb,rhtml,html.erb', 'img': 'text.html.erb'}, {'kind': 'text.html.php', 'ext': 'php,php3,php4,php5,phpt,phtml,aw,ctp', 'img': 'text.html.php'}, {'kind': 'text.html.markdown', 'ext': 'md,mdown,markdown,markdn', 'img': 'text.html.markdown'}, {'kind': 'source.swift', 'ext': 'swift', 'img': 'source.swift'}, {'kind': 'source.perl', 'ext': 'pl,pm,pod,t,PL,psgi', 'img': 'source.perl'}, {'kind': 'source.perl.6', 'ext': 'p6,pl6,pm6,nqp', 'img': 'source.perl.6'}, {'kind': 'source.dosbatch', 'ext': 'bat', 'img': 'source.dosbatch'}, {'kind': 'source.shell', 'ext': 'sh,bash,zsh,bashrc,bash_profile,bash_login,profile,bash_logout,textmate_init', 'img': 'source.shell'}, {'kind': 'source.raml', 'ext': 'raml', 'img': 'source.raml'}, {'kind': 'source.cmake', 'ext': 'cmake', 'img': 'source.cmake', 'filenames': 'CMakeLists.txt,cmake'}, {'kind': 'source.cache.cmake', 'ext': 'cmakecache', 'img': 'source.cache.cmake', 'filenames': 'CMakeCache.txt'}]
     for x in EDITORS_LST:
         if 'base_type' not in x:
             x['base_type'] = 'org.brainwy.liclipsetext.contentType'
@@ -785,7 +785,7 @@
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
         <content-type base-type="org.brainwy.liclipsetext.contentType"
-            file-extensions="xgui2,xgui2_" file-names=""
+            file-extensions="xgui2,xgui2_,xinc" file-names=""
             id="com.brainwy.liclipse.xgui20" name="Xgui20 File" priority="normal"/>
     </extension>
     <!-- Note: run the install.py to regenerate the actions contents! -->
@@ -793,7 +793,7 @@
         <editor
             class="org.brainwy.liclipsetext.editor.common.LiClipseEditor:xgui20"
             contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
-            default="false" extensions="xgui2,xgui2_" icon="icons/liclipse_editor.png"
+            default="false" extensions="xgui2,xgui2_,xinc" icon="icons/liclipse_editor.png"
             id="com.brainwy.liclipse.editor.common.LiClipseEditor.xgui20" name="Liclipse Xgui20 Editor">
             <contentTypeBinding contentTypeId="com.brainwy.liclipse.xgui20"/>
         </editor>
@@ -802,7 +802,7 @@
     <extension
          point="org.eclipse.compare.contentViewers">
       <viewer
-            extensions="xgui2,xgui2_"
+            extensions="xgui2,xgui2_,xinc"
             class="org.brainwy.liclipsetext.editor.compare.Xgui20ContentViewerCreator"
             id="com.brainwy.liclipse.editor.compare.Xgui20ContentViewerCreator">
       </viewer>
@@ -815,7 +815,7 @@
     <extension
         point="org.eclipse.compare.contentMergeViewers">
         <viewer
-            extensions="xgui2,xgui2_"
+            extensions="xgui2,xgui2_,xinc"
             class="org.brainwy.liclipsetext.editor.compare.Xgui20MergeViewerCreator"
             id="com.brainwy.liclipse.editor.compare.Xgui20MergeViewerCreator">
         </viewer>

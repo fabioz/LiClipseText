@@ -50,7 +50,7 @@ scope:
     operator: [<, '>', '=', +, '-', /, '*', '!', '&', '|', '%', '~', ^, ',']
 
 
-file_extensions: [xgui2, xgui2_]
+file_extensions: [xgui2, xgui2_, xinc]
 filename: []
 name: Xgui20
 
