@@ -138,6 +138,16 @@ public class Tm4ePartitioner implements IDocumentPartitioner {
             if (caches.size() == 0) {
                 return null;
             }
+			work in progress
+            IDocument document = scannerRange.getDocument();
+            try {
+                ITypedRegion partition = document.getPartition(lineFromOffset);
+                if (partition == null) {
+                    throw new RuntimeException("No partition for offset!");
+                }
+            } catch (BadLocationException e) {
+                throw new RuntimeException(e);
+            }
             return caches.get(0).copy();
 
         }
