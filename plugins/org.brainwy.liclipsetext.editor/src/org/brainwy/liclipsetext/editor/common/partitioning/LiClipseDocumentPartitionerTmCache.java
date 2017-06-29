@@ -1,94 +1,50 @@
-package org.brainwy.liclipsetext.editor.common.partitioning.tm4e;
+package org.brainwy.liclipsetext.editor.common.partitioning;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
+import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner;
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
+import org.brainwy.liclipsetext.editor.rules.FastPartitioner;
 import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.string.StringUtils;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IDocumentExtension3;
-import org.eclipse.jface.text.IDocumentPartitioner;
-import org.eclipse.jface.text.ITypedRegion;
 import org.eclipse.jface.text.Position;
 import org.eclipse.tm4e.core.grammar.IGrammar;
 import org.eclipse.tm4e.core.grammar.ITokenizeLineResult;
 import org.eclipse.tm4e.core.grammar.StackElement;
 
-public class Tm4ePartitioner implements IDocumentPartitioner {
+public class LiClipseDocumentPartitionerTmCache extends FastPartitioner {
 
-    private static final String TM4E_LICLIPSE_PARTITIONING = "TM4E_LICLIPSE_PARTITIONING";
-    private static final Object addPartitionerLock = new Object();
+    public final LiClipseLanguage language;
 
-    public static synchronized Tm4ePartitioner getTm4eDocumentPartitioner(IDocument doc) {
-        IDocumentExtension3 docExt3 = (IDocumentExtension3) doc;
-        Tm4ePartitioner documentPartitioner = (Tm4ePartitioner) docExt3
-                .getDocumentPartitioner(TM4E_LICLIPSE_PARTITIONING);
-        if (documentPartitioner == null) {
-            synchronized (addPartitionerLock) {
-                documentPartitioner = (Tm4ePartitioner) docExt3.getDocumentPartitioner(TM4E_LICLIPSE_PARTITIONING);
-                if (documentPartitioner == null) {
-                    documentPartitioner = new Tm4ePartitioner();
-                    try {
-                        documentPartitioner.connect(doc);
-                    } catch (Exception e) {
-                        Log.log("Error connecting partitioner", e);
-                    }
-                    docExt3.setDocumentPartitioner(TM4E_LICLIPSE_PARTITIONING, documentPartitioner);
-                }
-                return documentPartitioner;
-            }
-        } else {
-            return documentPartitioner;
-        }
+    public LiClipseDocumentPartitionerTmCache(ICustomPartitionTokenScanner scanner, String[] legalContentTypes,
+            LiClipseLanguage language) {
+        super(scanner, legalContentTypes);
+        this.language = language;
     }
 
-    private IDocument fDocument;
-
     @Override
-    public void connect(IDocument document) {
-        this.fDocument = document;
+    public void connect(IDocument document, boolean delayInitialization) {
+        super.connect(document, delayInitialization);
         docCache.clear();
     }
 
     @Override
     public void disconnect() {
-        this.fDocument = null;
+        super.disconnect();
         docCache.clear();
     }
 
     @Override
     public void documentAboutToBeChanged(DocumentEvent event) {
+        super.documentAboutToBeChanged(event);
         docCache.documentAboutToBeChanged(event);
-    }
-
-    @Override
-    public boolean documentChanged(DocumentEvent event) {
-        return false; // always returns false as we have no real partitioning (just used for updating internal caches).
-    }
-
-    @Override
-    public String[] getLegalContentTypes() {
-        return null;
-    }
-
-    @Override
-    public String getContentType(int offset) {
-        return null;
-    }
-
-    @Override
-    public ITypedRegion[] computePartitioning(int offset, int length) {
-        return null;
-    }
-
-    @Override
-    public ITypedRegion getPartition(int offset) {
-        return null;
     }
 
     /**
@@ -317,5 +273,4 @@ public class Tm4ePartitioner implements IDocumentPartitioner {
         // partitioning later on.
         docCache.updateFrom(grammar, scannerRange);
     }
-
 }

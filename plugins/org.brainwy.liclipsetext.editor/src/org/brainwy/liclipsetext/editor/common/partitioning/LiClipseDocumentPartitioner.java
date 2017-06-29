@@ -19,7 +19,6 @@ import org.brainwy.liclipsetext.editor.languages.LanguagesManager;
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner;
 import org.brainwy.liclipsetext.editor.partitioning.LiClipseTm4ePartitionScanner;
-import org.brainwy.liclipsetext.editor.rules.FastPartitioner;
 import org.brainwy.liclipsetext.editor.rules.SwitchLanguageToken;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.structure.Tuple;
@@ -32,11 +31,9 @@ import org.eclipse.jface.text.rules.IToken;
  *
  * LiClipseDocumentPartitioner documentPartitioner = (LiClipseDocumentPartitioner) document.getDocumentPartitioner();
  */
-public final class LiClipseDocumentPartitioner extends FastPartitioner {
+public final class LiClipseDocumentPartitioner extends LiClipseDocumentPartitionerTmCache {
 
     public static final String PARTITION_TYPE = IDocumentExtension3.DEFAULT_PARTITIONING;
-
-    public final LiClipseLanguage language;
 
     private CustomTextAttributeTokenCreator defaultTokenCreator;
 
@@ -46,8 +43,7 @@ public final class LiClipseDocumentPartitioner extends FastPartitioner {
 
     private LiClipseDocumentPartitioner(String[] legalContentTypes, LiClipseLanguage language,
             ICustomPartitionTokenScanner tokenScanner) {
-        super(tokenScanner, legalContentTypes);
-        this.language = language;
+        super(tokenScanner, legalContentTypes, language);
 
         defaultTokenCreator = language.getDefaultTokenCreator();
     }

@@ -8,7 +8,7 @@ package org.brainwy.liclipsetext.editor.partitioning;
 
 import java.util.Queue;
 
-import org.brainwy.liclipsetext.editor.common.partitioning.tm4e.Tm4ePartitioner;
+import org.brainwy.liclipsetext.editor.common.partitioning.LiClipseDocumentPartitioner;
 import org.brainwy.liclipsetext.editor.partitioning.IPartitionCodeReaderInScannerHelper.LineInfo;
 import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.log.Log;
@@ -548,7 +548,6 @@ public class ScannerRange
 
     // Things related to TM4e
 
-    private Tm4ePartitioner tm4eDocumentPartitioner;
     public Object tm4eCache;
 
     public ITokenizeLineResult tokenizeLine(int currOffset, int lineFromOffset, String lineContents, IGrammar grammar)
@@ -560,12 +559,8 @@ public class ScannerRange
         obtainTm4ePartitioner().finishTm4ePartition(grammar, this);
     }
 
-    public Tm4ePartitioner obtainTm4ePartitioner() {
-        if (this.tm4eDocumentPartitioner != null) {
-            return this.tm4eDocumentPartitioner;
-        }
-        this.tm4eDocumentPartitioner = Tm4ePartitioner.getTm4eDocumentPartitioner(fDocument);
-        return this.tm4eDocumentPartitioner;
+    public LiClipseDocumentPartitioner obtainTm4ePartitioner() {
+        return (LiClipseDocumentPartitioner) fDocument.getDocumentPartitioner();
     }
 
     public void checkDocumentTimeStampChanged() throws DocumentTimeStampChangedException {

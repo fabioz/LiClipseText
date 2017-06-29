@@ -3,9 +3,9 @@ package org.brainwy.liclipsetext.editor.common.partitioning;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.brainwy.liclipsetext.editor.common.partitioning.tm4e.Tm4ePartitioner;
-import org.brainwy.liclipsetext.editor.common.partitioning.tm4e.Tm4ePartitioner.Tm4eDocCache;
-import org.brainwy.liclipsetext.editor.common.partitioning.tm4e.Tm4ePartitioner.Tm4eScannerCache;
+import org.brainwy.liclipsetext.editor.common.partitioning.LiClipseDocumentPartitionerTmCache.Tm4eDocCache;
+import org.brainwy.liclipsetext.editor.common.partitioning.LiClipseDocumentPartitionerTmCache.Tm4eScannerCache;
+import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.tm4e.core.grammar.StackElement;
@@ -21,10 +21,15 @@ public class Tm4ePartitionerCacheTest extends TestCase {
 
     @Override
     protected void setUp() throws Exception {
+        LiClipseLanguage language = TestUtils.loadLanguageFile("css.tmbundle",
+                "css.tmbundle-master/Syntaxes/CSS.plist");
+
         doc = new Document();
         doc.set("line0\nline1\nline2\nline3\nline4\nline5");
-        Tm4ePartitioner tm4eDocumentPartitioner = Tm4ePartitioner.getTm4eDocumentPartitioner(doc);
-        docCache = tm4eDocumentPartitioner.getDocCache();
+        language.connect(doc);
+
+        LiClipseDocumentPartitioner documentPartitioner = (LiClipseDocumentPartitioner) doc.getDocumentPartitioner();
+        docCache = documentPartitioner.getDocCache();
 
         List<Tm4eScannerCache> caches = new ArrayList<Tm4eScannerCache>();
         cache0 = new Tm4eScannerCache();
