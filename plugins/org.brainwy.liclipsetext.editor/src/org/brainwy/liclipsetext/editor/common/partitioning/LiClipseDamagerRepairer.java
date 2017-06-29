@@ -75,7 +75,7 @@ public final class LiClipseDamagerRepairer implements IPresentationDamager, IPre
                     int partitionEndOffset = partition.getOffset() + partition.getLength();
                     return new Region(offset, partitionEndOffset - offset);
                 }
-                IRegion infoEnd = document.getLineInformationOfOffset(e.getOffset() + e.getLength());
+                IRegion infoEnd = document.getLineInformationOfOffset(e.getOffset() + e.getText().length());
                 if (info.getOffset() == infoEnd.getOffset()) {
                     return info;
                 }

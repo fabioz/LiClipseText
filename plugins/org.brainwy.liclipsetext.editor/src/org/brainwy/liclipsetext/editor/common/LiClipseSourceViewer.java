@@ -184,12 +184,7 @@ public class LiClipseSourceViewer extends BaseSourceViewer implements ILiClipseS
         @Override
         public void setStyleRanges(StyleRange[] styles) {
             if (styles != null) {
-                int[] newRanges = new int[styles.length << 1];
-                for (int i = 0, j = 0; i < styles.length; i++) {
-                    StyleRange newStyle = styles[i];
-                    newRanges[j++] = newStyle.start;
-                    newRanges[j++] = newStyle.length;
-                }
+                int[] newRanges = createRanges(styles);
                 super.setStyleRanges(newRanges, styles);
                 return;
             }
@@ -206,13 +201,31 @@ public class LiClipseSourceViewer extends BaseSourceViewer implements ILiClipseS
                 SWT.error(SWT.ERROR_NULL_ARGUMENT);
             }
 
+            int[] newRanges = createRanges(styles);
+            setStyleRanges(start, length, newRanges, styles);
+        }
+
+        private int[] createRanges(StyleRange[] styles) throws AssertionError {
+            int charCount = this.getCharCount();
+
             int[] newRanges = new int[styles.length << 1];
             for (int i = 0, j = 0; i < styles.length; i++) {
                 StyleRange newStyle = styles[i];
+                int endOffset = newStyle.start + newStyle.length;
+                if (endOffset > charCount) {
+                    String msg = "Error endOffset (" + endOffset + ") > charCount (" + charCount + ")";
+                    Log.log(msg);
+                    newStyle.length -= endOffset - charCount;
+                    if (newStyle.length < 0) {
+                        // Unable to fix it
+                        throw new AssertionError(msg);
+                    }
+                }
+
                 newRanges[j++] = newStyle.start;
                 newRanges[j++] = newStyle.length;
             }
-            setStyleRanges(start, length, newRanges, styles);
+            return newRanges;
         }
     }
 }

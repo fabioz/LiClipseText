@@ -87,7 +87,7 @@ public class Tm4ePartitionerCacheTest extends TestCase {
         assertEquals(0, tm4eScannerCache.startLine);
         assertEquals(2, tm4eScannerCache.endLine);
         assertNotNull(tm4eScannerCache.lines[0]);
-        assertNull(tm4eScannerCache.lines[1]);
+        assertEquals(1, tm4eScannerCache.lines.length);
     }
 
     public void testTm4ePartitionerCache4() throws Exception {
@@ -108,9 +108,8 @@ public class Tm4ePartitionerCacheTest extends TestCase {
         Tm4eScannerCache tm4eScannerCache = caches.get(0);
         assertEquals(0, tm4eScannerCache.startLine);
         assertEquals(3, tm4eScannerCache.endLine);
-        assertEquals(4, tm4eScannerCache.lines.length);
+        assertEquals(1, tm4eScannerCache.lines.length);
         assertNotNull(tm4eScannerCache.lines[0]);
-        assertNull(tm4eScannerCache.lines[1]);
     }
 
     public void testTm4ePartitionerCache6() throws Exception {
@@ -123,9 +122,8 @@ public class Tm4ePartitionerCacheTest extends TestCase {
         Tm4eScannerCache tm4eScannerCache = caches.get(0);
         assertEquals(0, tm4eScannerCache.startLine);
         assertEquals(1, tm4eScannerCache.endLine);
-        assertEquals(2, tm4eScannerCache.lines.length);
+        assertEquals(1, tm4eScannerCache.lines.length);
         assertNotNull(tm4eScannerCache.lines[0]);
-        assertNull(tm4eScannerCache.lines[1]);
     }
 
 }

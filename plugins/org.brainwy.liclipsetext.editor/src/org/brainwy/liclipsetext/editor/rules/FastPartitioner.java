@@ -427,12 +427,14 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
 
                     int behindLastScannedPosition = reparseStart;
                     scannerRange.nextToken(fScanner);
+                    List<SwitchLanguageToken> switchLanguageTokens = new ArrayList<>();
 
                     while (!scannerRange.getToken().isEOF()) {
 
                         if (scannerRange.getToken() instanceof SwitchLanguageToken) {
                             //fabioz: we have to deal with a top-partition that has multiple sub-partitions inside.
                             SwitchLanguageToken switchLanguageToken = (SwitchLanguageToken) scannerRange.getToken();
+                            switchLanguageTokens.add(switchLanguageToken);
                             SubLanguageToken[] subTokens = switchLanguageToken.subTokens;
                             int len = subTokens.length;
                             for (int i = 0; i < len; i++) {
@@ -473,6 +475,8 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
                                             typedPositionWithSubTokens.clearSubRuleToken();
                                         }
                                         if (lastScannedPosition >= e.getOffset() + newLength) {
+                                            onParsingFoundSwitchLanguageTokensAndPartitioningChanged(e,
+                                                    switchLanguageTokens);
                                             return createRegion();
                                         }
                                         ++first;
@@ -533,6 +537,8 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
                                             typedPositionWithSubTokens.setSubRuleToken(scannerRange.getSubRuleToken());
                                         }
                                         if (lastScannedPosition >= e.getOffset() + newLength) {
+                                            onParsingFoundSwitchLanguageTokensAndPartitioningChanged(e,
+                                                    switchLanguageTokens);
                                             return createRegion();
                                         }
                                         ++first;
@@ -556,6 +562,7 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
 
                     }
 
+                    // If we got here, partitioning didn't change (so, don't call onParsingFoundSwitchLanguageTokensAndPartitioningChanged).
                     int first2 = fDocument.computeIndexInCategory(fPositionCategory, behindLastScannedPosition);
 
                     clearPositionCache();
@@ -584,6 +591,14 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
         DocumentSync.runWithDocumentSynched(fDocument, iCallback, false);
 
         return createRegion();
+    }
+
+    /**
+     * Made for subclasses to override.
+     */
+    protected void onParsingFoundSwitchLanguageTokensAndPartitioningChanged(DocumentEvent e,
+            List<SwitchLanguageToken> switchLanguageTokens) {
+
     }
 
     private Position getExactPosition(int start, int length)

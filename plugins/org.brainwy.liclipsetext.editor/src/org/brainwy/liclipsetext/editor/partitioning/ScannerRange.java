@@ -555,7 +555,7 @@ public class ScannerRange
         return obtainTm4ePartitioner().tokenizeLine(currOffset, lineFromOffset, lineContents, grammar, this);
     }
 
-    public void finishTm4ePartition(IGrammar grammar) {
+    public void finishTm4ePartition(IGrammar grammar) throws DocumentTimeStampChangedException {
         obtainTm4ePartitioner().finishTm4ePartition(grammar, this);
     }
 

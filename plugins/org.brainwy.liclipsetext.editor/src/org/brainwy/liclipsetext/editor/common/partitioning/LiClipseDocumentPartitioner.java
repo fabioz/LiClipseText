@@ -53,8 +53,6 @@ public final class LiClipseDocumentPartitioner extends LiClipseDocumentPartition
      */
     public static ICustomPartitionTokenScanner createContentTypeDefinitionScanner(
             LiClipseLanguage language) {
-        //TODO: This approach is not valid for textmate based languages (which should be parsed by
-        // line -- so, a better approach should be used).
         if (language.languageType == LanguageType.TEXT_MATE) {
             ICustomPartitionTokenScanner scanner = new LiClipseTm4ePartitionScanner();
             scanner.setDefaultReturnToken(new ContentTypeToken(language.name));
