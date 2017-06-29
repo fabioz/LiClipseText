@@ -103,7 +103,7 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
             range.unread();
         }
 
-        ITokenizeLineResult tokenizeLine = range.tokenizeLine(lineFromOffset, s, fGrammar);
+        ITokenizeLineResult tokenizeLine = range.tokenizeLine(currOffset, lineFromOffset, s, fGrammar);
         org.eclipse.tm4e.core.grammar.IToken[] tokens = tokenizeLine.getTokens();
 
         if (tokens == null || tokens.length == 0) {

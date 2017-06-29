@@ -551,9 +551,9 @@ public class ScannerRange
     private Tm4ePartitioner tm4eDocumentPartitioner;
     public Object tm4eCache;
 
-    public ITokenizeLineResult tokenizeLine(int lineFromOffset, String lineContents, IGrammar grammar)
+    public ITokenizeLineResult tokenizeLine(int currOffset, int lineFromOffset, String lineContents, IGrammar grammar)
             throws DocumentTimeStampChangedException {
-        return obtainTm4ePartitioner().tokenizeLine(lineFromOffset, lineContents, grammar, this);
+        return obtainTm4ePartitioner().tokenizeLine(currOffset, lineFromOffset, lineContents, grammar, this);
     }
 
     public void finishTm4ePartition(IGrammar grammar) {

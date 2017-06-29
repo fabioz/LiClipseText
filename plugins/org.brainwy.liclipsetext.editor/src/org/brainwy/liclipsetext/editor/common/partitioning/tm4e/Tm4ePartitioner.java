@@ -1,17 +1,20 @@
 package org.brainwy.liclipsetext.editor.common.partitioning.tm4e;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
 import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.log.Log;
+import org.brainwy.liclipsetext.shared_core.string.StringUtils;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentExtension3;
 import org.eclipse.jface.text.IDocumentPartitioner;
 import org.eclipse.jface.text.ITypedRegion;
+import org.eclipse.jface.text.Position;
 import org.eclipse.tm4e.core.grammar.IGrammar;
 import org.eclipse.tm4e.core.grammar.ITokenizeLineResult;
 import org.eclipse.tm4e.core.grammar.StackElement;
@@ -60,17 +63,12 @@ public class Tm4ePartitioner implements IDocumentPartitioner {
 
     @Override
     public void documentAboutToBeChanged(DocumentEvent event) {
+        docCache.documentAboutToBeChanged(event);
     }
 
     @Override
     public boolean documentChanged(DocumentEvent event) {
-        int replacedTextLen = event.getLength();
-        int offset = event.getOffset();
-        String text = event.getText();
-        if (replacedTextLen > 0) {
-            // ... Finish to invalidate caches.
-        }
-        return false;
+        return false; // always returns false as we have no real partitioning (just used for updating internal caches).
     }
 
     @Override
@@ -93,7 +91,10 @@ public class Tm4ePartitioner implements IDocumentPartitioner {
         return null;
     }
 
-    private static class Tm4eDocCache {
+    /**
+     * Only public for testing (private API).
+     */
+    public final static class Tm4eDocCache {
         // This is meant to be a cache for any line/begin stack -> tokens, but currently the way that the grammar is done, this isn't really
         // possible as the StackElement is mutable (and has all the parent stacks referenced to get to the current context).
         // So, for now not implementing that (although it may be possible to do with changes in the grammar, it needs more time to implement).
@@ -122,38 +123,96 @@ public class Tm4ePartitioner implements IDocumentPartitioner {
             //                    prevStateAndLineContentsToInfo.put(entry.getKey(), entry.getValue());
             //                }
             //            }
-            this.caches.clear(); // TODO: Deal with multiple partitions
             Tm4eScannerCache tm4eCache = (Tm4eScannerCache) scannerRange.tm4eCache;
             tm4eCache.prevState = null; // This isn't valid anymore (it's only useful during the current parsing).
             this.caches.add(tm4eCache);
+        }
+
+        public synchronized void documentAboutToBeChanged(DocumentEvent event) {
+            int replacedTextLen = event.getLength();
+            int offset = event.getOffset();
+
+            String text = event.getText();
+            int linesAdded = StringUtils.countLineBreaks(text);
+            int linesRemoved = 0;
+            IDocument document = event.getDocument();
+            try {
+                if (replacedTextLen > 0) {
+                    String string = document.get(offset, event.getLength());
+                    linesRemoved = StringUtils.countLineBreaks(string);
+                }
+                int lineFromOffset = document.getLineOfOffset(offset);
+                int linesDiff = linesAdded - linesRemoved;
+                Position linesRemovedPosition = new Position(lineFromOffset, linesRemoved);
+
+                for (Iterator<Tm4eScannerCache> it = caches.iterator(); it.hasNext();) {
+                    Tm4eScannerCache tm4eCache = it.next();
+                    if (tm4eCache.startLine == lineFromOffset || linesRemovedPosition.includes(tm4eCache.startLine)) {
+                        it.remove();
+                        continue;
+                    }
+                    if (tm4eCache.startLine < lineFromOffset && tm4eCache.endLine > lineFromOffset) {
+                        // Invalidate this cache from the given line downwards.
+                        StackElement[] lines = new StackElement[tm4eCache.lines.length + linesDiff];
+                        System.arraycopy(tm4eCache.lines, 0, lines, 0, lineFromOffset - tm4eCache.startLine);
+                        tm4eCache.lines = lines;
+                        tm4eCache.endLine += linesDiff;
+                        continue;
+                    }
+                    if (tm4eCache.startLine > lineFromOffset) {
+                        tm4eCache.startLine += linesDiff;
+                        tm4eCache.endLine += linesDiff;
+                    }
+                }
+            } catch (BadLocationException e) {
+                // This is bad, our assumptions are no longer correct. Clear all caches.
+                Log.log("This should NEVER happen (clearing all caches)!", e);
+                this.caches.clear();
+                return;
+            }
+        }
+
+        /**
+         * Just for testing!
+         */
+        public synchronized void setCaches(List<Tm4eScannerCache> caches) {
+            this.caches.clear();
+            this.caches.addAll(caches);
+        }
+
+        public synchronized List<Tm4eScannerCache> getCaches() {
+            List<Tm4eScannerCache> ret = new ArrayList<>(caches.size());
+            ret.addAll(caches);
+            return ret;
         }
 
         public synchronized void clear() {
             caches.clear();
         }
 
-        public synchronized Tm4eScannerCache getCached(int lineFromOffset, String lineContents,
+        public synchronized Tm4eScannerCache getCached(int currOffset, int lineFromOffset, String lineContents,
                 ScannerRange scannerRange,
-                IGrammar grammar) {
+                IGrammar grammar) throws DocumentTimeStampChangedException {
             if (caches.size() == 0) {
                 return null;
             }
-			work in progress
-            IDocument document = scannerRange.getDocument();
-            try {
-                ITypedRegion partition = document.getPartition(lineFromOffset);
-                if (partition == null) {
-                    throw new RuntimeException("No partition for offset!");
+            for (Tm4eScannerCache tm4eCache : caches) {
+                if (tm4eCache.startLine <= lineFromOffset && tm4eCache.endLine > lineFromOffset) {
+                    return tm4eCache;
                 }
-            } catch (BadLocationException e) {
-                throw new RuntimeException(e);
             }
-            return caches.get(0).copy();
-
+            return null;
         }
     }
 
-    private Tm4eDocCache docCache = new Tm4eDocCache();
+    private final Tm4eDocCache docCache = new Tm4eDocCache();
+
+    /**
+     * Just for testing!
+     */
+    public Tm4eDocCache getDocCache() {
+        return docCache;
+    }
 
     //    private static class Tm4eCacheKey {
     //
@@ -169,13 +228,15 @@ public class Tm4ePartitioner implements IDocumentPartitioner {
 
     /**
      * A cache that lives inside the scanner (should always go forward and when finished scanning it updates the Tm4eDocCache).
+     *
+     * Only public for testing (private API).
      */
-    private static class Tm4eScannerCache {
+    public final static class Tm4eScannerCache {
         public StackElement prevState;
         //        private Map<Tm4eCacheKey, Tm4eLineInfo> prevStateAndLineContentsToInfo = new HashMap<>();
-        private StackElement[] lines;
-        private int startLine;
-        private int endLine;
+        public StackElement[] lines;
+        public int startLine;
+        public int endLine;
         public String startLineContents;
 
         public Tm4eScannerCache copy() {
@@ -188,18 +249,21 @@ public class Tm4ePartitioner implements IDocumentPartitioner {
         }
     }
 
-    public ITokenizeLineResult tokenizeLine(int lineFromOffset, String lineContents, IGrammar grammar,
+    public ITokenizeLineResult tokenizeLine(int currOffset, int lineFromOffset, String lineContents, IGrammar grammar,
             ScannerRange scannerRange) throws DocumentTimeStampChangedException {
         StackElement prevState = null;
         Tm4eScannerCache tm4eCache = (Tm4eScannerCache) scannerRange.tm4eCache;
-        if (tm4eCache == null) {
+        boolean firstCallInRange = tm4eCache == null;
+        boolean foundInDocCache = false;
+        if (firstCallInRange) {
             // Let's see if we're restarting...
-            tm4eCache = docCache.getCached(lineFromOffset, lineContents, scannerRange, grammar);
+            tm4eCache = docCache.getCached(currOffset, lineFromOffset, lineContents, scannerRange, grammar);
             if (tm4eCache != null) {
                 int diff = lineFromOffset - tm4eCache.startLine - 1;
                 if (diff >= 0 && diff < tm4eCache.lines.length) {
                     prevState = tm4eCache.lines[diff];
                     scannerRange.tm4eCache = tm4eCache;
+                    foundInDocCache = true;
                 } else {
                     tm4eCache = null;
                 }
@@ -232,7 +296,16 @@ public class Tm4ePartitioner implements IDocumentPartitioner {
         }
         ITokenizeLineResult ret = grammar.tokenizeLine(lineContents, prevState);
 
-        tm4eCache.lines[lineFromOffset - tm4eCache.startLine] = ret.getRuleStack();
+        try {
+            tm4eCache.lines[lineFromOffset - tm4eCache.startLine] = ret.getRuleStack();
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new RuntimeException(
+                    StringUtils.format(
+                            "Error trying to access index: %s. Line: %s. Cache start line: %s. Line Contents: %s. First call in range: %s. Found in doc cache: %s",
+                            lineFromOffset - tm4eCache.startLine, lineFromOffset, tm4eCache.startLine, lineContents,
+                            firstCallInRange,
+                            foundInDocCache));
+        }
         //        tm4eCache.prevStateAndLineContentsToInfo.put(new Tm4eCacheKey(lineContents, ret.getRuleStack()),
         //                new Tm4eLineInfo(ret));
         tm4eCache.prevState = ret.getRuleStack();

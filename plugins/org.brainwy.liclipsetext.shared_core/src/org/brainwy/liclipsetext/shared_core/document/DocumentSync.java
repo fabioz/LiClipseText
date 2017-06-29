@@ -53,7 +53,11 @@ public class DocumentSync {
 
     public static IDocument createUnsynchedDocIfNeeded(IDocument doc) {
         if (doc instanceof ISynchronizable) {
-            return new DocCopy(doc);
+            ISynchronizable sync = (ISynchronizable) doc;
+            Object lockObject = sync.getLockObject();
+            synchronized (lockObject) {
+                return new DocCopy(doc);
+            }
         }
         return doc;
     }

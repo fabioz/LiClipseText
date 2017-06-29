@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
-import org.brainwy.liclipsetext.shared_core.document.DocCopy;
+import org.brainwy.liclipsetext.shared_core.document.DocumentSync;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_ui.utils.RunInUiThread;
 import org.eclipse.core.runtime.Assert;
@@ -568,7 +568,7 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
             final IDocumentExtension4 docExt = (IDocumentExtension4) doc;
             final long modificationStamp = docExt.getModificationStamp();
 
-            DocCopy docCopy = new DocCopy(doc);
+            IDocument docCopy = DocumentSync.createUnsynchedDocIfNeeded(doc);
             for (IRegion damage : finalRegions) {
                 if (DEBUG) {
                     System.out.println("Final: " + damage);
