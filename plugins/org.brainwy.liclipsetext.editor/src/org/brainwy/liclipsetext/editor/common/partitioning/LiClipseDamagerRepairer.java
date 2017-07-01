@@ -123,7 +123,7 @@ public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPr
             internalCreatePresentation(presentation, region);
         } catch (Exception e) {
             if (fDocTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
-                Log.log("Skipping coloring for region: " + region + " (document changed). Doc time: " + fDocTime);
+                Log.logInfo("[document changed] Skipping coloring for region: " + region + ". Doc time: " + fDocTime);
                 return;
             }
             Log.log(e);
@@ -155,67 +155,62 @@ public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPr
         int minOffset = region.getOffset();
         //System.out.println("Computing sub tokens scanning");
         int i = 0;
-        int lastOffset = -1;
-        while (true) {
-            IToken token = subTokensProvider.nextToken();
-            if (token.isEOF()) {
-                break;
-            }
-            i += 1;
-            if (i % 50 == 0) {
-                if (fDocTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
-                    Log.log("Skipping coloring for region: " + region + " (document changed). Doc time: " + fDocTime);
+        try {
+            while (true) {
+                IToken token = subTokensProvider.nextToken();
+                if (token.isEOF()) {
                     break;
                 }
-            }
-
-            final TextAttribute attribute = getTokenTextAttribute(token);
-            final int tokenOffset = subTokensProvider.getTokenOffset();
-            final int tokenLength = subTokensProvider.getTokenLength();
-
-            if (tokenOffset < minOffset) {
-                Log.log(StringUtils.format(
-                        "Error in scanning partition: tokenOffset (%s) < minOffset (%s).", tokenOffset, minOffset));
-                continue;
-            }
-            if (tokenOffset + tokenLength > maxOffset) {
-                Log.log(StringUtils.format(
-                        "Error in scanning partition: tokenOffset (%s) + tokenLength (%s) > maxOffset (%s).",
-                        tokenOffset, tokenLength, maxOffset));
-                continue;
-            }
-
-            if (tokenOffset < lastOffset) {
-                Log.log(StringUtils.format(
-                        "Error in scanning partition: tokenOffset (%s) < lastOffset (%s) -- scanner didn't go forward.",
-                        tokenOffset, lastOffset));
-                break;
-            }
-            lastOffset = tokenOffset;
-
-            if (tokenLength == 0) {
-                Log.log(StringUtils.format(
-                        "Error in scanning partition: tokenLength == 0.", tokenLength));
-                break;
-            }
-
-            lastToken = token;
-            if (MERGE_TOKENS && lastAttribute != null && lastAttribute.equals(attribute)) {
-                length += tokenLength;
-                firstToken = false;
-            } else {
-                if (!firstToken) {
-                    addRange(presentation, lastStart, length, lastAttribute, token);
+                i += 1;
+                if (i % 50 == 0) {
+                    if (fDocTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
+                        Log.logInfo(
+                                "[document changed] Skipping coloring for region: " + region + ". Doc time: "
+                                        + fDocTime);
+                        break;
+                    }
                 }
-                firstToken = false;
-                lastAttribute = attribute;
-                lastStart = tokenOffset;
-                length = tokenLength;
+
+                final TextAttribute attribute = getTokenTextAttribute(token);
+                final int tokenOffset = subTokensProvider.getTokenOffset();
+                final int tokenLength = subTokensProvider.getTokenLength();
+
+                if (tokenOffset < minOffset) {
+                    Log.log(StringUtils.format(
+                            "Error in scanning partition: tokenOffset (%s) < minOffset (%s).", tokenOffset, minOffset));
+                    continue;
+                }
+                if (tokenOffset + tokenLength > maxOffset) {
+                    Log.log(StringUtils.format(
+                            "Error in scanning partition: tokenOffset (%s) + tokenLength (%s) > maxOffset (%s).",
+                            tokenOffset, tokenLength, maxOffset));
+                    break;
+                }
+
+                lastToken = token;
+                if (MERGE_TOKENS && lastAttribute != null && lastAttribute.equals(attribute)) {
+                    length += tokenLength;
+                    firstToken = false;
+                } else {
+                    if (!firstToken) {
+                        addRange(presentation, lastStart, length, lastAttribute, token);
+                    }
+                    firstToken = false;
+                    lastAttribute = attribute;
+                    lastStart = tokenOffset;
+                    length = tokenLength;
+                }
+            }
+        } catch (RuntimeException e) {
+            // If the doc changes in the meanwhile, index errors are ok.
+            if (fDocTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
+                Log.logInfo("[document changed] Skipping coloring for region: " + region + ". Doc time: " + fDocTime);
+                return;
             }
         }
 
         if (fDocTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
-            Log.log("Skipping coloring for region: " + region + " (document changed). Doc time: " + fDocTime);
+            Log.logInfo("[document changed] Skipping coloring for region: " + region + ". Doc time: " + fDocTime);
             return;
         }
 

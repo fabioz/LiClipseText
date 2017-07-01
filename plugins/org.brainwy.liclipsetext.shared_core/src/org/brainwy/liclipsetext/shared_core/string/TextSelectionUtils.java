@@ -388,6 +388,10 @@ public class TextSelectionUtils {
         }
     }
 
+    public static String getLineContentsOfOffset(IDocument doc, int offset) {
+        return getLine(doc, getLineOfOffset(doc, offset));
+    }
+
     /**
      * Deletes a line from the document
      * @param i

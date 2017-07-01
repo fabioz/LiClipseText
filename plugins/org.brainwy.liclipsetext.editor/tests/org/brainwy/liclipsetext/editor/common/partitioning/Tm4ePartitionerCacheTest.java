@@ -8,7 +8,9 @@ import org.brainwy.liclipsetext.editor.common.partitioning.LiClipseDocumentParti
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.tm4e.core.grammar.ITokenizeLineResult;
 import org.eclipse.tm4e.core.grammar.StackElement;
+import org.eclipse.tm4e.core.internal.grammar.TokenizeLineResult;
 
 import junit.framework.TestCase;
 
@@ -34,20 +36,18 @@ public class Tm4ePartitionerCacheTest extends TestCase {
         List<Tm4eScannerCache> caches = new ArrayList<Tm4eScannerCache>();
         cache0 = new Tm4eScannerCache();
         cache0.startLine = 0;
-        cache0.endLine = 2;
-        cache0.lines = new StackElement[] {
-                new StackElement(null, 0, 0, "", null, null),
-                new StackElement(null, 1, 1, "", null, null),
-                new StackElement(null, 2, 2, "", null, null)
+        cache0.lines = new ITokenizeLineResult[] {
+                new TokenizeLineResult(null, new StackElement(null, 0, 0, "", null, null)),
+                new TokenizeLineResult(null, new StackElement(null, 1, 1, "", null, null)),
+                new TokenizeLineResult(null, new StackElement(null, 2, 2, "", null, null))
         };
         caches.add(cache0);
 
         cache1 = new Tm4eScannerCache();
         cache1.startLine = 3;
-        cache1.endLine = 4;
-        cache1.lines = new StackElement[] {
-                new StackElement(null, 3, 3, "", null, null),
-                new StackElement(null, 4, 4, "", null, null),
+        cache1.lines = new ITokenizeLineResult[] {
+                new TokenizeLineResult(null, new StackElement(null, 3, 3, "", null, null)),
+                new TokenizeLineResult(null, new StackElement(null, 4, 4, "", null, null)),
         };
         caches.add(cache1);
 
@@ -85,7 +85,6 @@ public class Tm4ePartitionerCacheTest extends TestCase {
         assertEquals(2, caches.size());
         Tm4eScannerCache tm4eScannerCache = caches.get(0);
         assertEquals(0, tm4eScannerCache.startLine);
-        assertEquals(2, tm4eScannerCache.endLine);
         assertNotNull(tm4eScannerCache.lines[0]);
         assertEquals(1, tm4eScannerCache.lines.length);
     }
@@ -107,7 +106,6 @@ public class Tm4ePartitionerCacheTest extends TestCase {
         assertEquals(2, caches.size());
         Tm4eScannerCache tm4eScannerCache = caches.get(0);
         assertEquals(0, tm4eScannerCache.startLine);
-        assertEquals(3, tm4eScannerCache.endLine);
         assertEquals(1, tm4eScannerCache.lines.length);
         assertNotNull(tm4eScannerCache.lines[0]);
     }
@@ -121,7 +119,6 @@ public class Tm4ePartitionerCacheTest extends TestCase {
         assertEquals(2, caches.size());
         Tm4eScannerCache tm4eScannerCache = caches.get(0);
         assertEquals(0, tm4eScannerCache.startLine);
-        assertEquals(1, tm4eScannerCache.endLine);
         assertEquals(1, tm4eScannerCache.lines.length);
         assertNotNull(tm4eScannerCache.lines[0]);
     }

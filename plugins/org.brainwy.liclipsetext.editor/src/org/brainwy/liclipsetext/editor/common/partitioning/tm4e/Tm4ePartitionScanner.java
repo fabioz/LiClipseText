@@ -34,6 +34,10 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
         this.fGrammar = grammar;
     }
 
+    public IGrammar getGrammar() {
+        return fGrammar;
+    }
+
     protected IToken fDefaultReturnToken = new Token(null);
 
     @Override

@@ -113,7 +113,7 @@ public final class LiClipseDocumentPartitioner extends LiClipseDocumentPartition
      * Make it possible to get the token scanner for a given content type.
      * May return null!
      */
-    private ICustomPartitionTokenScanner getTokenScannerForContentType(String contentType) {
+    public ICustomPartitionTokenScanner getTokenScannerForContentType(String contentType) {
         return contentTypeToScanner.get(contentType);
     }
 
