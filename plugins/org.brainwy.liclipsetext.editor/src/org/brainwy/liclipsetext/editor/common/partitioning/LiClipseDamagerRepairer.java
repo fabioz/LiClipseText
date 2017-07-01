@@ -118,6 +118,7 @@ public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPr
         if (this.fDocTime == -1) {
             this.fDocTime = ((IDocumentExtension4) fDocument).getModificationStamp();
         }
+
         try {
             internalCreatePresentation(presentation, region);
         } catch (Exception e) {
@@ -154,7 +155,7 @@ public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPr
         int minOffset = region.getOffset();
         //System.out.println("Computing sub tokens scanning");
         int i = 0;
-        long initialTime = System.currentTimeMillis();
+        int lastOffset = -1;
         while (true) {
             IToken token = subTokensProvider.nextToken();
             if (token.isEOF()) {
@@ -164,11 +165,6 @@ public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPr
             if (i % 50 == 0) {
                 if (fDocTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
                     Log.log("Skipping coloring for region: " + region + " (document changed). Doc time: " + fDocTime);
-                    break;
-                }
-                if (System.currentTimeMillis() - initialTime > 10000) {
-                    Log.log("Skipping coloring for region: " + region + " (10 seconds elapsed). Iterations: "
-                            + i);
                     break;
                 }
             }
@@ -187,6 +183,20 @@ public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPr
                         "Error in scanning partition: tokenOffset (%s) + tokenLength (%s) > maxOffset (%s).",
                         tokenOffset, tokenLength, maxOffset));
                 continue;
+            }
+
+            if (tokenOffset < lastOffset) {
+                Log.log(StringUtils.format(
+                        "Error in scanning partition: tokenOffset (%s) < lastOffset (%s) -- scanner didn't go forward.",
+                        tokenOffset, lastOffset));
+                break;
+            }
+            lastOffset = tokenOffset;
+
+            if (tokenLength == 0) {
+                Log.log(StringUtils.format(
+                        "Error in scanning partition: tokenLength == 0.", tokenLength));
+                break;
             }
 
             lastToken = token;

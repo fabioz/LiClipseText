@@ -463,7 +463,6 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
                             try {
                                 System.out.println(doc.get(iRegion.getOffset(), iRegion.getLength()));
                             } catch (BadLocationException e) {
-                                // TODO Auto-generated catch block
                                 e.printStackTrace();
                             }
                         }

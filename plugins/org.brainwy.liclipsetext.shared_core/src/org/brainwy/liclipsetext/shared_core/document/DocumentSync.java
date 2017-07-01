@@ -55,11 +55,31 @@ public class DocumentSync {
         if (doc instanceof ISynchronizable) {
             ISynchronizable sync = (ISynchronizable) doc;
             Object lockObject = sync.getLockObject();
+            if (lockObject == null) {
+                lockObject = new Object();
+            }
             synchronized (lockObject) {
                 return new DocCopy(doc);
             }
         }
         return doc;
+    }
+
+    public static void runWithSynchedDoc(IDocument doc, Runnable runnable) {
+        if (doc instanceof ISynchronizable) {
+            ISynchronizable sync = (ISynchronizable) doc;
+            Object lockObject = sync.getLockObject();
+            if (lockObject == null) {
+                lockObject = new Object();
+            }
+
+            synchronized (lockObject) {
+                runnable.run();
+                return;
+            }
+        }
+        // unsynched
+        runnable.run();
     }
 
 }
