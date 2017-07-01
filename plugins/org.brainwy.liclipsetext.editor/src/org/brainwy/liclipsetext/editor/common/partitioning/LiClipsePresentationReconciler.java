@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
-import org.brainwy.liclipsetext.shared_core.document.DocumentSync;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_ui.utils.RunInUiThread;
 import org.eclipse.core.runtime.Assert;
@@ -47,10 +46,8 @@ import org.eclipse.jface.text.TextEvent;
 import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.jface.text.TextUtilities;
 import org.eclipse.jface.text.TypedPosition;
-import org.eclipse.jface.text.presentation.IPresentationDamager;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.IPresentationReconcilerExtension;
-import org.eclipse.jface.text.presentation.IPresentationRepairer;
 import org.eclipse.swt.custom.StyleRange;
 
 /**
@@ -247,9 +244,9 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
     }
 
     /** The map of presentation damagers. */
-    private Map<String, IPresentationDamager> fDamagers;
+    private Map<String, LiClipseDamagerRepairer> fDamagers;
     /** The map of presentation repairers. */
-    private Map<String, IPresentationRepairer> fRepairers;
+    private Map<String, LiClipseDamagerRepairer> fRepairers;
     /** The target viewer. */
     private ITextViewer fViewer;
     /** The internal listener. */
@@ -309,7 +306,7 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
      * @param damager the presentation damager to register, or <code>null</code> to remove an existing one
      * @param contentType the content type under which to register
      */
-    public void setDamager(IPresentationDamager damager, String contentType) {
+    public void setDamager(LiClipseDamagerRepairer damager, String contentType) {
 
         Assert.isNotNull(contentType);
 
@@ -332,7 +329,7 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
      * @param repairer the presentation repairer to register, or <code>null</code> to remove an existing one
      * @param contentType the content type under which to register
      */
-    public void setRepairer(IPresentationRepairer repairer, String contentType) {
+    public void setRepairer(LiClipseDamagerRepairer repairer, String contentType) {
 
         Assert.isNotNull(contentType);
 
@@ -369,7 +366,7 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
     }
 
     @Override
-    public IPresentationDamager getDamager(String contentType) {
+    public LiClipseDamagerRepairer getDamager(String contentType) {
 
         if (fDamagers == null) {
             return null;
@@ -379,7 +376,7 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
     }
 
     @Override
-    public IPresentationRepairer getRepairer(String contentType) {
+    public LiClipseDamagerRepairer getRepairer(String contentType) {
 
         if (fRepairers == null) {
             return null;
@@ -395,9 +392,9 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
      */
     protected void setDocumentToDamagers(IDocument document) {
         if (fDamagers != null) {
-            Iterator<IPresentationDamager> e = fDamagers.values().iterator();
+            Iterator<LiClipseDamagerRepairer> e = fDamagers.values().iterator();
             while (e.hasNext()) {
-                IPresentationDamager damager = e.next();
+                LiClipseDamagerRepairer damager = e.next();
                 damager.setDocument(document);
             }
         }
@@ -410,9 +407,9 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
      */
     protected void setDocumentToRepairers(IDocument document) {
         if (fRepairers != null) {
-            Iterator<IPresentationRepairer> e = fRepairers.values().iterator();
+            Iterator<LiClipseDamagerRepairer> e = fRepairers.values().iterator();
             while (e.hasNext()) {
-                IPresentationRepairer repairer = e.next();
+                LiClipseDamagerRepairer repairer = e.next();
                 repairer.setDocument(document);
             }
         }
@@ -429,7 +426,7 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
      * @return the presentation repair description as text presentation or
      *         <code>null</code> if the partitioning could not be computed
      */
-    protected void applyPresentation(IRegion damage, IDocument document) {
+    private void applyPresentation(IRegion damage, IDocument document) {
         try {
             final TextPresentation presentation;
             if (fRepairers == null || fRepairers.isEmpty()) {
@@ -568,7 +565,7 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
             final IDocumentExtension4 docExt = (IDocumentExtension4) doc;
             final long modificationStamp = docExt.getModificationStamp();
 
-            IDocument docCopy = DocumentSync.createUnsynchedDocIfNeeded(doc);
+            final IDocument finalDoc = doc;
             for (IRegion damage : finalRegions) {
                 if (DEBUG) {
                     System.out.println("Final: " + damage);
@@ -579,57 +576,48 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
                 try {
                     int offset = damage.getOffset();
                     int length = damage.getLength();
-                    if (offset > docCopy.getLength()) {
+                    if (offset > doc.getLength()) {
                         continue;
                     }
-                    if (offset + length > docCopy.getLength()) {
-                        length = docCopy.getLength() - offset;
+                    if (offset + length > doc.getLength()) {
+                        length = doc.getLength() - offset;
                     }
                     partitioning = TextUtilities.computePartitioning(doc, getDocumentPartitioning(),
                             offset, length, false);
-                    if (modificationStamp != docExt.getModificationStamp()) {
-                        synchronized (repairListLock) {
-                            if (DEBUG) {
-                                System.out.println("Document changed. Rescheduling (1).\n\n");
-                            }
-                            for (IRegion r : finalRegions) {
-                                repairList.add(0, new RepairListEntry(r, doc));
-                            }
-                            schedule();
-                            return Status.OK_STATUS;
-                        }
-                    }
                     for (ITypedRegion r : partitioning) {
-                        IPresentationRepairer repairer = getRepairer(r.getType());
-                        repairer.setDocument(docCopy);
+                        LiClipseDamagerRepairer repairer = getRepairer(r.getType());
+                        repairer.setDocument(doc);
+                        repairer.setDocumentTime(modificationStamp);
+                        if (modificationStamp != docExt.getModificationStamp()) {
+                            return rescheduleLater(finalRegions, doc);
+                        }
                         if (repairer != null) {
                             repairer.createPresentation(presentation, r);
                         }
                     }
                     presentations.add(presentation);
                 } catch (BadLocationException e) {
+                    if (modificationStamp != docExt.getModificationStamp()) {
+                        rescheduleLater(finalRegions, finalDoc);
+                        return Status.OK_STATUS;
+                    }
                     Log.log(e);
                 }
             }
-            final IDocument finalDoc = doc;
+
+            if (modificationStamp != docExt.getModificationStamp()) {
+                return rescheduleLater(finalRegions, doc);
+            }
+
             RunInUiThread.async(new Runnable() {
 
                 @Override
                 public void run() {
                     // Never apply if the document changed in the meanwhile...
                     if (modificationStamp != docExt.getModificationStamp()) {
-                        synchronized (repairListLock) {
-                            if (DEBUG) {
-                                System.out.println("Document changed. Rescheduling (2).\n\n");
-                            }
-                            for (IRegion r : finalRegions) {
-                                repairList.add(0, new RepairListEntry(r, finalDoc));
-                            }
-                            ProcessRepairListJob.this.schedule();
-                            return;
-                        }
+                        rescheduleLater(finalRegions, finalDoc);
+                        return;
                     }
-
                     for (TextPresentation presentation : presentations) {
                         if (DEBUG) {
                             System.out.println("Applying text presentation.");
@@ -642,6 +630,19 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
                 }
             }, true);
             return Status.OK_STATUS;
+        }
+
+        private IStatus rescheduleLater(List<IRegion> finalRegions, IDocument doc) {
+            synchronized (repairListLock) {
+                if (DEBUG) {
+                    System.out.println("Document changed. Rescheduling (1).\n\n");
+                }
+                for (IRegion r : finalRegions) {
+                    repairList.add(0, new RepairListEntry(r, doc));
+                }
+                schedule();
+                return Status.OK_STATUS;
+            }
         }
     }
 
@@ -677,7 +678,7 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
                 offset = Math.max(0, offset - 1);
             }
             ITypedRegion partition = getPartition(e.getDocument(), offset);
-            IPresentationDamager damager = getDamager(partition.getType());
+            LiClipseDamagerRepairer damager = getDamager(partition.getType());
             if (damager == null) {
                 return null;
             }
@@ -740,7 +741,7 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
             partition = getPartition(d, end);
         }
 
-        IPresentationDamager damager = getDamager(partition.getType());
+        LiClipseDamagerRepairer damager = getDamager(partition.getType());
         if (damager == null) {
             return -1;
         }

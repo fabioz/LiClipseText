@@ -17,6 +17,7 @@ import org.brainwy.liclipsetext.shared_core.string.StringUtils;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IDocumentExtension4;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITypedRegion;
 import org.eclipse.jface.text.Region;
@@ -29,7 +30,7 @@ import org.eclipse.jface.text.rules.Token;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 
-public final class LiClipseDamagerRepairer implements IPresentationDamager, IPresentationRepairer {
+public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPresentationDamager {
 
     public static boolean MERGE_TOKENS = true;
     private static final boolean DEBUG = false;
@@ -37,6 +38,7 @@ public final class LiClipseDamagerRepairer implements IPresentationDamager, IPre
     private ICustomPartitionTokenScanner fScanner;
     private TextAttribute fDefaultTextAttribute = new TextAttribute(null);
     private IDocument fDocument;
+    private long fDocTime = -1;
 
     public LiClipseDamagerRepairer(ICustomPartitionTokenScanner scanner,
             CustomTextAttributeTokenCreator defaultTokenCreator) {
@@ -111,19 +113,31 @@ public final class LiClipseDamagerRepairer implements IPresentationDamager, IPre
 
     @Override
     public void createPresentation(TextPresentation presentation, ITypedRegion region) {
+        // Note: this may be called in a thread, so, if the document changes during the process, the
+        // text presentation should be considered invalid (the caller process has to take care of that).
+        if (this.fDocTime == -1) {
+            this.fDocTime = ((IDocumentExtension4) fDocument).getModificationStamp();
+        }
         try {
-            DocumentTimeStampChangedException.retryUntilNoDocChanges(() -> {
-                internalCreatePresentation(presentation, region);
-                return null;
-            });
+            internalCreatePresentation(presentation, region);
         } catch (Exception e) {
+            if (fDocTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
+                Log.log("Skipping coloring for region: " + region + " (document changed). Doc time: " + fDocTime);
+                return;
+            }
             Log.log(e);
+        } finally {
+            this.fDocTime = -1;
         }
     }
 
     @Override
     public void setDocument(IDocument document) {
         fDocument = document;
+    }
+
+    public void setDocumentTime(long modificationStamp) {
+        this.fDocTime = modificationStamp;
     }
 
     private void internalCreatePresentation(TextPresentation presentation, ITypedRegion region)
@@ -147,7 +161,11 @@ public final class LiClipseDamagerRepairer implements IPresentationDamager, IPre
                 break;
             }
             i += 1;
-            if (i % 500 == 0) {
+            if (i % 50 == 0) {
+                if (fDocTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
+                    Log.log("Skipping coloring for region: " + region + " (document changed). Doc time: " + fDocTime);
+                    break;
+                }
                 if (System.currentTimeMillis() - initialTime > 10000) {
                     Log.log("Skipping coloring for region: " + region + " (10 seconds elapsed). Iterations: "
                             + i);
@@ -184,6 +202,11 @@ public final class LiClipseDamagerRepairer implements IPresentationDamager, IPre
                 lastStart = tokenOffset;
                 length = tokenLength;
             }
+        }
+
+        if (fDocTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
+            Log.log("Skipping coloring for region: " + region + " (document changed). Doc time: " + fDocTime);
+            return;
         }
 
         addRange(presentation, lastStart, length, lastAttribute, lastToken);
