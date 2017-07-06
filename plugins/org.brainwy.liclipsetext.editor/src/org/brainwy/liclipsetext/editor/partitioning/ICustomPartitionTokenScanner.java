@@ -8,6 +8,7 @@ package org.brainwy.liclipsetext.editor.partitioning;
 
 import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IDocumentExtension4;
 import org.eclipse.jface.text.rules.IToken;
 
 public interface ICustomPartitionTokenScanner {
@@ -43,11 +44,15 @@ public interface ICustomPartitionTokenScanner {
         return createScannerRange(document, 0, document.getLength());
     }
 
+    default public ScannerRange createScannerRange(IDocument document, int offset, int length) {
+        return createScannerRange(document, offset, length, ((IDocumentExtension4) document).getModificationStamp());
+    }
+
     /**
      * This method should be used to create a scanner (which will provide coloring for a given partition).
      */
-    default public ScannerRange createScannerRange(IDocument document, int offset, int length) {
-        return new ScannerRange(document, offset, length, new PartitionCodeReaderInScannerHelper(), this);
+    default public ScannerRange createScannerRange(IDocument document, int offset, int length, long docTime) {
+        return new ScannerRange(document, offset, length, new PartitionCodeReaderInScannerHelper(), this, docTime);
     }
 
     void setDefaultReturnToken(IToken defaultReturnToken);

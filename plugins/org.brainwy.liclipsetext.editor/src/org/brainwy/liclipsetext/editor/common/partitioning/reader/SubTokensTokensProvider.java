@@ -49,7 +49,8 @@ public class SubTokensTokensProvider {
 
     }
 
-    public SubTokensTokensProvider(IDocument document, ITypedRegion region, ICustomPartitionTokenScanner tokenScanner) {
+    public SubTokensTokensProvider(IDocument document, ITypedRegion region, ICustomPartitionTokenScanner tokenScanner,
+            long docTime, boolean cacheFinalResult) {
         this.tokenScanner = tokenScanner;
         this.baseOffset = region.getOffset();
         if (region instanceof TypedRegionWithSubTokens) {
@@ -61,7 +62,9 @@ public class SubTokensTokensProvider {
             }
         }
         if (subTokensIterator == null) {
-            this.scannerRange = tokenScanner.createScannerRange(document, region.getOffset(), region.getLength());
+            this.scannerRange = tokenScanner.createScannerRange(document, region.getOffset(), region.getLength(),
+                    docTime);
+            this.scannerRange.setCacheFinalResult(cacheFinalResult);
         }
     }
 

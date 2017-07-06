@@ -22,6 +22,8 @@ import org.eclipse.tm4e.core.grammar.ITokenizeLineResult;
 
 public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
 
+    private static final boolean DEBUG = false;
+
     private IGrammar fGrammar;
 
     @SuppressWarnings("unused")
@@ -53,6 +55,8 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
 
     @Override
     public void nextToken(ScannerRange range) throws DocumentTimeStampChangedException {
+        int lastEndOffset = range.getTokenOffset() + range.getTokenLength();
+
         if (range.nextOfferedToken()) {
             return;
         }
@@ -61,6 +65,12 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
 
         //Check 0: EOF: just bail out
         final int currOffset = range.getMark();
+
+        if (currOffset < lastEndOffset) {
+            range.checkDocumentTimeStampChanged();
+            Log.log("Error computing tokens. Start offset " + currOffset + " < Last offset" + lastEndOffset);
+        }
+
         int c = range.read();
         if (c == ICharacterScanner.EOF) {
             range.finishTm4ePartition(fGrammar);
@@ -72,6 +82,7 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
         try {
             lineFromOffset = range.getLineFromOffset(currOffset);
         } catch (BadLocationException e) {
+            range.checkDocumentTimeStampChanged();
             Log.log(e);
             range.setToken(fDefaultReturnToken);
             return;
@@ -83,6 +94,9 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
         if (currOffset > lineInfo.lineOffset) {
             // Starting in the middle of a line (can't use prev state and must get line substring).
             s = s.substring(currOffset - lineInfo.lineOffset);
+            if (DEBUG) {
+                System.out.println("Starting at the middle of line!");
+            }
         }
 
         int lineEndOffset = currOffset + s.length() - 1;
@@ -107,6 +121,9 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
             range.unread();
         }
 
+        if (DEBUG) {
+            System.out.println("Tokenizing line: " + lineFromOffset + " -- " + s);
+        }
         ITokenizeLineResult tokenizeLine = range.tokenizeLine(currOffset, lineFromOffset, s, fGrammar);
         org.eclipse.tm4e.core.grammar.IToken[] tokens = tokenizeLine.getTokens();
 
@@ -119,12 +136,27 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
             org.eclipse.tm4e.core.grammar.IToken iToken = tokens[0];
             SubRuleToken subRuleToken = new SubRuleToken(getToken(iToken), currOffset + iToken.getStartIndex(),
                     iToken.getEndIndex() - iToken.getStartIndex());
+            if (subRuleToken.offset < lastEndOffset) {
+                range.checkDocumentTimeStampChanged();
+                Log.log("Error computing first token. Start offset " + subRuleToken.offset + " < Last offset"
+                        + lastEndOffset);
+            }
+            lastEndOffset = subRuleToken.offset + subRuleToken.len;
+
             range.setCurrentSubToken(subRuleToken);
 
             for (int i = 1; i < tokens.length; i++) {
                 iToken = tokens[i];
                 subRuleToken = new SubRuleToken(getToken(iToken), currOffset + iToken.getStartIndex(),
                         iToken.getEndIndex() - iToken.getStartIndex());
+
+                if (subRuleToken.offset < lastEndOffset) {
+                    range.checkDocumentTimeStampChanged();
+                    Log.log("Error computing token. Start offset " + subRuleToken.offset
+                            + " < Last offset" + lastEndOffset);
+                }
+                lastEndOffset = subRuleToken.offset + subRuleToken.len;
+
                 range.offerSubToken(subRuleToken);
             }
 

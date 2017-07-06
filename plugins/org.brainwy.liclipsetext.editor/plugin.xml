@@ -1908,7 +1908,7 @@
 
       <page class="org.brainwy.liclipsetext.editor.common.mark_occurrences.LiClipseMarkOccurrencesPreferencesPage"
             id="liclipse.mark_occurrences" name="Mark Occurrences" category="liclipse" />
-            
+
       <page class="org.brainwy.liclipsetext.editor.preferences.LiClipseColorsPreferencesPage"
             id="liclipse.colors" name="Colors" category="liclipse" />
    </extension>
@@ -1931,7 +1931,7 @@
     <extension point="org.brainwy.liclipsetext.editor.liclipse_error_collector">
         <error_collector_participant class="org.brainwy.liclipsetext.editor.error_handling.LiClipseLanguageErrorCollector"/>
     </extension>
-    
+
     <extension
           point="org.eclipse.ui.genericeditor.presentationReconcilers">
        <presentationReconciler

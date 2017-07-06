@@ -7,6 +7,7 @@
 package org.brainwy.liclipsetext.editor.common.partitioning;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -60,6 +61,8 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
 
     private static final boolean UPDATE_ASYNC = true;
 
+    private IDocument fDocument;
+
     /**
      * Internal listener class.
      */
@@ -103,6 +106,7 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
             fDocumentChanging = false;
             fCachedRedrawState = true;
 
+            fDocument = newDocument;
             if (newDocument != null) {
 
                 newDocument.addPositionCategory(fPositionCategory);
@@ -435,9 +439,10 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
                 applyTextRegionCollection(presentation);
             } else {
                 int totalDamageLen = 0;
+                int firstDamageOffset = Integer.MAX_VALUE;
+                IDocument doc = null;
                 synchronized (repairListLock) {
                     repairList.add(new RepairListEntry(damage, document));
-                    IDocument doc = null;
                     List<IRegion> regions = new ArrayList<>();
                     for (RepairListEntry repairListEntry : repairList) {
                         if (doc != repairListEntry.doc) {
@@ -488,11 +493,25 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
                     for (IRegion r : finalRegions) {
                         repairList.add(new RepairListEntry(r, doc));
                         totalDamageLen += r.getLength();
+                        firstDamageOffset = Math.min(firstDamageOffset, r.getOffset());
                     }
                 }
                 if (UPDATE_ASYNC && totalDamageLen > 10000) {
                     if (DEBUG) {
                         System.out.println("Making async damage update");
+                    }
+                    if (firstDamageOffset != Integer.MAX_VALUE) {
+                        // Damage the first line right away (so that at least that line is ok).
+                        int damagedLine = doc.getLineOfOffset(firstDamageOffset);
+                        int numberOfLines = document.getNumberOfLines();
+                        long initialTime = System.currentTimeMillis();
+                        for (int i = damagedLine; i < numberOfLines; i++) {
+                            IRegion lineInformationOfOffset = doc.getLineInformation(i);
+                            processRepairListJob.repairDamage(Arrays.asList(lineInformationOfOffset), doc, false);
+                            if (System.currentTimeMillis() > initialTime + 75) {
+                                break;
+                            }
+                        }
                     }
                     processRepairListJob.schedule();
                 } else {
@@ -555,13 +574,25 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
                 }
                 finalRegions.addAll(regions);
                 repairList.clear();
-                if (doc == null) {
-                    return Status.OK_STATUS;
-                }
             }
 
+            if (doc == null) {
+                return Status.OK_STATUS;
+            }
+
+            return repairDamage(finalRegions, doc, true);
+        }
+
+        /**
+         *
+         * @param isFullDamage if true, we're damaging a full partition
+         *  (in which case we can recache textmate tokens and reschedule if needed),
+         *  otherwise, we're damaging only a line partially and we should not cache anything.
+         */
+        private IStatus repairDamage(List<IRegion> finalRegions, IDocument doc,
+                boolean isFullDamage) {
             List<TextPresentation> presentations = new ArrayList<>(finalRegions.size());
-            final IDocumentExtension4 docExt = (IDocumentExtension4) doc;
+            final IDocumentExtension4 docExt = (IDocumentExtension4) fDocument;
             final long modificationStamp = docExt.getModificationStamp();
 
             final IDocument finalDoc = doc;
@@ -573,31 +604,57 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
 
                 ITypedRegion[] partitioning;
                 try {
+
                     int offset = damage.getOffset();
-                    int length = damage.getLength();
                     if (offset > doc.getLength()) {
                         continue;
                     }
-                    if (offset + length > doc.getLength()) {
-                        length = doc.getLength() - offset;
+                    int endOffset = offset + damage.getLength();
+                    if (endOffset > doc.getLength()) {
+                        endOffset = doc.getLength();
                     }
+                    if (offset < 0) {
+                        Log.log("Damage offset < 0 (" + offset + ")! Setting to 0.");
+                        offset = 0;
+                    }
+
+                    ITypedRegion partition = doc.getPartition(offset);
+                    int partitionStart = partition.getOffset();
+                    if (partitionStart < offset) {
+                        // Unless we're at the start of a partition, we should always work with full lines.
+                        IRegion lineInformationOfOffset = doc.getLineInformationOfOffset(offset);
+                        // otherwise, make it go to the line (or partition) start
+                        offset = Math.max(partitionStart, lineInformationOfOffset.getOffset());
+                    }
+
+                    partition = doc.getPartition(endOffset);
+                    if (partition.getOffset() + partition.getLength() != endOffset) { // if equal to the end of partition, it's ok
+                        // otherwise, make it go to the end of line (or partition)
+                        IRegion lineInformationOfOffset = doc.getLineInformationOfOffset(endOffset);
+                        endOffset = Math.min(partition.getOffset() + partition.getLength(),
+                                lineInformationOfOffset.getOffset() + lineInformationOfOffset.getLength());
+                    }
+
+                    if (modificationStamp != docExt.getModificationStamp()) {
+                        return rescheduleLater(finalRegions, doc, isFullDamage);
+                    }
+
                     partitioning = TextUtilities.computePartitioning(doc, getDocumentPartitioning(),
-                            offset, length, false);
+                            offset, endOffset - offset, false);
                     for (ITypedRegion r : partitioning) {
                         LiClipseDamagerRepairer repairer = getRepairer(r.getType());
                         repairer.setDocument(doc);
-                        repairer.setDocumentTime(modificationStamp);
                         if (modificationStamp != docExt.getModificationStamp()) {
-                            return rescheduleLater(finalRegions, doc);
+                            return rescheduleLater(finalRegions, doc, isFullDamage);
                         }
                         if (repairer != null) {
-                            repairer.createPresentation(presentation, r);
+                            repairer.createPresentation(presentation, r, modificationStamp);
                         }
                     }
                     presentations.add(presentation);
-                } catch (BadLocationException e) {
+                } catch (Exception e) {
                     if (modificationStamp != docExt.getModificationStamp()) {
-                        rescheduleLater(finalRegions, finalDoc);
+                        rescheduleLater(finalRegions, finalDoc, isFullDamage);
                         return Status.OK_STATUS;
                     }
                     Log.log(e);
@@ -605,7 +662,7 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
             }
 
             if (modificationStamp != docExt.getModificationStamp()) {
-                return rescheduleLater(finalRegions, doc);
+                return rescheduleLater(finalRegions, doc, isFullDamage);
             }
 
             RunInUiThread.async(new Runnable() {
@@ -614,7 +671,7 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
                 public void run() {
                     // Never apply if the document changed in the meanwhile...
                     if (modificationStamp != docExt.getModificationStamp()) {
-                        rescheduleLater(finalRegions, finalDoc);
+                        rescheduleLater(finalRegions, finalDoc, isFullDamage);
                         return;
                     }
                     for (TextPresentation presentation : presentations) {
@@ -628,20 +685,23 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
                     }
                 }
             }, true);
+
             return Status.OK_STATUS;
         }
 
-        private IStatus rescheduleLater(List<IRegion> finalRegions, IDocument doc) {
-            synchronized (repairListLock) {
-                if (DEBUG) {
-                    System.out.println("Document changed. Rescheduling (1).\n\n");
+        private IStatus rescheduleLater(List<IRegion> finalRegions, IDocument doc, boolean rescheduleLaterIfChanged) {
+            if (rescheduleLaterIfChanged) {
+                synchronized (repairListLock) {
+                    if (DEBUG) {
+                        System.out.println("Document changed. Rescheduling (1).\n\n");
+                    }
+                    for (IRegion r : finalRegions) {
+                        repairList.add(0, new RepairListEntry(r, doc));
+                    }
+                    schedule();
                 }
-                for (IRegion r : finalRegions) {
-                    repairList.add(0, new RepairListEntry(r, doc));
-                }
-                schedule();
-                return Status.OK_STATUS;
             }
+            return Status.OK_STATUS;
         }
     }
 

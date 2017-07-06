@@ -81,10 +81,15 @@ public class ScannerRange
     // Used without resume (either the whole document for partitioning or a given partition).
     public ScannerRange(IDocument doc, int offset, int length, IPartitionCodeReaderInScannerHelper helper,
             ICustomPartitionTokenScanner scanner) {
+        this(doc, offset, length, helper, scanner, ((IDocumentExtension4) doc).getModificationStamp());
+
+    }
+
+    public ScannerRange(IDocument doc, int offset, int length, IPartitionCodeReaderInScannerHelper helper,
+            ICustomPartitionTokenScanner scanner, long docTime) {
         helper.setDocument(doc);
         this.fDocument = doc;
-        IDocumentExtension4 docExt4 = (IDocumentExtension4) doc;
-        this.fCreationModificationStamp = docExt4.getModificationStamp();
+        this.fCreationModificationStamp = docTime;
         this.helper = helper;
         this.fScanner = scanner;
         this.setRange(doc, offset, length);
@@ -550,6 +555,7 @@ public class ScannerRange
 
     public Object tm4eCache;
     public boolean lastTmLineFoundInCache;
+    private boolean cacheFinalResult;
 
     public ITokenizeLineResult tokenizeLine(int currOffset, int lineFromOffset, String lineContents, IGrammar grammar)
             throws DocumentTimeStampChangedException {
@@ -569,6 +575,11 @@ public class ScannerRange
         if (this.fCreationModificationStamp != docExt4.getModificationStamp()) {
             throw new DocumentTimeStampChangedException();
         }
+
+    }
+
+    public void setCacheFinalResult(boolean cacheFinalResult) {
+        this.cacheFinalResult = cacheFinalResult;
 
     }
 

@@ -262,6 +262,11 @@ public class LiClipseDocumentPartitionerTmCache extends FastPartitioner {
                                         "Error accessing index: " + diff +
                                                 " len: " + tm4eCache.lines.length +
                                                 " partitionEndLine: " + partitionEndLine);
+                            } catch (NullPointerException e) {
+                                throw new NullPointerException(
+                                        "Error accessing NULL index: " + diff +
+                                                " len: " + tm4eCache.lines.length +
+                                                " partitionEndLine: " + partitionEndLine);
                             }
                         }
                         scannerRange.tm4eCache = tm4eCache;

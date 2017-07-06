@@ -38,7 +38,6 @@ public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPr
     private ICustomPartitionTokenScanner fScanner;
     private TextAttribute fDefaultTextAttribute = new TextAttribute(null);
     private IDocument fDocument;
-    private long fDocTime = -1;
 
     public LiClipseDamagerRepairer(ICustomPartitionTokenScanner scanner,
             CustomTextAttributeTokenCreator defaultTokenCreator) {
@@ -46,9 +45,16 @@ public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPr
         this.defaultTokenCreator = defaultTokenCreator;
     }
 
-    private void addRange(TextPresentation presentation, int offset, int length, TextAttribute attr, IToken token) {
+    private StyleRange addRange(TextPresentation presentation, int offset, int length, TextAttribute attr, IToken token,
+            StyleRange lastRange) {
         try {
             if (attr != null) {
+                if (lastRange != null) {
+                    if (lastRange.start >= offset) {
+                        Log.log("Error. Trying to add range (" + offset + ") < last range (" + lastRange.start + ")");
+                        return lastRange;
+                    }
+                }
                 int style = attr.getStyle();
                 int fontStyle = style & (SWT.ITALIC | SWT.BOLD | SWT.NORMAL);
                 StyleRange styleRange = new StyleRange(offset, length, attr.getForeground(), attr.getBackground(),
@@ -58,10 +64,12 @@ public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPr
                 styleRange.font = attr.getFont();
                 styleRange.data = token;
                 presentation.addStyleRange(styleRange);
+                return styleRange;
             }
         } catch (Exception e) {
             Log.log(e);
         }
+        return null;
     }
 
     @Override
@@ -111,24 +119,29 @@ public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPr
         return ret;
     }
 
+    /**
+     * Note: prefer the version which receives the document modification stamp.
+     */
     @Override
     public void createPresentation(TextPresentation presentation, ITypedRegion region) {
         // Note: this may be called in a thread, so, if the document changes during the process, the
         // text presentation should be considered invalid (the caller process has to take care of that).
-        if (this.fDocTime == -1) {
-            this.fDocTime = ((IDocumentExtension4) fDocument).getModificationStamp();
-        }
+        long docTime = ((IDocumentExtension4) fDocument).getModificationStamp();
+        createPresentation(presentation, region, docTime);
+    }
 
+    /**
+     * This method should be preferred if the docTime is gotten at the start of some method.
+     */
+    public void createPresentation(TextPresentation presentation, ITypedRegion region, long docTime) {
         try {
-            internalCreatePresentation(presentation, region);
+            internalCreatePresentation(presentation, region, docTime);
         } catch (Exception e) {
-            if (fDocTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
-                Log.logInfo("[document changed] Skipping coloring for region: " + region + ". Doc time: " + fDocTime);
+            if (docTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
+                // Callers are responsible for re-requesting in this case.
                 return;
             }
             Log.log(e);
-        } finally {
-            this.fDocTime = -1;
         }
     }
 
@@ -137,24 +150,26 @@ public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPr
         fDocument = document;
     }
 
-    public void setDocumentTime(long modificationStamp) {
-        this.fDocTime = modificationStamp;
-    }
-
-    private void internalCreatePresentation(TextPresentation presentation, ITypedRegion region)
+    private void internalCreatePresentation(TextPresentation presentation, ITypedRegion region, long docTime)
             throws DocumentTimeStampChangedException {
         int lastStart = region.getOffset();
-        int length = 0;
+        int lastTokenEndOffset = lastStart;
         boolean firstToken = true;
         IToken lastToken = Token.UNDEFINED;
         TextAttribute lastAttribute = getTokenTextAttribute(lastToken);
 
-        SubTokensTokensProvider subTokensProvider = new SubTokensTokensProvider(fDocument, region, fScanner);
+        if (DEBUG) {
+            System.err.println("\n\n\nStarting to compute tokens for region: start offset: " + region.getOffset()
+                    + " end offset: " + (region.getOffset() + region.getLength()) + " thread: "
+                    + Thread.currentThread().getName());
+        }
+        SubTokensTokensProvider subTokensProvider = new SubTokensTokensProvider(fDocument, region, fScanner, docTime);
 
         int maxOffset = region.getOffset() + region.getLength();
         int minOffset = region.getOffset();
         //System.out.println("Computing sub tokens scanning");
         int i = 0;
+        StyleRange lastRange = null;
         try {
             while (true) {
                 IToken token = subTokensProvider.nextToken();
@@ -163,58 +178,94 @@ public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPr
                 }
                 i += 1;
                 if (i % 50 == 0) {
-                    if (fDocTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
-                        Log.logInfo(
-                                "[document changed] Skipping coloring for region: " + region + ". Doc time: "
-                                        + fDocTime);
-                        break;
+                    if (docTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
+                        throw new DocumentTimeStampChangedException();
                     }
                 }
 
                 final TextAttribute attribute = getTokenTextAttribute(token);
                 final int tokenOffset = subTokensProvider.getTokenOffset();
-                final int tokenLength = subTokensProvider.getTokenLength();
+                final int tokenEndOffset = tokenOffset + subTokensProvider.getTokenLength();
+                if (DEBUG) {
+                    System.out.println("Token found: offset start: " + tokenOffset + " offset end: " + tokenEndOffset);
+                }
 
                 if (tokenOffset < minOffset) {
+                    if (docTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
+                        throw new DocumentTimeStampChangedException();
+                    }
+
                     Log.log(StringUtils.format(
                             "Error in scanning partition: tokenOffset (%s) < minOffset (%s).", tokenOffset, minOffset));
                     continue;
                 }
-                if (tokenOffset + tokenLength > maxOffset) {
+                if (tokenEndOffset > maxOffset) {
+                    if (docTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
+                        throw new DocumentTimeStampChangedException();
+                    }
                     Log.log(StringUtils.format(
-                            "Error in scanning partition: tokenOffset (%s) + tokenLength (%s) > maxOffset (%s).",
-                            tokenOffset, tokenLength, maxOffset));
+                            "Error in scanning partition: tokenOffset (%s) -----  tokenEndOffset (%s) > maxOffset (%s).",
+                            tokenOffset, tokenEndOffset, maxOffset));
                     break;
+                }
+
+                if (tokenEndOffset < tokenOffset) {
+                    if (docTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
+                        throw new DocumentTimeStampChangedException();
+                    }
+
+                    Log.log(StringUtils.format(
+                            "Error in scanning partition: tokenEndOffsetOffset (%s) < tokenOffset (%s).",
+                            tokenEndOffset, tokenOffset, maxOffset));
+                    continue;
+                }
+                if (tokenEndOffset == tokenOffset) {
+                    continue; // 0-len partition is Ok on textmate
+                }
+
+                if (tokenOffset < lastStart) {
+                    if (docTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
+                        throw new DocumentTimeStampChangedException();
+                    }
+
+                    Log.log(StringUtils.format(
+                            "Error in scanning partition: tokenOffset (%s) < lastStart (%s).",
+                            tokenOffset, lastStart));
+                    continue;
                 }
 
                 lastToken = token;
                 if (MERGE_TOKENS && lastAttribute != null && lastAttribute.equals(attribute)) {
-                    length += tokenLength;
-                    firstToken = false;
+                    if (tokenEndOffset > lastTokenEndOffset) {
+                        lastTokenEndOffset = tokenEndOffset;
+                    }
                 } else {
                     if (!firstToken) {
-                        addRange(presentation, lastStart, length, lastAttribute, token);
+                        lastRange = addRange(presentation, lastStart, lastTokenEndOffset - lastStart, lastAttribute,
+                                token, lastRange);
                     }
                     firstToken = false;
                     lastAttribute = attribute;
                     lastStart = tokenOffset;
-                    length = tokenLength;
+                    lastTokenEndOffset = tokenEndOffset;
                 }
             }
         } catch (RuntimeException e) {
             // If the doc changes in the meanwhile, index errors are ok.
-            if (fDocTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
-                Log.logInfo("[document changed] Skipping coloring for region: " + region + ". Doc time: " + fDocTime);
-                return;
+            if (docTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
+                throw new DocumentTimeStampChangedException();
             }
+            Log.log(e);
         }
 
-        if (fDocTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
-            Log.logInfo("[document changed] Skipping coloring for region: " + region + ". Doc time: " + fDocTime);
-            return;
+        if (docTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
+            throw new DocumentTimeStampChangedException();
         }
 
-        addRange(presentation, lastStart, length, lastAttribute, lastToken);
+        if (lastTokenEndOffset > lastStart) {
+            lastRange = addRange(presentation, lastStart, lastTokenEndOffset - lastStart, lastAttribute, lastToken,
+                    lastRange);
+        }
     }
 
     private TextAttribute getTokenTextAttribute(IToken token) {
