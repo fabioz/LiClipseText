@@ -8,6 +8,7 @@ package org.brainwy.liclipsetext.editor.common.partitioning;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -20,7 +21,6 @@ import org.brainwy.liclipsetext.shared_ui.utils.RunInUiThread;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.text.BadLocationException;
@@ -62,6 +62,54 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
     private static final boolean UPDATE_ASYNC = true;
 
     private IDocument fDocument;
+
+    private static class TextPresentationStoreRanges extends TextPresentation {
+
+        private List<StyleRange> ranges = new ArrayList<>(1000);
+
+        private int startOffset = -1;
+        private int endOffset = -1;
+
+        @Override
+        public void addStyleRange(StyleRange range) {
+            ranges.add(range);
+        }
+
+        @Override
+        public void replaceStyleRange(StyleRange range) {
+            throw new RuntimeException("should not be used");
+        }
+
+        @Override
+        public void replaceStyleRanges(StyleRange[] ranges) {
+            throw new RuntimeException("should not be used");
+        }
+
+        @Override
+        public void mergeStyleRange(StyleRange range) {
+            throw new RuntimeException("should not be used");
+        }
+
+        @Override
+        public void mergeStyleRanges(StyleRange[] ranges) {
+            throw new RuntimeException("should not be used");
+        }
+
+        public void mergeRegion(IRegion lineInformationOfOffset) {
+            if (startOffset == -1) {
+                startOffset = lineInformationOfOffset.getOffset();
+            }
+            endOffset = lineInformationOfOffset.getOffset() + lineInformationOfOffset.getLength();
+        }
+
+        public TextPresentation toFinalTextPresentation() {
+            TextPresentation ret = new TextPresentation(new Region(startOffset, endOffset), ranges.size());
+            for (StyleRange range : ranges) {
+                ret.addStyleRange(range);
+            }
+            return ret;
+        }
+    }
 
     /**
      * Internal listener class.
@@ -432,15 +480,14 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
      */
     private void applyPresentation(IRegion damage, IDocument document) {
         try {
-            final TextPresentation presentation;
             if (fRepairers == null || fRepairers.isEmpty()) {
-                presentation = new TextPresentation(damage, 100);
+                TextPresentation presentation = new TextPresentation(damage, 100);
                 presentation.setDefaultStyleRange(new StyleRange(damage.getOffset(), damage.getLength(), null, null));
                 applyTextRegionCollection(presentation);
             } else {
                 int totalDamageLen = 0;
-                int firstDamageOffset = Integer.MAX_VALUE;
                 IDocument doc = null;
+                List<IRegion> finalRegions;
                 synchronized (repairListLock) {
                     repairList.add(new RepairListEntry(damage, document));
                     List<IRegion> regions = new ArrayList<>();
@@ -459,7 +506,7 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
                     if (doc == null) {
                         return;
                     }
-                    List<IRegion> finalRegions = new ArrayList<>(regions);
+                    finalRegions = new ArrayList<>(regions);
 
                     // Ok, we now have the regions and the docs, let's join the regions we can...
                     for (IRegion iRegion : regions) {
@@ -490,35 +537,77 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
                         }
                     }
 
+                    Collections.sort(finalRegions,
+                            (IRegion a, IRegion b) -> Integer.compare(a.getOffset(), b.getOffset()));
+
                     for (IRegion r : finalRegions) {
-                        repairList.add(new RepairListEntry(r, doc));
                         totalDamageLen += r.getLength();
-                        firstDamageOffset = Math.min(firstDamageOffset, r.getOffset());
                     }
-                }
-                if (UPDATE_ASYNC && totalDamageLen > 10000) {
-                    if (DEBUG) {
-                        System.out.println("Making async damage update");
-                    }
-                    if (firstDamageOffset != Integer.MAX_VALUE) {
-                        // Damage the first line right away (so that at least that line is ok).
-                        int damagedLine = doc.getLineOfOffset(firstDamageOffset);
-                        int numberOfLines = document.getNumberOfLines();
-                        long initialTime = System.currentTimeMillis();
-                        for (int i = damagedLine; i < numberOfLines; i++) {
-                            IRegion lineInformationOfOffset = doc.getLineInformation(i);
-                            processRepairListJob.repairDamage(Arrays.asList(lineInformationOfOffset), doc, false);
-                            if (System.currentTimeMillis() > initialTime + 75) {
-                                break;
-                            }
+
+                    if (UPDATE_ASYNC && totalDamageLen > 10000) {
+                        if (DEBUG) {
+                            System.out.println("Making async damage update");
                         }
+                        long initialTime = System.currentTimeMillis();
+
+                        // Do what we can in the main thread and reschedule for a thread only the remainder.
+                        int maxMillisToParse = 100;
+                        for (ListIterator<IRegion> it = finalRegions.listIterator(); it.hasNext()
+                                && System.currentTimeMillis() < initialTime + maxMillisToParse;) {
+                            TextPresentationStoreRanges rangesStore = new TextPresentationStoreRanges();
+                            final IRegion region = it.next();
+
+                            final int regionEndOffset = region.getOffset() + region.getLength();
+
+                            final int damagedLine = doc.getLineOfOffset(region.getOffset());
+                            final int endDamagedLine = doc.getLineOfOffset(regionEndOffset);
+                            final int numberOfLines = Math.min(endDamagedLine, document.getNumberOfLines());
+
+                            IRegion lastDamage = null;
+                            for (int i = damagedLine; i < numberOfLines; i++) {
+                                // Repair damage by line synchronously in the available time.
+                                IRegion lineInformationOfOffset = doc.getLineInformation(i); //Note: not getting new lines
+                                if ((lineInformationOfOffset.getOffset()
+                                        + lineInformationOfOffset.getLength()) > regionEndOffset) {
+                                    lineInformationOfOffset = new Region(lineInformationOfOffset.getOffset(),
+                                            regionEndOffset - lineInformationOfOffset.getOffset());
+                                }
+                                rangesStore.mergeRegion(lineInformationOfOffset);
+                                processRepairListJob.repairDamage(Arrays.asList(lineInformationOfOffset), doc, false,
+                                        rangesStore);
+                                lastDamage = lineInformationOfOffset;
+                                if (System.currentTimeMillis() > initialTime + maxMillisToParse) {
+                                    break;
+                                }
+                            }
+
+                            if (lastDamage != null) {
+                                int endDamageOffset = lastDamage.getOffset() + lastDamage.getLength();
+                                if (endDamageOffset >= regionEndOffset) {
+                                    // No need to re-add it as we consumed all of it.
+                                    it.remove();
+                                } else {
+                                    it.set(new Region(endDamageOffset, regionEndOffset - endDamageOffset));
+                                }
+                            }
+                            applyTextRegionCollection(rangesStore.toFinalTextPresentation());
+                        }
+
+                        for (IRegion r : finalRegions) {
+                            repairList.add(new RepairListEntry(r, doc));
+                        }
+                        if (repairList.size() > 0) {
+                            processRepairListJob.schedule();
+                        }
+                    } else {
+                        if (DEBUG) {
+                            System.out.println("Making sync damage update");
+                        }
+                        for (IRegion r : finalRegions) {
+                            repairList.add(new RepairListEntry(r, doc));
+                        }
+                        processRepairListJob.doRun();
                     }
-                    processRepairListJob.schedule();
-                } else {
-                    if (DEBUG) {
-                        System.out.println("Making sync damage update");
-                    }
-                    processRepairListJob.run(new NullProgressMonitor());
                 }
             }
 
@@ -555,6 +644,11 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
 
         @Override
         protected IStatus run(IProgressMonitor monitor) {
+            doRun();
+            return Status.OK_STATUS;
+        }
+
+        protected void doRun() {
             List<IRegion> finalRegions = new ArrayList<>();
             IDocument doc = null;
             synchronized (repairListLock) {
@@ -577,20 +671,14 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
             }
 
             if (doc == null) {
-                return Status.OK_STATUS;
+                return;
             }
 
-            return repairDamage(finalRegions, doc, true);
+            repairDamage(finalRegions, doc, true, null);
         }
 
-        /**
-         *
-         * @param isFullDamage if true, we're damaging a full partition
-         *  (in which case we can recache textmate tokens and reschedule if needed),
-         *  otherwise, we're damaging only a line partially and we should not cache anything.
-         */
-        private IStatus repairDamage(List<IRegion> finalRegions, IDocument doc,
-                boolean isFullDamage) {
+        private void repairDamage(List<IRegion> finalRegions, IDocument doc,
+                boolean rescheduleLaterIfChanged, TextPresentation applyToPresentation) {
             List<TextPresentation> presentations = new ArrayList<>(finalRegions.size());
             final IDocumentExtension4 docExt = (IDocumentExtension4) fDocument;
             final long modificationStamp = docExt.getModificationStamp();
@@ -601,7 +689,11 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
                     System.out.println("Final: " + damage);
                 }
                 TextPresentation presentation = new TextPresentation(damage, 1000);
-
+                if (applyToPresentation == null) {
+                    presentation = new TextPresentation(damage, 1000);
+                } else {
+                    presentation = applyToPresentation;
+                }
                 ITypedRegion[] partitioning;
                 try {
 
@@ -629,14 +721,15 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
 
                     partition = doc.getPartition(endOffset);
                     if (partition.getOffset() + partition.getLength() != endOffset) { // if equal to the end of partition, it's ok
-                        // otherwise, make it go to the end of line (or partition)
+                        // Note: doesn't get new lines
                         IRegion lineInformationOfOffset = doc.getLineInformationOfOffset(endOffset);
                         endOffset = Math.min(partition.getOffset() + partition.getLength(),
                                 lineInformationOfOffset.getOffset() + lineInformationOfOffset.getLength());
                     }
 
                     if (modificationStamp != docExt.getModificationStamp()) {
-                        return rescheduleLater(finalRegions, doc, isFullDamage);
+                        rescheduleLater(finalRegions, doc, rescheduleLaterIfChanged);
+                        return;
                     }
 
                     partitioning = TextUtilities.computePartitioning(doc, getDocumentPartitioning(),
@@ -645,51 +738,55 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
                         LiClipseDamagerRepairer repairer = getRepairer(r.getType());
                         repairer.setDocument(doc);
                         if (modificationStamp != docExt.getModificationStamp()) {
-                            return rescheduleLater(finalRegions, doc, isFullDamage);
+                            rescheduleLater(finalRegions, doc, rescheduleLaterIfChanged);
+                            return;
                         }
                         if (repairer != null) {
-                            repairer.createPresentation(presentation, r, modificationStamp);
+                            boolean cacheFinalResult = true;
+                            repairer.createPresentation(presentation, r, modificationStamp, cacheFinalResult);
                         }
                     }
                     presentations.add(presentation);
                 } catch (Exception e) {
                     if (modificationStamp != docExt.getModificationStamp()) {
-                        rescheduleLater(finalRegions, finalDoc, isFullDamage);
-                        return Status.OK_STATUS;
+                        rescheduleLater(finalRegions, finalDoc, rescheduleLaterIfChanged);
+                        return;
                     }
                     Log.log(e);
                 }
             }
 
             if (modificationStamp != docExt.getModificationStamp()) {
-                return rescheduleLater(finalRegions, doc, isFullDamage);
+                rescheduleLater(finalRegions, doc, rescheduleLaterIfChanged);
+                return;
             }
 
-            RunInUiThread.async(new Runnable() {
+            if (applyToPresentation == null) {
+                RunInUiThread.async(new Runnable() { // Note: if possible will do in the current thread.
 
-                @Override
-                public void run() {
-                    // Never apply if the document changed in the meanwhile...
-                    if (modificationStamp != docExt.getModificationStamp()) {
-                        rescheduleLater(finalRegions, finalDoc, isFullDamage);
-                        return;
-                    }
-                    for (TextPresentation presentation : presentations) {
-                        if (DEBUG) {
-                            System.out.println("Applying text presentation.");
+                    @Override
+                    public void run() {
+                        // Never apply if the document changed in the meanwhile...
+                        if (modificationStamp != docExt.getModificationStamp()) {
+                            rescheduleLater(finalRegions, finalDoc, rescheduleLaterIfChanged);
+                            return;
                         }
-                        applyTextRegionCollection(presentation);
+                        for (TextPresentation presentation : presentations) {
+                            if (DEBUG) {
+                                System.out.println("Applying text presentation.");
+                            }
+                            applyTextRegionCollection(presentation);
+                        }
+                        if (DEBUG) {
+                            System.out.println("\n.");
+                        }
                     }
-                    if (DEBUG) {
-                        System.out.println("\n.");
-                    }
-                }
-            }, true);
+                }, true);
+            }
 
-            return Status.OK_STATUS;
         }
 
-        private IStatus rescheduleLater(List<IRegion> finalRegions, IDocument doc, boolean rescheduleLaterIfChanged) {
+        private void rescheduleLater(List<IRegion> finalRegions, IDocument doc, boolean rescheduleLaterIfChanged) {
             if (rescheduleLaterIfChanged) {
                 synchronized (repairListLock) {
                     if (DEBUG) {
@@ -701,7 +798,6 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
                     schedule();
                 }
             }
-            return Status.OK_STATUS;
         }
     }
 

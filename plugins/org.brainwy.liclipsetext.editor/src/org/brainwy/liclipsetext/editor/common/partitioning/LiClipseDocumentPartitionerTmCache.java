@@ -76,6 +76,9 @@ public class LiClipseDocumentPartitionerTmCache extends FastPartitioner {
                 throws DocumentTimeStampChangedException {
             scannerRange.checkDocumentTimeStampChanged();
             Tm4eScannerCache tm4eCache = (Tm4eScannerCache) scannerRange.tm4eCache;
+            if (tm4eCache == null) {
+                return; // Empty line may get here.
+            }
             tm4eCache.prevState = null; // This isn't valid anymore (it's only useful during the current parsing).
             for (Iterator<Tm4eScannerCache> it = caches.iterator(); it.hasNext();) {
                 Tm4eScannerCache currTm4eCache = it.next();
@@ -252,21 +255,34 @@ public class LiClipseDocumentPartitionerTmCache extends FastPartitioner {
                         tm4eCache = null;
                     } else {
                         int diff = lineFromOffset - tm4eCache.startLine - 1;
+                        while (diff >= tm4eCache.lines.length) {
+                            // Empty lines may not have an entry there when invalidated.
+                            diff--;
+                        }
                         if (diff < 0) {
                             prevState = null;
                         } else {
                             try {
-                                prevState = tm4eCache.lines[diff].getRuleStack();
-                            } catch (ArrayIndexOutOfBoundsException e) {
+                                ITokenizeLineResult result = tm4eCache.lines[diff];
+                                while (result == null && diff > 0) {
+                                    // If we parse line-by-line and we have an empty line, the cache
+                                    // may be empty, so, return from the previous line.
+                                    diff--;
+                                    result = tm4eCache.lines[diff];
+                                }
+                                if (result == null) {
+                                    prevState = null;
+                                } else {
+                                    prevState = result.getRuleStack();
+                                }
+                            } catch (ArrayIndexOutOfBoundsException | NullPointerException e) {
                                 throw new ArrayIndexOutOfBoundsException(
-                                        "Error accessing index: " + diff +
-                                                " len: " + tm4eCache.lines.length +
-                                                " partitionEndLine: " + partitionEndLine);
-                            } catch (NullPointerException e) {
-                                throw new NullPointerException(
-                                        "Error accessing NULL index: " + diff +
-                                                " len: " + tm4eCache.lines.length +
-                                                " partitionEndLine: " + partitionEndLine);
+                                        "Error at index " + e + ": " + diff +
+                                                " max index: " + tm4eCache.lines.length +
+                                                " partitionStartLine: " + partitionStartLine +
+                                                " partitionEndLine: " + partitionEndLine +
+                                                " cacheFinalResult: " + scannerRange.getCacheFinalResult() +
+                                                " \nThread: " + Thread.currentThread().getName());
                             }
                         }
                         scannerRange.tm4eCache = tm4eCache;
@@ -321,8 +337,10 @@ public class LiClipseDocumentPartitionerTmCache extends FastPartitioner {
 
     public void finishTm4ePartition(IGrammar grammar, ScannerRange scannerRange)
             throws DocumentTimeStampChangedException {
-        // At this point we have to persist the parsing info to the document so that we can restart the
-        // partitioning later on.
-        docCache.updateFrom(grammar, scannerRange);
+        if (scannerRange.getCacheFinalResult()) {
+            // At this point we have to persist the parsing info to the document so that we can restart the
+            // partitioning later on.
+            docCache.updateFrom(grammar, scannerRange);
+        }
     }
 }

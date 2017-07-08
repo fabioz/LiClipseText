@@ -583,4 +583,8 @@ public class ScannerRange
 
     }
 
+    public boolean getCacheFinalResult() {
+        return cacheFinalResult;
+    }
+
 }

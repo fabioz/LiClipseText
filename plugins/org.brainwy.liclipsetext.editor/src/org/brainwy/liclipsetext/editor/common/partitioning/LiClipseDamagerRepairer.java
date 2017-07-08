@@ -127,16 +127,20 @@ public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPr
         // Note: this may be called in a thread, so, if the document changes during the process, the
         // text presentation should be considered invalid (the caller process has to take care of that).
         long docTime = ((IDocumentExtension4) fDocument).getModificationStamp();
-        createPresentation(presentation, region, docTime);
+        createPresentation(presentation, region, docTime, true);
     }
 
     /**
      * This method should be preferred if the docTime is gotten at the start of some method.
      */
-    public void createPresentation(TextPresentation presentation, ITypedRegion region, long docTime) {
+    public void createPresentation(TextPresentation presentation, ITypedRegion region, long docTime,
+            boolean cacheFinalResult) {
         try {
-            internalCreatePresentation(presentation, region, docTime);
+            internalCreatePresentation(presentation, region, docTime, cacheFinalResult);
         } catch (Exception e) {
+            if (e instanceof DocumentTimeStampChangedException) {
+                return;
+            }
             if (docTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
                 // Callers are responsible for re-requesting in this case.
                 return;
@@ -150,7 +154,8 @@ public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPr
         fDocument = document;
     }
 
-    private void internalCreatePresentation(TextPresentation presentation, ITypedRegion region, long docTime)
+    private void internalCreatePresentation(TextPresentation presentation, ITypedRegion region, long docTime,
+            boolean cacheFinalResult)
             throws DocumentTimeStampChangedException {
         int lastStart = region.getOffset();
         int lastTokenEndOffset = lastStart;
@@ -163,7 +168,8 @@ public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPr
                     + " end offset: " + (region.getOffset() + region.getLength()) + " thread: "
                     + Thread.currentThread().getName());
         }
-        SubTokensTokensProvider subTokensProvider = new SubTokensTokensProvider(fDocument, region, fScanner, docTime);
+        SubTokensTokensProvider subTokensProvider = new SubTokensTokensProvider(fDocument, region, fScanner, docTime,
+                cacheFinalResult);
 
         int maxOffset = region.getOffset() + region.getLength();
         int minOffset = region.getOffset();
