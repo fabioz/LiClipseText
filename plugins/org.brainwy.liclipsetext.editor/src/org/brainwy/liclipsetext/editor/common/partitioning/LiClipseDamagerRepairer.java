@@ -162,13 +162,17 @@ public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPr
         boolean firstToken = true;
         IToken lastToken = Token.UNDEFINED;
         TextAttribute lastAttribute = getTokenTextAttribute(lastToken);
+        IDocument doc = fDocument;
+        if (hasTimeChanged(docTime, doc)) {
+            throw new DocumentTimeStampChangedException();
+        }
 
         if (DEBUG) {
             System.err.println("\n\n\nStarting to compute tokens for region: start offset: " + region.getOffset()
                     + " end offset: " + (region.getOffset() + region.getLength()) + " thread: "
                     + Thread.currentThread().getName());
         }
-        SubTokensTokensProvider subTokensProvider = new SubTokensTokensProvider(fDocument, region, fScanner, docTime,
+        SubTokensTokensProvider subTokensProvider = new SubTokensTokensProvider(doc, region, fScanner, docTime,
                 cacheFinalResult);
 
         int maxOffset = region.getOffset() + region.getLength();
@@ -184,7 +188,7 @@ public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPr
                 }
                 i += 1;
                 if (i % 50 == 0) {
-                    if (docTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
+                    if (hasTimeChanged(docTime, doc)) {
                         throw new DocumentTimeStampChangedException();
                     }
                 }
@@ -197,7 +201,7 @@ public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPr
                 }
 
                 if (tokenOffset < minOffset) {
-                    if (docTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
+                    if (hasTimeChanged(docTime, doc)) {
                         throw new DocumentTimeStampChangedException();
                     }
 
@@ -206,17 +210,17 @@ public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPr
                     continue;
                 }
                 if (tokenEndOffset > maxOffset) {
-                    if (docTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
+                    if (hasTimeChanged(docTime, doc)) {
                         throw new DocumentTimeStampChangedException();
                     }
                     Log.log(StringUtils.format(
-                            "Error in scanning partition: tokenOffset (%s) -----  tokenEndOffset (%s) > maxOffset (%s).",
-                            tokenOffset, tokenEndOffset, maxOffset));
+                            "Error in scanning partition: tokenOffset (%s) -----  tokenEndOffset (%s) > maxOffset (%s). Doc len: %s",
+                            tokenOffset, tokenEndOffset, maxOffset, doc.getLength()));
                     break;
                 }
 
                 if (tokenEndOffset < tokenOffset) {
-                    if (docTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
+                    if (hasTimeChanged(docTime, doc)) {
                         throw new DocumentTimeStampChangedException();
                     }
 
@@ -230,7 +234,7 @@ public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPr
                 }
 
                 if (tokenOffset < lastStart) {
-                    if (docTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
+                    if (hasTimeChanged(docTime, doc)) {
                         throw new DocumentTimeStampChangedException();
                     }
 
@@ -258,13 +262,13 @@ public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPr
             }
         } catch (RuntimeException e) {
             // If the doc changes in the meanwhile, index errors are ok.
-            if (docTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
+            if (hasTimeChanged(docTime, doc)) {
                 throw new DocumentTimeStampChangedException();
             }
             Log.log(e);
         }
 
-        if (docTime != ((IDocumentExtension4) fDocument).getModificationStamp()) {
+        if (hasTimeChanged(docTime, doc)) {
             throw new DocumentTimeStampChangedException();
         }
 
@@ -272,6 +276,10 @@ public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPr
             lastRange = addRange(presentation, lastStart, lastTokenEndOffset - lastStart, lastAttribute, lastToken,
                     lastRange);
         }
+    }
+
+    private boolean hasTimeChanged(long docTime, IDocument doc) {
+        return docTime != ((IDocumentExtension4) doc).getModificationStamp() || doc != fDocument;
     }
 
     private TextAttribute getTokenTextAttribute(IToken token) {
