@@ -8,7 +8,6 @@ import org.brainwy.liclipsetext.editor.languages.LanguageMetadata.LanguageType;
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner;
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
-import org.brainwy.liclipsetext.editor.rules.FastPartitioner;
 import org.brainwy.liclipsetext.editor.rules.SubLanguageToken;
 import org.brainwy.liclipsetext.editor.rules.SwitchLanguageToken;
 import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
@@ -24,7 +23,7 @@ import org.eclipse.tm4e.core.grammar.IGrammar;
 import org.eclipse.tm4e.core.grammar.ITokenizeLineResult;
 import org.eclipse.tm4e.core.grammar.StackElement;
 
-public class LiClipseDocumentPartitionerTmCache extends FastPartitioner {
+public class LiClipseDocumentPartitionerTmCache extends LiClipseDocumentPartitionerTokensCache {
 
     public final LiClipseLanguage language;
 
@@ -36,8 +35,8 @@ public class LiClipseDocumentPartitionerTmCache extends FastPartitioner {
 
     @Override
     public void connect(IDocument document, boolean delayInitialization) {
-        super.connect(document, delayInitialization);
         docCache.clear();
+        super.connect(document, delayInitialization);
     }
 
     @Override
