@@ -83,6 +83,11 @@ public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPr
                     // Dealing with textmate grammar: damage must be done from line start or start of partition to end of partition.
                     int offset = Math.max(info.getOffset(), partition.getOffset());
                     int partitionEndOffset = partition.getOffset() + partition.getLength();
+                    if (partitionEndOffset > document.getLength()) {
+                        Log.log("Partition end offset (" + partitionEndOffset + ") > document len ("
+                                + document.getLength() + ")");
+                        partitionEndOffset = document.getLength();
+                    }
                     return new Region(offset, partitionEndOffset - offset);
                 }
                 IRegion infoEnd = document.getLineInformationOfOffset(e.getOffset() + e.getText().length());
@@ -100,6 +105,13 @@ public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPr
                     System.out.println("Damage:");
                     System.out.println(document.get(ret.getOffset(), ret.getLength()));
                 }
+
+                if (ret.getOffset() + ret.getLength() > document.getLength()) {
+                    Log.log("Region end offset (" + (ret.getOffset() + ret.getLength()) + ") > document len ("
+                            + document.getLength() + ")");
+                    ret = new Region(ret.getOffset(), document.getLength() - ret.getOffset());
+                }
+
                 return ret;
             } catch (BadLocationException x) {
                 Log.log(x);
@@ -177,6 +189,10 @@ public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPr
 
         int maxOffset = region.getOffset() + region.getLength();
         int minOffset = region.getOffset();
+
+        if (maxOffset > doc.getLength()) {
+            Log.logInfo("maxOffset (" + maxOffset + ") > doc len (" + doc.getLength() + ").");
+        }
         //System.out.println("Computing sub tokens scanning");
         int i = 0;
         StyleRange lastRange = null;

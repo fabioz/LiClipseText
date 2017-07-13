@@ -68,7 +68,7 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
 
         if (currOffset < lastEndOffset) {
             range.checkDocumentTimeStampChanged();
-            Log.log("Error computing tokens. Start offset " + currOffset + " < Last offset" + lastEndOffset);
+            Log.log("Error computing tokens. Start offset " + currOffset + " < Last offset " + lastEndOffset);
         }
 
         int c = range.read();
@@ -138,7 +138,7 @@ public class Tm4ePartitionScanner implements ICustomPartitionTokenScanner {
                     iToken.getEndIndex() - iToken.getStartIndex());
             if (subRuleToken.offset < lastEndOffset) {
                 range.checkDocumentTimeStampChanged();
-                Log.log("Error computing first token. Start offset " + subRuleToken.offset + " < Last offset"
+                Log.log("Error computing first token. Start offset " + subRuleToken.offset + " < Last offset "
                         + lastEndOffset);
             }
             lastEndOffset = subRuleToken.offset + subRuleToken.len;
