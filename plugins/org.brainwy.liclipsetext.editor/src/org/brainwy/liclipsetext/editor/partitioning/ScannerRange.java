@@ -554,7 +554,6 @@ public class ScannerRange
     // Things related to TM4e
 
     public Object tm4eCache;
-    public boolean lastTmLineFoundInCache;
     private boolean cacheFinalResult;
 
     public ITokenizeLineResult tokenizeLine(int currOffset, int lineFromOffset, String lineContents, IGrammar grammar)

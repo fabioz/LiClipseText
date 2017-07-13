@@ -151,7 +151,7 @@ public class LiClipseDocumentPartitionerTmCache extends FastPartitioner {
                     }
                     if (tm4eCache.startLine < lineFromOffset && tm4eCache.lines.length >= lineFromOffset) {
                         // Invalidate this cache from the given line downwards.
-                        ITokenizeLineResult[] lines = new ITokenizeLineResult[lineFromOffset - tm4eCache.startLine];
+                        StackElement[] lines = new StackElement[lineFromOffset - tm4eCache.startLine];
                         // Note: we keep only the valid ones (i.e.: don't keep any which have nulls).
                         System.arraycopy(tm4eCache.lines, 0, lines, 0, lineFromOffset - tm4eCache.startLine);
                         tm4eCache.lines = lines;
@@ -217,7 +217,7 @@ public class LiClipseDocumentPartitionerTmCache extends FastPartitioner {
      */
     public final static class Tm4eScannerCache {
         public StackElement prevState;
-        public ITokenizeLineResult[] lines;
+        public StackElement[] lines;
         public int startLine;
         public String startLineContents;
         public ITypedRegion partition;
@@ -263,7 +263,7 @@ public class LiClipseDocumentPartitionerTmCache extends FastPartitioner {
                             prevState = null;
                         } else {
                             try {
-                                ITokenizeLineResult result = tm4eCache.lines[diff];
+                                StackElement result = tm4eCache.lines[diff];
                                 while (result == null && diff > 0) {
                                     // If we parse line-by-line and we have an empty line, the cache
                                     // may be empty, so, return from the previous line.
@@ -273,7 +273,7 @@ public class LiClipseDocumentPartitionerTmCache extends FastPartitioner {
                                 if (result == null) {
                                     prevState = null;
                                 } else {
-                                    prevState = result.getRuleStack();
+                                    prevState = result;
                                 }
                             } catch (ArrayIndexOutOfBoundsException | NullPointerException e) {
                                 throw new ArrayIndexOutOfBoundsException(
@@ -287,7 +287,7 @@ public class LiClipseDocumentPartitionerTmCache extends FastPartitioner {
                         }
                         scannerRange.tm4eCache = tm4eCache;
                         foundInDocCache = true;
-                        ITokenizeLineResult[] newLines = new ITokenizeLineResult[nLines];
+                        StackElement[] newLines = new StackElement[nLines];
                         System.arraycopy(tm4eCache.lines, 0, newLines, 0, tm4eCache.lines.length);
                         tm4eCache.lines = newLines;
                     }
@@ -295,7 +295,7 @@ public class LiClipseDocumentPartitionerTmCache extends FastPartitioner {
 
                 if (tm4eCache == null) {
                     tm4eCache = (Tm4eScannerCache) (scannerRange.tm4eCache = new Tm4eScannerCache());
-                    tm4eCache.lines = new ITokenizeLineResult[nLines];
+                    tm4eCache.lines = new StackElement[nLines];
                     tm4eCache.startLine = partitionStartLine;
                     tm4eCache.startLineContents = lineContents;
                     prevState = null;
@@ -310,19 +310,10 @@ public class LiClipseDocumentPartitionerTmCache extends FastPartitioner {
         } else {
             prevState = tm4eCache.prevState;
         }
-        int currLineInCache = lineFromOffset - tm4eCache.startLine;
-        ITokenizeLineResult ret = null;
-        if (currLineInCache < tm4eCache.lines.length && currLineInCache >= 0) {
-            ret = tm4eCache.lines[currLineInCache];
-            scannerRange.lastTmLineFoundInCache = true;
-        }
-        if (ret == null) {
-            ret = grammar.tokenizeLine(lineContents, prevState);
-            scannerRange.lastTmLineFoundInCache = false;
-        }
+        ITokenizeLineResult ret = grammar.tokenizeLine(lineContents, prevState);
 
         try {
-            tm4eCache.lines[lineFromOffset - tm4eCache.startLine] = ret;
+            tm4eCache.lines[lineFromOffset - tm4eCache.startLine] = ret.getRuleStack();
         } catch (ArrayIndexOutOfBoundsException e) {
             throw new RuntimeException(
                     StringUtils.format(

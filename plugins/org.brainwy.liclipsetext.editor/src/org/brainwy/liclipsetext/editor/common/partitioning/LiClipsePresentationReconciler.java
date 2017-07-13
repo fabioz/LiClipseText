@@ -31,6 +31,7 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentExtension3;
 import org.eclipse.jface.text.IDocumentExtension4;
 import org.eclipse.jface.text.IDocumentListener;
+import org.eclipse.jface.text.IDocumentPartitionerExtension2;
 import org.eclipse.jface.text.IDocumentPartitioningListener;
 import org.eclipse.jface.text.IDocumentPartitioningListenerExtension;
 import org.eclipse.jface.text.IDocumentPartitioningListenerExtension2;
@@ -249,10 +250,13 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
             if (e.getDocumentEvent() != null) {
                 int diff = e.getText().length() - e.getLength();
                 if (diff > 0 && e.getOffset() > 0) {
-                    StyleRange range = fViewer.getTextWidget().getStyleRangeAtOffset(e.getOffset() - 1);
-                    if (range != null) {
-                        range.length += diff;
-                        fViewer.getTextWidget().setStyleRange(range);
+                    try {
+                        StyleRange range = fViewer.getTextWidget().getStyleRangeAtOffset(e.getOffset() - 1);
+                        if (range != null) {
+                            range.length += diff;
+                            fViewer.getTextWidget().setStyleRange(range);
+                        }
+                    } catch (RuntimeException e1) {
                     }
                 }
             }
@@ -541,7 +545,7 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
                     IDocumentExtension4 docExt = (IDocumentExtension4) doc;
                     final long modificationStamp = docExt.getModificationStamp();
 
-                    finalRegions = new ArrayList<>(regions);
+                    finalRegions = new ArrayList<>(regions.size());
 
                     // Ok, we now have the regions and the docs, let's join the regions we can...
                     for (IRegion iRegion : regions) {
@@ -556,18 +560,20 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
                         boolean found = false;
                         for (ListIterator<IRegion> it = finalRegions.listIterator(); it.hasNext();) {
                             IRegion existing = it.next();
-                            if (TextUtilities.overlaps(iRegion, existing)) {
-                                int startIndex = Math.min(existing.getOffset(), iRegion.getOffset());
-                                int endIndex = Math.max(existing.getOffset() + existing.getLength(),
-                                        iRegion.getOffset() + iRegion.getLength());
+                            if (existing != iRegion) {
+                                if (TextUtilities.overlaps(iRegion, existing)) {
+                                    int startIndex = Math.min(existing.getOffset(), iRegion.getOffset());
+                                    int endIndex = Math.max(existing.getOffset() + existing.getLength(),
+                                            iRegion.getOffset() + iRegion.getLength());
 
-                                if (endIndex > docLength) {
-                                    endIndex = docLength;
+                                    if (endIndex > docLength) {
+                                        endIndex = docLength;
+                                    }
+                                    IRegion merged = new Region(startIndex, endIndex - startIndex);
+                                    it.set(merged);
+                                    found = true;
+                                    break;
                                 }
-                                IRegion merged = new Region(startIndex, endIndex - startIndex);
-                                it.set(merged);
-                                found = true;
-                                break;
                             }
                         }
                         if (!found) {
@@ -796,7 +802,8 @@ public class LiClipsePresentationReconciler implements IPresentationReconciler, 
                         offset = Math.max(partitionStart, lineInformationOfOffset.getOffset());
                     }
 
-                    partition = doc.getPartition(endOffset);
+                    partition = ((IDocumentPartitionerExtension2) doc.getDocumentPartitioner()).getPartition(endOffset,
+                            true);
                     if (partition.getOffset() + partition.getLength() != endOffset) { // if equal to the end of partition, it's ok
                         // Note: doesn't get new lines
                         IRegion lineInformationOfOffset = doc.getLineInformationOfOffset(endOffset);

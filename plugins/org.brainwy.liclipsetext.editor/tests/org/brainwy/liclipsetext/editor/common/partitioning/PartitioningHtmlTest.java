@@ -186,7 +186,6 @@ public class PartitioningHtmlTest extends TestCase {
         String lineContentsOfOffset = TextSelectionUtils.getLineContentsOfOffset(document, 33);
         IGrammar grammar = scannerForContentType.getGrammar();
         documentPartitioner.tokenizeLine(33, lineOfOffset, lineContentsOfOffset, grammar, scannerRange);
-        assertTrue(scannerRange.lastTmLineFoundInCache);
     }
 
     private IDocument createHtmlWith2CssPartitions() {
