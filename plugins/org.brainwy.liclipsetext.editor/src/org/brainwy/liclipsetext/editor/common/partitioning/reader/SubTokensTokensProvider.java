@@ -21,7 +21,6 @@ import org.brainwy.liclipsetext.shared_core.partitioner.TypedPositionWithSubToke
 import org.brainwy.liclipsetext.shared_core.string.StringUtils;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentExtension4;
-import org.eclipse.jface.text.IDocumentPartitioner;
 import org.eclipse.jface.text.ITypedRegion;
 import org.eclipse.jface.text.TypedPosition;
 import org.eclipse.jface.text.rules.IToken;
@@ -113,18 +112,20 @@ public class SubTokensTokensProvider {
         }
     }
 
-    public static void getTokens(IDocument doc, ITypedRegion region, ICustomPartitionTokenScanner fScanner,
+    public static List<SubRuleToken> getTokens(IDocument doc, ITypedRegion region,
+            ICustomPartitionTokenScanner scanner,
             long docTime, boolean cacheFinalResult) throws DocumentTimeStampChangedException {
 
         LiClipseDocumentPartitioner documentPartitioner = (LiClipseDocumentPartitioner) doc.getDocumentPartitioner();
-        documentPartitioner.get
+        List<SubRuleToken> tokens = documentPartitioner.getCachedTokens(doc, region, docTime);
+        if (tokens != null) {
+            return tokens;
+        }
 
-        List<SubRuleToken> tokens = new LinkedList<SubRuleToken>();
+        tokens = new LinkedList<SubRuleToken>();
         int lastStart = region.getOffset();
-        int lastTokenEndOffset = lastStart;
-        boolean firstToken = true;
 
-        SubTokensTokensProvider subTokensProvider = new SubTokensTokensProvider(doc, region, fScanner, docTime,
+        SubTokensTokensProvider subTokensProvider = new SubTokensTokensProvider(doc, region, scanner, docTime,
                 cacheFinalResult);
 
         int maxOffset = region.getOffset() + region.getLength();
@@ -193,9 +194,9 @@ public class SubTokensTokensProvider {
                             tokenOffset, lastStart));
                     continue;
                 }
+                tokens.add(new SubRuleToken(token, tokenOffset, tokenEndOffset - tokenOffset));
 
                 lastStart = tokenOffset;
-                lastTokenEndOffset = tokenEndOffset;
             }
         } catch (RuntimeException e) {
             // If the doc changes in the meanwhile, index errors are ok.
@@ -208,6 +209,11 @@ public class SubTokensTokensProvider {
         if (hasTimeChanged(docTime, doc)) {
             throw new DocumentTimeStampChangedException();
         }
+
+        if (cacheFinalResult) {
+            documentPartitioner.setCachedTokens(doc, region, docTime, tokens);
+        }
+        return tokens;
 
     }
 

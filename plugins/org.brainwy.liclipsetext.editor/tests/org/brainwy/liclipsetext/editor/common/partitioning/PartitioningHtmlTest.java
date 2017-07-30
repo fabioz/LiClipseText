@@ -1,6 +1,7 @@
 package org.brainwy.liclipsetext.editor.common.partitioning;
 
 import org.brainwy.liclipsetext.editor.common.partitioning.LiClipseDocumentPartitionerTmCache.Tm4eDocCache;
+import org.brainwy.liclipsetext.editor.common.partitioning.LiClipseDocumentPartitionerTokensCache.TokensCache;
 import org.brainwy.liclipsetext.editor.common.partitioning.tm4e.Tm4ePartitionScanner;
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
@@ -99,6 +100,8 @@ public class PartitioningHtmlTest extends TestCase {
                 "this&bracket:112:113",
                 "tag:113:"), partition);
         Tm4eDocCache docCache = documentPartitioner.getDocCache();
+        TokensCache tokensCache = documentPartitioner.getTokensCache();
+        assertEquals(0, tokensCache.size());
         assertEquals(0, docCache.getCaches().size()); // upon partitioning, no caching is done (only done when scanning)
 
         DummyTextViewer dummyTextViewer = new DummyTextViewer(document);
@@ -106,13 +109,19 @@ public class PartitioningHtmlTest extends TestCase {
         // Upon being connected it does: processDamage(new Region(0, newDocument.getLength()), newDocument);
         TestUtils.connectPresentationReconciler(dummyTextViewer);
         assertEquals(1, dummyTextViewer.appliedPresentations.size());
-
+        assertEquals(27, tokensCache.size()); // cached tokens by partitions
         assertEquals(2, docCache.getCaches().size()); // caches for the respective partitions should be created
+        assertEquals(120,
+                tokensCache.getLastRegionCached().getOffset() + tokensCache.getLastRegionCached().getLength());
 
         document.replace(("<html>\n"
                 + "<style type=\"text/css\"><p { \n" +
                 "/*\ncomment\n*/\n" +
                 "}\n</style>").length() - 1, 1, ""); // remove the last > so that it'll stop only on the second now
+
+        assertEquals(11, tokensCache.size()); // cached tokens by partitions
+        assertEquals(104,
+                tokensCache.getLastRegionCached().getOffset() + tokensCache.getLastRegionCached().getLength());
 
         partition = TestUtils.partition(document);
         assertEquals(TestUtils.listToExpected("tag:0:6",
@@ -132,6 +141,10 @@ public class PartitioningHtmlTest extends TestCase {
                 "tag:112:"), partition);
 
         assertEquals(1, docCache.getCaches().size()); // we should've kept the first and deleted the 2nd
+        assertEquals(11, tokensCache.size()); // cached tokens by partitions
+        assertEquals(104,
+                tokensCache.getLastRegionCached().getOffset() + tokensCache.getLastRegionCached().getLength());
+
     }
 
     public void testPartitionerHtmlTmCache2() throws Exception {

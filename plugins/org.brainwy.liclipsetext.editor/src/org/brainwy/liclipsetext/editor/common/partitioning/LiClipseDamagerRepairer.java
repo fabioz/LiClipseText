@@ -6,6 +6,8 @@
  */
 package org.brainwy.liclipsetext.editor.common.partitioning;
 
+import java.util.List;
+
 import org.brainwy.liclipsetext.editor.common.partitioning.reader.SubTokensTokensProvider;
 import org.brainwy.liclipsetext.editor.common.partitioning.tm4e.Tm4ePartitionScanner;
 import org.brainwy.liclipsetext.editor.common.partitioning.tokens.ITextAttributeProviderToken;
@@ -13,6 +15,7 @@ import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner
 import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.partitioner.DummyToken;
+import org.brainwy.liclipsetext.shared_core.partitioner.SubRuleToken;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
@@ -25,6 +28,7 @@ import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.jface.text.presentation.IPresentationDamager;
 import org.eclipse.jface.text.presentation.IPresentationRepairer;
 import org.eclipse.jface.text.rules.IToken;
+import org.eclipse.jface.text.rules.Token;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 
@@ -167,11 +171,11 @@ public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPr
     private void internalCreatePresentation(TextPresentation presentation, ITypedRegion region, long docTime,
             boolean cacheFinalResult)
             throws DocumentTimeStampChangedException {
-        //        int lastStart = region.getOffset();
-        //        int lastTokenEndOffset = lastStart;
-        //        boolean firstToken = true;
-        //        IToken lastToken = Token.UNDEFINED;
-        //        TextAttribute lastAttribute = getTokenTextAttribute(lastToken);
+        int lastStart = region.getOffset();
+        int lastTokenEndOffset = lastStart;
+        boolean firstToken = true;
+        IToken lastToken = Token.UNDEFINED;
+        TextAttribute lastAttribute = getTokenTextAttribute(lastToken);
         IDocument doc = fDocument;
         if (hasTimeChanged(docTime, doc)) {
             throw new DocumentTimeStampChangedException();
@@ -182,115 +186,38 @@ public final class LiClipseDamagerRepairer implements IPresentationRepairer, IPr
                     + " end offset: " + (region.getOffset() + region.getLength()) + " thread: "
                     + Thread.currentThread().getName());
         }
-        SubTokensTokensProvider.getTokens(doc, region, fScanner, docTime, cacheFinalResult);
-        //        SubTokensTokensProvider subTokensProvider = new SubTokensTokensProvider(doc, region, fScanner, docTime,
-        //                cacheFinalResult);
-        //
-        //        int maxOffset = region.getOffset() + region.getLength();
-        //        int minOffset = region.getOffset();
-        //
-        //        if (maxOffset > doc.getLength()) {
-        //            Log.logInfo("maxOffset (" + maxOffset + ") > doc len (" + doc.getLength() + ").");
-        //        }
-        //        //System.out.println("Computing sub tokens scanning");
-        //        int i = 0;
-        //        StyleRange lastRange = null;
-        //        try {
-        //            while (true) {
-        //                IToken token = subTokensProvider.nextToken();
-        //                if (token.isEOF()) {
-        //                    break;
-        //                }
-        //                i += 1;
-        //                if (i % 50 == 0) {
-        //                    if (hasTimeChanged(docTime, doc)) {
-        //                        throw new DocumentTimeStampChangedException();
-        //                    }
-        //                }
-        //
-        //                final TextAttribute attribute = getTokenTextAttribute(token);
-        //                final int tokenOffset = subTokensProvider.getTokenOffset();
-        //                final int tokenEndOffset = tokenOffset + subTokensProvider.getTokenLength();
-        //                if (DEBUG) {
-        //                    System.out.println("Token found: offset start: " + tokenOffset + " offset end: " + tokenEndOffset);
-        //                }
-        //
-        //                if (tokenOffset < minOffset) {
-        //                    if (hasTimeChanged(docTime, doc)) {
-        //                        throw new DocumentTimeStampChangedException();
-        //                    }
-        //
-        //                    Log.log(StringUtils.format(
-        //                            "Error in scanning partition: tokenOffset (%s) < minOffset (%s).", tokenOffset, minOffset));
-        //                    continue;
-        //                }
-        //                if (tokenEndOffset > maxOffset) {
-        //                    if (hasTimeChanged(docTime, doc)) {
-        //                        throw new DocumentTimeStampChangedException();
-        //                    }
-        //                    Log.log(StringUtils.format(
-        //                            "Error in scanning partition: tokenOffset (%s) -----  tokenEndOffset (%s) > maxOffset (%s). Doc len: %s",
-        //                            tokenOffset, tokenEndOffset, maxOffset, doc.getLength()));
-        //                    break;
-        //                }
-        //
-        //                if (tokenEndOffset < tokenOffset) {
-        //                    if (hasTimeChanged(docTime, doc)) {
-        //                        throw new DocumentTimeStampChangedException();
-        //                    }
-        //
-        //                    Log.log(StringUtils.format(
-        //                            "Error in scanning partition: tokenEndOffsetOffset (%s) < tokenOffset (%s).",
-        //                            tokenEndOffset, tokenOffset, maxOffset));
-        //                    continue;
-        //                }
-        //                if (tokenEndOffset == tokenOffset) {
-        //                    continue; // 0-len partition is Ok on textmate
-        //                }
-        //
-        //                if (tokenOffset < lastStart) {
-        //                    if (hasTimeChanged(docTime, doc)) {
-        //                        throw new DocumentTimeStampChangedException();
-        //                    }
-        //
-        //                    Log.log(StringUtils.format(
-        //                            "Error in scanning partition: tokenOffset (%s) < lastStart (%s).",
-        //                            tokenOffset, lastStart));
-        //                    continue;
-        //                }
-        //
-        //                lastToken = token;
-        //                if (MERGE_TOKENS && lastAttribute != null && lastAttribute.equals(attribute)) {
-        //                    if (tokenEndOffset > lastTokenEndOffset) {
-        //                        lastTokenEndOffset = tokenEndOffset;
-        //                    }
-        //                } else {
-        //                    if (!firstToken) {
-        //                        lastRange = addRange(presentation, lastStart, lastTokenEndOffset - lastStart, lastAttribute,
-        //                                token, lastRange);
-        //                    }
-        //                    firstToken = false;
-        //                    lastAttribute = attribute;
-        //                    lastStart = tokenOffset;
-        //                    lastTokenEndOffset = tokenEndOffset;
-        //                }
-        //            }
-        //        } catch (RuntimeException e) {
-        //            // If the doc changes in the meanwhile, index errors are ok.
-        //            if (hasTimeChanged(docTime, doc)) {
-        //                throw new DocumentTimeStampChangedException();
-        //            }
-        //            Log.log(e);
-        //        }
-        //
-        //        if (hasTimeChanged(docTime, doc)) {
-        //            throw new DocumentTimeStampChangedException();
-        //        }
-        //
-        //        if (lastTokenEndOffset > lastStart) {
-        //            lastRange = addRange(presentation, lastStart, lastTokenEndOffset - lastStart, lastAttribute, lastToken,
-        //                    lastRange);
-        //        }
+        List<SubRuleToken> tokens = SubTokensTokensProvider.getTokens(doc, region, fScanner, docTime, cacheFinalResult);
+        StyleRange lastRange = null;
+        for (SubRuleToken subRuleToken : tokens) {
+            IToken token = subRuleToken.token;
+            lastToken = token;
+
+            final TextAttribute attribute = getTokenTextAttribute(token);
+            final int tokenOffset = subRuleToken.offset;
+            final int tokenEndOffset = tokenOffset + subRuleToken.len;
+
+            if (MERGE_TOKENS && lastAttribute != null && lastAttribute.equals(attribute)) {
+                if (tokenEndOffset > lastTokenEndOffset) {
+                    lastTokenEndOffset = tokenEndOffset;
+                }
+            } else {
+                if (!firstToken) {
+                    lastRange = addRange(presentation, lastStart, lastTokenEndOffset - lastStart, lastAttribute,
+                            token, lastRange);
+                }
+                firstToken = false;
+                lastAttribute = attribute;
+                lastStart = tokenOffset;
+                lastTokenEndOffset = tokenEndOffset;
+            }
+        }
+        if (lastTokenEndOffset > lastStart) {
+            lastRange = addRange(presentation, lastStart, lastTokenEndOffset - lastStart, lastAttribute, lastToken,
+                    lastRange);
+        }
+        if (hasTimeChanged(docTime, doc)) {
+            throw new DocumentTimeStampChangedException();
+        }
     }
 
     private boolean hasTimeChanged(long docTime, IDocument doc) {
