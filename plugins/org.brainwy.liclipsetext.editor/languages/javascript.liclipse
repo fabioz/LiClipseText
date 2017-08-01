@@ -48,11 +48,19 @@ scope:
       "throws", "transient", "true", "try", "typeof",
       "var", "void", "volatile", "while", "with",
       "yield", ]
+
+    localVariable: [ 'hasOwnProperty', 'Infinity',  'isFinite',  'isNaN',
+      'isPrototypeOf', 'length',  'Math',  'NaN',
+      'name',  'Number',  'Object',  'prototype',
+      'String',  'toString',  'undefined', 'valueOf' ]
+
     bracket: [(, '{', '[', ']', '}', )]
     operator: ['!', $, '%', '&', '*', +, '-', //, /, ':', <, '=', '>', '?', ^, '|',
       '~', is, new, sizeof, typeof, unchecked, ',', ;]
 
     sub_rules: [
+      {type: NumberRule, scope: number},
+
       {type: CompositeRule, sub_rules: [
         { type: SequenceRule, scope: keyword, sequence: 'class'}, #Define that 'class' is a keyword
         { type: OneOrMoreSpacesRule, scope: default},
