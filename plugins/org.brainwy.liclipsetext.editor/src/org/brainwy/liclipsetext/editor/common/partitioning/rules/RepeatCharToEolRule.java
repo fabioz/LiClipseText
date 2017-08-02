@@ -13,11 +13,11 @@ import org.brainwy.liclipsetext.shared_core.partitioner.IChangeTokenRule;
 import org.brainwy.liclipsetext.shared_core.partitioner.IMarkScanner;
 import org.eclipse.core.runtime.AssertionFailedException;
 import org.eclipse.jface.text.rules.ICharacterScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
-public class RepeatCharToEolRule implements IPredicateRule, IChangeTokenRule {
+public class RepeatCharToEolRule implements ILiClipsePredicateRule, IChangeTokenRule {
 
     private IToken fToken;
     private final HashSet<Integer> chars;

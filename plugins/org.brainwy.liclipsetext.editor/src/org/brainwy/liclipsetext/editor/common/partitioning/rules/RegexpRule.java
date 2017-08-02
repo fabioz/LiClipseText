@@ -10,13 +10,13 @@ import java.util.Map;
 
 import org.brainwy.liclipsetext.shared_core.partitioner.IChangeTokenRule;
 import org.eclipse.jface.text.rules.ICharacterScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 
 /**
  * Close to a tmMatchRule, but with less features (i.e.: no sub-rules nor captures).
  */
-public class RegexpRule implements IPredicateRule, IChangeTokenRule {
+public class RegexpRule implements ILiClipsePredicateRule, IChangeTokenRule {
 
     private TmMatchRule tmMatchRule;
 

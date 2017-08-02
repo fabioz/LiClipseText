@@ -29,4 +29,6 @@ public interface ILanguageMetadataFileInfo {
      * Could be null.
      */
     File getParentFolder();
+
+    IStreamProvider getTmLanguageStreamProvider() throws Exception;
 }

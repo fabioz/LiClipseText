@@ -14,6 +14,7 @@ import org.brainwy.liclipsetext.editor.common.partitioning.reader.SubPartitionCo
 import org.brainwy.liclipsetext.editor.common.partitioning.reader.SubPartitionCodeReader.IAcceptPartition;
 import org.brainwy.liclipsetext.editor.common.partitioning.reader.SubPartitionCodeReader.TypedPart;
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
 import org.brainwy.liclipsetext.shared_core.string.TextSelectionUtils;
 import org.brainwy.liclipsetext.shared_core.structure.Tuple;
@@ -41,73 +42,81 @@ public class ToggleBlockCommentAction {
     }
 
     public Tuple<Integer, Integer> execute() throws BadLocationException {
-    	String spacesStr = new FastStringBuffer(spaces).appendN(' ', spaces).toString();
-    	IDocument doc = ts.getDoc();
-    	if(scope == null){
-    		// text mate bundle doesn't say the comment scope.
-    		// this implementation is a bit more naive: if it finds the start
-    		selectCompleteLine(doc);
-    		String selectedText = ts.getSelectedText();
-    		String trimmed = selectedText.trim();
-    		FastStringBuffer buf = new FastStringBuffer(selectedText, 10);
+        String spacesStr = new FastStringBuffer(spaces).appendN(' ', spaces).toString();
+        IDocument doc = ts.getDoc();
+        if (scope == null) {
+            // text mate bundle doesn't say the comment scope.
+            // this implementation is a bit more naive: if it finds the start
+            selectCompleteLine(doc);
+            String selectedText = ts.getSelectedText();
+            String trimmed = selectedText.trim();
+            FastStringBuffer buf = new FastStringBuffer(selectedText, 10);
 
-    		if(trimmed.startsWith(this.commentStart) && trimmed.endsWith(this.commentEnd)){
-    			if(trimmed.startsWith(commentStart+" ")){
-    				buf.replaceFirst(commentStart+" ", "");
-    			}else{
-    				buf.replaceFirst(commentStart, "");
-    			}
-    			if(trimmed.endsWith(" "+commentEnd)){
-    				buf.replaceLast(" "+commentEnd, "");
-    			}else{
-    				buf.replaceLast(commentEnd, "");
-    			}
+            if (trimmed.startsWith(this.commentStart) && trimmed.endsWith(this.commentEnd)) {
+                if (trimmed.startsWith(commentStart + " ")) {
+                    buf.replaceFirst(commentStart + " ", "");
+                } else {
+                    buf.replaceFirst(commentStart, "");
+                }
+                if (trimmed.endsWith(" " + commentEnd)) {
+                    buf.replaceLast(" " + commentEnd, "");
+                } else {
+                    buf.replaceLast(commentEnd, "");
+                }
 
-    			doc.replace(ts.getAbsoluteCursorOffset(), ts.getSelLength(), buf.toString());
-    			return new Tuple<Integer, Integer>(ts.getAbsoluteCursorOffset(), ts.getSelLength()-(commentStart.length() + commentEnd.length()));
-    		}else{
-    			return comment(doc, spacesStr);
-    		}
-    	}
-        SubPartitionCodeReader reader = new SubPartitionCodeReader();
-        final int initialOffset = ts.getAbsoluteCursorOffset();
-
-        final String startWith = scope + ".";
-        final String endWith = "." + scope;
-        IAcceptPartition filter = new IAcceptPartition() {
-
-            public boolean getRequireOnlyTop() {
-                return false;
+                doc.replace(ts.getAbsoluteCursorOffset(), ts.getSelLength(), buf.toString());
+                return new Tuple<Integer, Integer>(ts.getAbsoluteCursorOffset(),
+                        ts.getSelLength() - (commentStart.length() + commentEnd.length()));
+            } else {
+                return comment(doc, spacesStr);
             }
-
-            public boolean accept(TypedPart typedPart) {
-                return typedPart.type.startsWith(startWith) || typedPart.type.endsWith(endWith);
-            }
-
-            public boolean accept(TypedPosition typedPosition) {
-                return true;
-            }
-        };
-        reader.configurePartitions(true, doc, initialOffset, filter);
-
-        //reader.configurePartitions(true, doc, initialOffset, this.scope,
-        //        SwitchLanguageToken.createSubLanguageContentType("this", this.scope),
-        //        SwitchLanguageToken.createSubLanguageContentType(language.name.toLowerCase(), this.scope)
-        //        );
-
-        TypedPart part = reader.read();
-        int endOffset = initialOffset + ts.getSelLength();
-
-        List<TypedPart> commentPartitionsFound = new ArrayList<TypedPart>();
-        while (part != null) {
-            if (part.offset > endOffset) {
-                break;
-            }
-            if (part.offset <= initialOffset || part.offset + part.length >= initialOffset) {
-                commentPartitionsFound.add(part);
-            }
-            part = reader.read();
         }
+
+        List<TypedPart> commentPartitionsFound = DocumentTimeStampChangedException.retryUntilNoDocChanges(() -> {
+            SubPartitionCodeReader reader = new SubPartitionCodeReader();
+            final int initialOffset = ts.getAbsoluteCursorOffset();
+
+            final String startWith = scope + ".";
+            final String endWith = "." + scope;
+            IAcceptPartition filter = new IAcceptPartition() {
+
+                @Override
+                public boolean getRequireOnlyTop() {
+                    return false;
+                }
+
+                @Override
+                public boolean accept(TypedPart typedPart) {
+                    return typedPart.type.startsWith(startWith) || typedPart.type.endsWith(endWith);
+                }
+
+                @Override
+                public boolean accept(TypedPosition typedPosition) {
+                    return true;
+                }
+            };
+            reader.configurePartitions(true, doc, initialOffset, filter);
+
+            //reader.configurePartitions(true, doc, initialOffset, this.scope,
+            //        SwitchLanguageToken.createSubLanguageContentType("this", this.scope),
+            //        SwitchLanguageToken.createSubLanguageContentType(language.name.toLowerCase(), this.scope)
+            //        );
+
+            TypedPart part = reader.read();
+            int endOffset = initialOffset + ts.getSelLength();
+
+            List<TypedPart> ret = new ArrayList<TypedPart>();
+            while (part != null) {
+                if (part.offset > endOffset) {
+                    break;
+                }
+                if (part.offset <= initialOffset || part.offset + part.length >= initialOffset) {
+                    ret.add(part);
+                }
+                part = reader.read();
+            }
+            return ret;
+        });
 
         final int size = commentPartitionsFound.size();
 
@@ -137,36 +146,37 @@ public class ToggleBlockCommentAction {
         }
     }
 
-	private Tuple<Integer, Integer> comment(IDocument doc, String spacesStr) throws BadLocationException {
-		// Select the complete line if we have no selection at this point.
-		int selLength = ts.getSelLength();
-		String selectedText;
-		if (selLength == 0) {
-		    selectCompleteLine(doc);
-		} else {
-		    selectCompleteLine(doc);
-		    selectedText = ts.getSelectedText();
+    private Tuple<Integer, Integer> comment(IDocument doc, String spacesStr) throws BadLocationException {
+        // Select the complete line if we have no selection at this point.
+        int selLength = ts.getSelLength();
+        String selectedText;
+        if (selLength == 0) {
+            selectCompleteLine(doc);
+        } else {
+            selectCompleteLine(doc);
+            selectedText = ts.getSelectedText();
 
-		    if (selectedText.endsWith("\r\n")) {
-		        ts.setSelection(ts.getAbsoluteCursorOffset(), ts.getAbsoluteCursorOffset() + ts.getSelLength() - 2);
-		        selectedText = ts.getSelectedText();
+            if (selectedText.endsWith("\r\n")) {
+                ts.setSelection(ts.getAbsoluteCursorOffset(), ts.getAbsoluteCursorOffset() + ts.getSelLength() - 2);
+                selectedText = ts.getSelectedText();
 
-		    } else if (selectedText.endsWith("\r") || selectedText.endsWith("\n")) {
-		        ts.setSelection(ts.getAbsoluteCursorOffset(), ts.getAbsoluteCursorOffset() + ts.getSelLength() - 1);
-		        selectedText = ts.getSelectedText();
-		    }
-		}
-		selectedText = ts.getSelectedText();
+            } else if (selectedText.endsWith("\r") || selectedText.endsWith("\n")) {
+                ts.setSelection(ts.getAbsoluteCursorOffset(), ts.getAbsoluteCursorOffset() + ts.getSelLength() - 1);
+                selectedText = ts.getSelectedText();
+            }
+        }
+        selectedText = ts.getSelectedText();
 
-		String replacementText = new FastStringBuffer(commentStart, selectedText.length() + commentEnd.length() + 8)
-		        .append(spacesStr).append(selectedText).append(spacesStr).append(commentEnd).toString();
+        String replacementText = new FastStringBuffer(commentStart, selectedText.length() + commentEnd.length() + 8)
+                .append(spacesStr).append(selectedText).append(spacesStr).append(commentEnd).toString();
 
-		doc.replace(ts.getAbsoluteCursorOffset(), ts.getSelLength(), replacementText);
+        doc.replace(ts.getAbsoluteCursorOffset(), ts.getSelLength(), replacementText);
 
-		return new Tuple<Integer, Integer>(ts.getAbsoluteCursorOffset() + commentStart.length()
-		        + spacesStr.length(), replacementText.length()
-		        - (commentEnd.length() + spacesStr.length() + commentStart.length() + spacesStr.length()));
-	}
+        return new Tuple<Integer, Integer>(ts.getAbsoluteCursorOffset() + commentStart.length()
+                + spacesStr.length(),
+                replacementText.length()
+                        - (commentEnd.length() + spacesStr.length() + commentStart.length() + spacesStr.length()));
+    }
 
     private void selectCompleteLine(IDocument doc) throws BadLocationException {
         if (this.ts.getSelLength() == 0 || this.ts.getStartLineIndex() != this.ts.getEndLineIndex()) {

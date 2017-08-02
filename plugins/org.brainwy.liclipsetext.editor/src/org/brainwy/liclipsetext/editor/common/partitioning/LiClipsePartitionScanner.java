@@ -14,7 +14,9 @@ import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.brainwy.liclipsetext.editor.partitioning.AbstractLiClipseRuleBasedScanner;
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
 import org.brainwy.liclipsetext.editor.rules.IRuleWithSubRules;
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.log.Log;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.brainwy.liclipsetext.shared_core.partitioner.SubRuleToken;
 import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
 import org.brainwy.liclipsetext.shared_core.string.StringUtils;
@@ -22,7 +24,6 @@ import org.brainwy.liclipsetext.shared_core.structure.LinkedListWarningOnSlowOpe
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.AssertionFailedException;
 import org.eclipse.jface.text.rules.ICharacterScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
@@ -33,7 +34,7 @@ import org.eclipse.jface.text.rules.Token;
 public class LiClipsePartitionScanner extends AbstractLiClipseRuleBasedScanner {
 
     private final ScopeColorScanning scopeColoringScanning;
-    private IPredicateRule[] subRules;
+    private ILiClipsePredicateRule[] subRules;
     private final ScannerHelper helper = new ScannerHelper();
 
     /**
@@ -60,7 +61,7 @@ public class LiClipsePartitionScanner extends AbstractLiClipseRuleBasedScanner {
     }
 
     @Override
-    public void nextToken(ScannerRange range) {
+    public void nextToken(ScannerRange range) throws DocumentTimeStampChangedException {
         int currOffset = range.getTokenOffset();
         int currLen = range.getTokenLength();
 
@@ -76,7 +77,7 @@ public class LiClipsePartitionScanner extends AbstractLiClipseRuleBasedScanner {
         // System.out.println("Gotten token: " + this + ": " + ret + " offset: " + newOffset + " len: " + getTokenLength());
     }
 
-    public void internalNextToken(ScannerRange range) {
+    public void internalNextToken(ScannerRange range) throws DocumentTimeStampChangedException {
         if (range.nextOfferedToken()) {
             return;
         }
@@ -99,7 +100,7 @@ public class LiClipsePartitionScanner extends AbstractLiClipseRuleBasedScanner {
             Assert.isTrue(range.getTokenLength() == 0);
             final int mark = range.getMark();
             for (int i = 0; i < subRules.length; i++) {
-                IPredicateRule rule = subRules[i];
+                ILiClipsePredicateRule rule = subRules[i];
                 if (rule instanceof IRuleWithSubRules) {
                     IRuleWithSubRules iRuleWithSubRules = (IRuleWithSubRules) rule;
 

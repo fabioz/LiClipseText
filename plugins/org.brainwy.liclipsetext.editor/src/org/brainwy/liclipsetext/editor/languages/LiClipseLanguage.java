@@ -6,6 +6,7 @@
  */
 package org.brainwy.liclipsetext.editor.languages;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -47,7 +48,7 @@ import org.brainwy.liclipsetext.shared_core.structure.OrderedMap;
 import org.brainwy.liclipsetext.shared_core.structure.OrderedSet;
 import org.brainwy.liclipsetext.shared_core.structure.Tuple;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 
 /**
@@ -120,12 +121,16 @@ public class LiClipseLanguage {
      */
     private void fixLoad() {
         Set<String> contentTypes = new HashSet<String>();
-        collect(rules.toArray(new IPredicateRule[rules.size()]), contentTypes);
+        collect(rules.toArray(new ILiClipsePredicateRule[rules.size()]), contentTypes);
         if (injectionRules != null) {
             for (ScopeSelector s : injectionRules) {
-                IPredicateRule[] array = s.getRules().toArray(new IPredicateRule[0]);
+                ILiClipsePredicateRule[] array = s.getRules().toArray(new ILiClipsePredicateRule[0]);
                 collect(array, contentTypes);
             }
+        }
+
+        if (this.languageType == LanguageType.TEXT_MATE) {
+            contentTypes.add(this.name);
         }
         if (!contentTypes.contains(IDocument.DEFAULT_CONTENT_TYPE)) {
             contentTypes.add(IDocument.DEFAULT_CONTENT_TYPE);
@@ -133,13 +138,13 @@ public class LiClipseLanguage {
 
         Set<Entry<String, ScopeColorScanning>> entrySet3 = scopeToScopeColorScanning.entrySet();
         for (Entry<String, ScopeColorScanning> entry : entrySet3) {
-            IPredicateRule[] subRules = entry.getValue().getSubRules();
+            ILiClipsePredicateRule[] subRules = entry.getValue().getSubRules();
             if (subRules != null) {
                 collect(subRules, contentTypes);
             }
         }
 
-        List<Tuple<IPredicateRule, LiClipseLanguage>> subLanguages = this.getSubLanguages();
+        List<Tuple<ILiClipsePredicateRule, LiClipseLanguage>> subLanguages = this.getSubLanguages();
         boolean hasSubLanguages = subLanguages.size() > 0;
 
         // Fixing the contentTypeToColorTokenName so that we have all the keys needed. If this is
@@ -177,7 +182,7 @@ public class LiClipseLanguage {
 
         // We have to add the content types of the sub-languages in our current language
         // (otherwise the content types are not considered valid).
-        for (Tuple<IPredicateRule, LiClipseLanguage> subLanguage : subLanguages) {
+        for (Tuple<ILiClipsePredicateRule, LiClipseLanguage> subLanguage : subLanguages) {
             Map<String, String> subContentToColor = subLanguage.o2.contentTypeToColorTokenName;
             Set<Entry<String, String>> entrySet = subContentToColor.entrySet();
             String subLanguageName = subLanguage.o2.name;
@@ -205,8 +210,8 @@ public class LiClipseLanguage {
      * This method will fill the contentTypes based on the given rules (along with the sub-rules).
      * @param contentTypes (out): this set will have all the content types for all the rules.
      */
-    private void collect(IPredicateRule[] rules, Set<String> contentTypes) {
-        for (IPredicateRule rule : rules) {
+    private void collect(ILiClipsePredicateRule[] rules, Set<String> contentTypes) {
+        for (ILiClipsePredicateRule rule : rules) {
             IToken token = rule.getSuccessToken();
             if (token == null) {
                 continue;
@@ -218,7 +223,7 @@ public class LiClipseLanguage {
             contentTypes.add((String) data);
             if (rule instanceof CompositeRule) {
                 CompositeRule compositeRule = (CompositeRule) rule;
-                IPredicateRule[] subRules = compositeRule.getSubRules();
+                ILiClipsePredicateRule[] subRules = compositeRule.getSubRules();
                 collect(subRules, contentTypes);
             }
         }
@@ -236,11 +241,11 @@ public class LiClipseLanguage {
 
     // ====================== Attributes
 
-    public final List<IPredicateRule> rules;
+    public final List<ILiClipsePredicateRule> rules;
 
     public final List<ScopeSelector> injectionRules;
 
-    public final Map<String, IPredicateRule> ruleAliases;
+    public final Map<String, ILiClipsePredicateRule> ruleAliases;
 
     public final Map<String, String> contentTypeToColorTokenName;
 
@@ -386,9 +391,9 @@ public class LiClipseLanguage {
      */
     @SuppressWarnings("unused")
     private List<String> getSubLanguageContentTypes() {
-        List<Tuple<IPredicateRule, LiClipseLanguage>> subLanguages = getSubLanguages();
+        List<Tuple<ILiClipsePredicateRule, LiClipseLanguage>> subLanguages = getSubLanguages();
         ArrayList<String> subLanguageContentTypes = new ArrayList<String>(subLanguages.size() * 10);
-        for (Tuple<IPredicateRule, LiClipseLanguage> tuple : subLanguages) {
+        for (Tuple<ILiClipsePredicateRule, LiClipseLanguage> tuple : subLanguages) {
             String data = tuple.o2.name.toLowerCase();
             String[] legalContentTypes = tuple.o2.getLegalContentTypes();
             for (String string : legalContentTypes) {
@@ -402,17 +407,17 @@ public class LiClipseLanguage {
     /**
      * @return the sub-languages for switching rules available.
      */
-    private List<Tuple<IPredicateRule, LiClipseLanguage>> getSubLanguages() {
-        ArrayList<Tuple<IPredicateRule, LiClipseLanguage>> subLanguages = new ArrayList<Tuple<IPredicateRule, LiClipseLanguage>>();
-        List<IPredicateRule> rules = this.rules;
+    private List<Tuple<ILiClipsePredicateRule, LiClipseLanguage>> getSubLanguages() {
+        ArrayList<Tuple<ILiClipsePredicateRule, LiClipseLanguage>> subLanguages = new ArrayList<Tuple<ILiClipsePredicateRule, LiClipseLanguage>>();
+        List<ILiClipsePredicateRule> rules = this.rules;
         Map<String, LiClipseLanguage> loaded = new HashMap<String, LiClipseLanguage>();
-        for (IPredicateRule iPredicateRule : rules) {
-            if (iPredicateRule instanceof ISwitchLanguageRule) {
-                ISwitchLanguageRule switchLanguageRule = (ISwitchLanguageRule) iPredicateRule;
+        for (ILiClipsePredicateRule ILiClipsePredicateRule : rules) {
+            if (ILiClipsePredicateRule instanceof ISwitchLanguageRule) {
+                ISwitchLanguageRule switchLanguageRule = (ISwitchLanguageRule) ILiClipsePredicateRule;
                 List<LiClipseLanguage> languages = switchLanguageRule.getLanguages();
                 for (LiClipseLanguage language : languages) {
                     if (!loaded.containsKey(language.name)) {
-                        subLanguages.add(new Tuple<IPredicateRule, LiClipseLanguage>(iPredicateRule, language));
+                        subLanguages.add(new Tuple<ILiClipsePredicateRule, LiClipseLanguage>(ILiClipsePredicateRule, language));
                         loaded.put(language.name, language);
                     }
                 }
@@ -520,7 +525,8 @@ public class LiClipseLanguage {
     }
 
     private ScopeColorScanning getScopeColorScanning() {
-        ScopeColorScanning scopeColoringScanning = scopeToScopeColorScanning.get(ICustomPartitionTokenScanner.DEFAULT_CONTENT_TYPE);
+        ScopeColorScanning scopeColoringScanning = scopeToScopeColorScanning
+                .get(ICustomPartitionTokenScanner.DEFAULT_CONTENT_TYPE);
         if (scopeColoringScanning == null) {
             scopeColoringScanning = new ScopeColorScanning(this.caseInsensitive, this);
             scopeToScopeColorScanning.put(ICustomPartitionTokenScanner.DEFAULT_CONTENT_TYPE, scopeColoringScanning);
@@ -645,6 +651,9 @@ public class LiClipseLanguage {
 
     public LanguageType languageType = LanguageType.LICLIPSE; //default
 
+    // Only available if languageType == LanguageType.TEXT_MATE (in the case that this is a .liclipse language with a .tmLanguage file).
+    public File tmLanguageFile;
+
     public Set<Character> getSeparatorChars() {
         if (separatorsCharsInWord == null) {
             HashSet<Character> temp = new HashSet<Character>();
@@ -681,25 +690,25 @@ public class LiClipseLanguage {
     }
 
     public void printRules() {
-        for (IPredicateRule iPredicateRule : this.rules) {
-            if (iPredicateRule instanceof IPrintableRule) {
-                System.out.println(((IPrintableRule) iPredicateRule).toTmYaml());
+        for (ILiClipsePredicateRule ILiClipsePredicateRule : this.rules) {
+            if (ILiClipsePredicateRule instanceof IPrintableRule) {
+                System.out.println(((IPrintableRule) ILiClipsePredicateRule).toTmYaml());
             } else {
-                System.out.println(iPredicateRule);
+                System.out.println(ILiClipsePredicateRule);
             }
         }
 
     }
 
     public void printRuleAliases() {
-        Set<Entry<String, IPredicateRule>> entrySet = this.ruleAliases.entrySet();
-        for (Entry<String, IPredicateRule> entry : entrySet) {
-            IPredicateRule iPredicateRule = entry.getValue();
+        Set<Entry<String, ILiClipsePredicateRule>> entrySet = this.ruleAliases.entrySet();
+        for (Entry<String, ILiClipsePredicateRule> entry : entrySet) {
+            ILiClipsePredicateRule ILiClipsePredicateRule = entry.getValue();
             String s;
-            if (iPredicateRule instanceof IPrintableRule) {
-                s = ((IPrintableRule) iPredicateRule).toTmYaml(1);
+            if (ILiClipsePredicateRule instanceof IPrintableRule) {
+                s = ((IPrintableRule) ILiClipsePredicateRule).toTmYaml(1);
             } else {
-                s = iPredicateRule.toString();
+                s = ILiClipsePredicateRule.toString();
             }
             System.out.println(StringUtils.format("{ %s: %s\n}", entry.getKey(), s));
         }

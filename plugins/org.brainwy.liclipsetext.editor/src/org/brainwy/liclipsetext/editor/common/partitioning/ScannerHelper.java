@@ -13,7 +13,7 @@ import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.brainwy.liclipsetext.editor.languages.ScopeSelector;
 import org.brainwy.liclipsetext.shared_core.utils.ArrayUtils;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 
 public class ScannerHelper {
 
@@ -23,15 +23,15 @@ public class ScannerHelper {
         this.language = (LiClipseLanguage) language;
     }
 
-    public List<IPredicateRule> getRulesBeforeScope(String scope) {
+    public List<ILiClipsePredicateRule> getRulesBeforeScope(String scope) {
         if (this.language == null) {
             return null;
         }
-        List<IPredicateRule> ret = new ArrayList<IPredicateRule>();
+        List<ILiClipsePredicateRule> ret = new ArrayList<ILiClipsePredicateRule>();
 
         List<ScopeSelector> injectionRules = this.language.injectionRules;
         for (ScopeSelector scopeSelector : injectionRules) {
-            List<IPredicateRule> rulesAfterScope = scopeSelector.getRulesBeforeScope(scope);
+            List<ILiClipsePredicateRule> rulesAfterScope = scopeSelector.getRulesBeforeScope(scope);
             if (rulesAfterScope != null) {
                 ret.addAll(rulesAfterScope);
             }
@@ -40,15 +40,15 @@ public class ScannerHelper {
         return ret;
     }
 
-    public List<IPredicateRule> getRulesAfterScope(String scope) {
+    public List<ILiClipsePredicateRule> getRulesAfterScope(String scope) {
         if (this.language == null) {
             return null;
         }
-        List<IPredicateRule> ret = new ArrayList<IPredicateRule>();
+        List<ILiClipsePredicateRule> ret = new ArrayList<ILiClipsePredicateRule>();
 
         List<ScopeSelector> injectionRules = this.language.injectionRules;
         for (ScopeSelector scopeSelector : injectionRules) {
-            List<IPredicateRule> rulesAfterScope = scopeSelector.getRulesAfterScope(scope);
+            List<ILiClipsePredicateRule> rulesAfterScope = scopeSelector.getRulesAfterScope(scope);
             if (rulesAfterScope != null) {
                 ret.addAll(rulesAfterScope);
             }
@@ -57,21 +57,21 @@ public class ScannerHelper {
         return ret;
     }
 
-    public IPredicateRule[] getRulesWithBeforeAndAfterRules(String scope, IPredicateRule[] rules) {
+    public ILiClipsePredicateRule[] getRulesWithBeforeAndAfterRules(String scope, ILiClipsePredicateRule[] rules) {
         if (rules == null) {
-            rules = new IPredicateRule[0];
+            rules = new ILiClipsePredicateRule[0];
         }
-        List<IPredicateRule> rulesBeforeScope = getRulesBeforeScope(scope);
-        List<IPredicateRule> rulesAfterScope = getRulesAfterScope(scope);
+        List<ILiClipsePredicateRule> rulesBeforeScope = getRulesBeforeScope(scope);
+        List<ILiClipsePredicateRule> rulesAfterScope = getRulesAfterScope(scope);
         if (rulesBeforeScope != null && rulesBeforeScope.size() > 0) {
             if (rulesAfterScope != null && rulesAfterScope.size() > 0) {
-                rules = ArrayUtils.concatArrays(rulesBeforeScope.toArray(new IPredicateRule[0]), rules,
-                        rulesAfterScope.toArray(new IPredicateRule[0]));
+                rules = ArrayUtils.concatArrays(rulesBeforeScope.toArray(new ILiClipsePredicateRule[0]), rules,
+                        rulesAfterScope.toArray(new ILiClipsePredicateRule[0]));
             } else {
-                rules = ArrayUtils.concatArrays(rulesBeforeScope.toArray(new IPredicateRule[0]), rules);
+                rules = ArrayUtils.concatArrays(rulesBeforeScope.toArray(new ILiClipsePredicateRule[0]), rules);
             }
         } else if (rulesAfterScope != null && rulesAfterScope.size() > 0) {
-            rules = ArrayUtils.concatArrays(rules, rulesAfterScope.toArray(new IPredicateRule[0]));
+            rules = ArrayUtils.concatArrays(rules, rulesAfterScope.toArray(new ILiClipsePredicateRule[0]));
         }
         return rules;
     }

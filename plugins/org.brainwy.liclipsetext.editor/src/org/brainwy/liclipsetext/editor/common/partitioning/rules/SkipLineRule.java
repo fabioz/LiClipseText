@@ -8,11 +8,11 @@ package org.brainwy.liclipsetext.editor.common.partitioning.rules;
 
 import org.brainwy.liclipsetext.shared_core.partitioner.IChangeTokenRule;
 import org.eclipse.jface.text.rules.ICharacterScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
-public class SkipLineRule implements IPredicateRule, IChangeTokenRule {
+public class SkipLineRule implements ILiClipsePredicateRule, IChangeTokenRule {
 
     private IToken fToken;
 

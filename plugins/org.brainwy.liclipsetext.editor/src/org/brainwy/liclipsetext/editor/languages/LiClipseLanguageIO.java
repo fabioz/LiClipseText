@@ -16,7 +16,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -24,7 +23,6 @@ import java.util.Set;
 
 import org.brainwy.liclipsetext.editor.LiClipseTextEditorPlugin;
 import org.brainwy.liclipsetext.editor.common.partitioning.ScopeColorScanning;
-import org.brainwy.liclipsetext.editor.common.partitioning.rules.ITextMateRule;
 import org.brainwy.liclipsetext.editor.common.partitioning.rules.RulesFactory;
 import org.brainwy.liclipsetext.editor.common.partitioning.tokens.TokenFactory;
 import org.brainwy.liclipsetext.editor.languages.LanguageMetadata.LanguageType;
@@ -42,7 +40,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.AssertionFailedException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.yaml.snakeyaml.Yaml;
 
@@ -206,32 +204,19 @@ public class LiClipseLanguageIO {
             ret.caption = ret.name;
         }
 
-        Object tmLanguage = data.remove(LiClipseLanguage.TM_LANGUAGE);
-        boolean isTmLanguage = tmLanguage != null;
-        if (isTmLanguage) {
-            if (file instanceof LanguageMetadataFileInfo) {
-                File tmLanguageFile;
-                try {
-                    tmLanguageFile = new File(((LanguageMetadataFileInfo) file).getFile().getParentFile(),
-                            tmLanguage.toString());
-                } catch (Exception e1) {
-                    Log.log("Error resolving " + LiClipseLanguage.TM_LANGUAGE + ": " + tmLanguage);
-                    return;
-                }
-                if (!tmLanguageFile.exists()) {
-                    Log.log("Expected " + tmLanguageFile + " to exist!");
-                }
+        boolean liclipseWithTmLanguageGrammar = false;
+        if (file instanceof LanguageMetadataFileInfo) {
+            File tmLanguageFile = getTmLanguageFileFromData(data, (LanguageMetadataFileInfo) file);
+            if (tmLanguageFile != null) {
+                ret.tmLanguageFile = tmLanguageFile;
+                liclipseWithTmLanguageGrammar = true;
                 try (FileInputStream stream = new FileInputStream(tmLanguageFile)) {
                     loadTmLanguage(ret, stream, tmLanguageFile.toString());
                 } catch (Exception e) {
                     Log.log("Error parsing: " + tmLanguageFile, e);
                     return;
                 }
-            } else {
-                Log.log("Can only load tm_language from .liclipse files on file-based abstractions (as the tm_language is resolved relative to it).");
-                return;
             }
-
         }
 
         String editorId = (String) data.remove(LiClipseLanguage.EDITOR_ID);
@@ -254,7 +239,7 @@ public class LiClipseLanguageIO {
         }
 
         Map<String, Object> ruleAliases = null;
-        if (!isTmLanguage) {
+        if (!liclipseWithTmLanguageGrammar) {
             ruleAliases = loadRules(data, ret);
             fixTopLevelRulesToHaveValidTokens(ret);
         }
@@ -276,7 +261,7 @@ public class LiClipseLanguageIO {
         ret.contentTypeToColorTokenName.putAll(temp);
 
         //--- Load SCOPE (optional)
-        if (!isTmLanguage) {
+        if (!liclipseWithTmLanguageGrammar) {
             Map<String, Map<String, Object>> scannerWords = (Map) data.remove(LiClipseLanguage.SCOPE);
             if (scannerWords != null) {
                 Set<Entry<String, Map<String, Object>>> entrySet = scannerWords.entrySet();
@@ -412,6 +397,33 @@ public class LiClipseLanguageIO {
         }
     }
 
+    public static File getTmLanguageFileFromData(Map<String, Object> data, LanguageMetadataFileInfo file) {
+        Object tmLanguage = data.remove(LiClipseLanguage.TM_LANGUAGE);
+        boolean hasTmLanguageRef = tmLanguage != null;
+        if (hasTmLanguageRef) {
+            if (file instanceof LanguageMetadataFileInfo) {
+                File tmLanguageFile;
+                try {
+                    tmLanguageFile = new File(file.getFile().getParentFile(),
+                            tmLanguage.toString());
+                } catch (Exception e1) {
+                    Log.log("Error resolving " + LiClipseLanguage.TM_LANGUAGE + ": " + tmLanguage);
+                    return null;
+                }
+                if (!tmLanguageFile.exists()) {
+                    Log.log("Expected " + tmLanguageFile + " to exist!");
+                    return null;
+                }
+                return tmLanguageFile;
+            } else {
+                Log.log("Can only load tm_language from .liclipse files on file-based abstractions (as the tm_language is resolved relative to it).");
+                return null;
+            }
+        }
+        return null;
+
+    }
+
     public void fixTopLevelRulesToHaveValidTokens(LiClipseLanguage ret) {
         int nextId = 1;
         // Ok, at this point rules should be loaded... Let's see if all the top-level rules have a valid token
@@ -425,9 +437,9 @@ public class LiClipseLanguageIO {
         }
     }
 
-    private int fixTopLevelRulesToHaveValidTokens(LiClipseLanguage ret, List<IPredicateRule> rules, Set<String> found,
+    private int fixTopLevelRulesToHaveValidTokens(LiClipseLanguage ret, List<ILiClipsePredicateRule> rules, Set<String> found,
             int nextId) {
-        for (IPredicateRule rule : rules) {
+        for (ILiClipsePredicateRule rule : rules) {
             IToken successToken = rule.getSuccessToken();
             if (successToken == null || successToken.getData() == null) {
                 successToken = new DummyToken(ret.name + "." + nextId++);
@@ -481,7 +493,7 @@ public class LiClipseLanguageIO {
                 if (value instanceof Map) {
                     List<Object> asList = (List<Object>) RulesFactory.copyObject(Arrays.asList(value));
                     Map rule = (Map) RulesFactory.copyObject(ruleAliases);
-                    List<IPredicateRule> loadedAlias = factory.load(asList, rule);
+                    List<ILiClipsePredicateRule> loadedAlias = factory.load(asList, rule);
                     if (loadedAlias.size() != 1) {
                         throw new AssertionFailedException("Error in alias definition: " + entry.getKey()
                                 + " (should point to a single rule).");
@@ -499,7 +511,7 @@ public class LiClipseLanguageIO {
 
             Set<Entry<String, String>> entrySet2 = delayed.entrySet();
             for (Entry<String, String> entry : entrySet2) {
-                IPredicateRule value = ret.ruleAliases.get(entry.getValue());
+                ILiClipsePredicateRule value = ret.ruleAliases.get(entry.getValue());
                 if (value == null) {
                     Log.log("Cannot resolve alias: " + entry.getKey() + " -> " + entry.getValue());
                 } else {
@@ -534,21 +546,24 @@ public class LiClipseLanguageIO {
             caption = ret.name;
         }
         ret.caption = caption.toString();
-        Map<String, IPredicateRule> ruleAliases = tmLanguageHandler.loadRepositoryRules(ret);
-        ret.ruleAliases.putAll(ruleAliases);
-        LinkedList<ITextMateRule> regularRules = tmLanguageHandler.loadRegularRules(ret);
-        ret.rules.addAll(regularRules);
-        ret.injectionRules.addAll(tmLanguageHandler.loadInjectionRules(ret));
+
+        // Commenting out: we no longer handle textmate with our own rules (it now uses tm4e
+        // to do the parsing).
+        // Map<String, ILiClipsePredicateRule> ruleAliases = tmLanguageHandler.loadRepositoryRules(ret);
+        // ret.ruleAliases.putAll(ruleAliases);
+        // LinkedList<ITextMateRule> regularRules = tmLanguageHandler.loadRegularRules(ret);
+        // ret.rules.addAll(regularRules);
+        // ret.injectionRules.addAll(tmLanguageHandler.loadInjectionRules(ret));
 
         //Important: fix before setting up the scope scanning.
         fixTopLevelRulesToHaveValidTokens(ret);
 
         Map<String, ScopeColorScanning> scopeToScopeColorScanning = ret.scopeToScopeColorScanning;
-        for (IPredicateRule rule : ret.rules) {
+        for (ILiClipsePredicateRule rule : ret.rules) {
             createPartitionScanning(ret, scopeToScopeColorScanning, rule);
         }
         for (ScopeSelector s : ret.injectionRules) {
-            for (IPredicateRule rule : s.getRules()) {
+            for (ILiClipsePredicateRule rule : s.getRules()) {
                 createPartitionScanning(ret, scopeToScopeColorScanning, rule);
             }
         }
@@ -563,12 +578,12 @@ public class LiClipseLanguageIO {
     }
 
     private void createPartitionScanning(LiClipseLanguage ret,
-            Map<String, ScopeColorScanning> scopeToScopeColorScanning, IPredicateRule rule) {
+            Map<String, ScopeColorScanning> scopeToScopeColorScanning, ILiClipsePredicateRule rule) {
         IToken successToken = rule.getSuccessToken();
         Object data = successToken.getData();
         if (data instanceof String) {
             ScopeColorScanning scopeScanning = new ScopeColorScanning(false, ret);
-            scopeScanning.setSubRules(new IPredicateRule[] { rule });
+            scopeScanning.setSubRules(new ILiClipsePredicateRule[] { rule });
             scopeToScopeColorScanning.put((String) data, scopeScanning);
         }
     }

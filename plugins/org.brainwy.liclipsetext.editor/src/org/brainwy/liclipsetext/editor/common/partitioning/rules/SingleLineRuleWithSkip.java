@@ -8,25 +8,27 @@ package org.brainwy.liclipsetext.editor.common.partitioning.rules;
 
 import java.util.List;
 
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.partitioner.IChangeTokenRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.rules.ICharacterScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
 /**
  * A single line rule which usually ends in the end of the line but may have skips.
  */
-public class SingleLineRuleWithSkip implements IPredicateRule, IChangeTokenRule {
+public class SingleLineRuleWithSkip implements ILiClipsePredicateRule, IChangeTokenRule {
 
     protected IToken fToken;
     private final char[] sequence;
     private final char escapeCharacter;
     private final boolean escapeContinuesLine;
-    protected final IPredicateRule[] subRules;
+    protected final ILiClipsePredicateRule[] subRules;
 
+    @Override
     public void setToken(IToken token) {
         this.fToken = token;
     }
@@ -36,25 +38,28 @@ public class SingleLineRuleWithSkip implements IPredicateRule, IChangeTokenRule 
     }
 
     public SingleLineRuleWithSkip(String sequence, IToken token, char escapeCharacter,
-            boolean escapeContinuesLine, List<IPredicateRule> loadedSubRules) {
+            boolean escapeContinuesLine, List<ILiClipsePredicateRule> loadedSubRules) {
         Assert.isTrue(sequence.length() > 0);
         this.sequence = sequence.toCharArray();
         this.fToken = token;
         this.escapeCharacter = escapeCharacter;
         this.escapeContinuesLine = escapeContinuesLine;
         this.subRules = loadedSubRules != null && loadedSubRules.size() > 0 ? loadedSubRules
-                .toArray(new IPredicateRule[loadedSubRules.size()]) : null;
+                .toArray(new ILiClipsePredicateRule[loadedSubRules.size()]) : null;
     }
 
-    public IToken evaluate(ICharacterScanner scanner) {
+    @Override
+    public IToken evaluate(ICharacterScanner scanner) throws DocumentTimeStampChangedException {
         return evaluate(scanner, false);
     }
 
+    @Override
     public IToken getSuccessToken() {
         return fToken;
     }
 
-    public IToken evaluate(ICharacterScanner scanner, boolean resume) {
+    @Override
+    public IToken evaluate(ICharacterScanner scanner, boolean resume) throws DocumentTimeStampChangedException {
         if (resume) {
             return Token.UNDEFINED;
         } else {
@@ -82,7 +87,7 @@ public class SingleLineRuleWithSkip implements IPredicateRule, IChangeTokenRule 
         return Token.UNDEFINED;
     }
 
-    private boolean detectEnd(ICharacterScanner scanner) {
+    private boolean detectEnd(ICharacterScanner scanner) throws DocumentTimeStampChangedException {
         OUT: while (true) {
             int c = scanner.read();
             if (subRules != null) {

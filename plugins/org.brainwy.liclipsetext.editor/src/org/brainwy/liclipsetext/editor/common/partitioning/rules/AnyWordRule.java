@@ -14,11 +14,11 @@ import org.brainwy.liclipsetext.shared_core.partitioner.IChangeTokenRule;
 import org.brainwy.liclipsetext.shared_core.partitioner.IMarkScanner;
 import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
 import org.eclipse.jface.text.rules.ICharacterScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
-public class AnyWordRule implements IPredicateRule, IChangeTokenRule {
+public class AnyWordRule implements ILiClipsePredicateRule, IChangeTokenRule {
 
     protected IToken fToken;
     protected final Set<String> fExcept;

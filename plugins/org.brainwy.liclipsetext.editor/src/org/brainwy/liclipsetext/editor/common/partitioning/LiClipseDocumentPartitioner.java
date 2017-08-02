@@ -11,18 +11,19 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.brainwy.liclipsetext.editor.LiClipseTextEditorPlugin;
+import org.brainwy.liclipsetext.editor.common.partitioning.tm4e.Tm4ePartitionScanner;
 import org.brainwy.liclipsetext.editor.common.partitioning.tokens.ContentTypeToken;
 import org.brainwy.liclipsetext.editor.languages.LanguageMetadata;
+import org.brainwy.liclipsetext.editor.languages.LanguageMetadata.LanguageType;
 import org.brainwy.liclipsetext.editor.languages.LanguagesManager;
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner;
-import org.brainwy.liclipsetext.editor.rules.FastPartitioner;
+import org.brainwy.liclipsetext.editor.partitioning.LiClipseTm4ePartitionScanner;
 import org.brainwy.liclipsetext.editor.rules.SwitchLanguageToken;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.structure.Tuple;
 import org.eclipse.jface.text.IDocumentExtension3;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
-import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.rules.IToken;
 
 /**
@@ -30,11 +31,9 @@ import org.eclipse.jface.text.rules.IToken;
  *
  * LiClipseDocumentPartitioner documentPartitioner = (LiClipseDocumentPartitioner) document.getDocumentPartitioner();
  */
-public final class LiClipseDocumentPartitioner extends FastPartitioner {
+public final class LiClipseDocumentPartitioner extends LiClipseDocumentPartitionerTmCache {
 
     public static final String PARTITION_TYPE = IDocumentExtension3.DEFAULT_PARTITIONING;
-
-    public final LiClipseLanguage language;
 
     private CustomTextAttributeTokenCreator defaultTokenCreator;
 
@@ -44,8 +43,7 @@ public final class LiClipseDocumentPartitioner extends FastPartitioner {
 
     private LiClipseDocumentPartitioner(String[] legalContentTypes, LiClipseLanguage language,
             ICustomPartitionTokenScanner tokenScanner) {
-        super(tokenScanner, legalContentTypes);
-        this.language = language;
+        super(tokenScanner, legalContentTypes, language);
 
         defaultTokenCreator = language.getDefaultTokenCreator();
     }
@@ -53,9 +51,15 @@ public final class LiClipseDocumentPartitioner extends FastPartitioner {
     /**
      * Create the partitioner which will define the content types.
      */
-    public static LiClipseContentTypeDefinitionScanner createContentTypeDefinitionScanner(
+    public static ICustomPartitionTokenScanner createContentTypeDefinitionScanner(
             LiClipseLanguage language) {
-        return new LiClipseContentTypeDefinitionScanner(language);
+        if (language.languageType == LanguageType.TEXT_MATE) {
+            ICustomPartitionTokenScanner scanner = new LiClipseTm4ePartitionScanner();
+            scanner.setDefaultReturnToken(new ContentTypeToken(language.name));
+            return scanner;
+        } else {
+            return new LiClipseContentTypeDefinitionScanner(language);
+        }
     }
 
     /**
@@ -87,7 +91,7 @@ public final class LiClipseDocumentPartitioner extends FastPartitioner {
         }
     }
 
-    private void updateReconciler(final IColorCache colorManager, final PresentationReconciler reconciler) {
+    private void updateReconciler(final IColorCache colorManager, final LiClipsePresentationReconciler reconciler) {
         createTokenScanners(colorManager);
 
         for (Entry<String, String> contentTypeToColor : language.contentTypeToColorTokenName.entrySet()) {
@@ -109,7 +113,7 @@ public final class LiClipseDocumentPartitioner extends FastPartitioner {
      * Make it possible to get the token scanner for a given content type.
      * May return null!
      */
-    private ICustomPartitionTokenScanner getTokenScannerForContentType(String contentType) {
+    public ICustomPartitionTokenScanner getTokenScannerForContentType(String contentType) {
         return contentTypeToScanner.get(contentType);
     }
 
@@ -152,20 +156,25 @@ public final class LiClipseDocumentPartitioner extends FastPartitioner {
         if (scanner != null) {
             return scanner;
         }
-        ScopeColorScanning scopeColoringScanning = language.scopeToScopeColorScanning.get(subContentType);
 
-        if (scopeColoringScanning == null || scopeColoringScanning.empty()) {
-            //Color everything with a single color
-            SingleTokenScanner singleTokenScanner = new SingleTokenScanner();
-            singleTokenScanner.setDefaultReturnToken(defaultReturnToken);
-            scanner = singleTokenScanner;
-
+        if (language.languageType == LanguageType.TEXT_MATE) {
+            try {
+                scanner = new Tm4ePartitionScanner(language);
+            } catch (Exception e) {
+                Log.log("Error creating tm4e parser. No coloring will be available.", e);
+                scanner = new SingleTokenScanner();
+            }
         } else {
-            LiClipsePartitionScanner scopeScanner = new LiClipsePartitionScanner(
-                    scopeColoringScanning, language);
-            scopeScanner.setDefaultReturnToken(defaultReturnToken);
-            scanner = scopeScanner;
+            ScopeColorScanning scopeColoringScanning = language.scopeToScopeColorScanning.get(subContentType);
+            if (scopeColoringScanning == null || scopeColoringScanning.empty()) {
+                //Color everything with a single color
+                scanner = new SingleTokenScanner();
+
+            } else {
+                scanner = new LiClipsePartitionScanner(scopeColoringScanning, language);
+            }
         }
+        scanner.setDefaultReturnToken(defaultReturnToken);
         contentTypeToScanner.put(contentType, scanner);
         return scanner;
     }

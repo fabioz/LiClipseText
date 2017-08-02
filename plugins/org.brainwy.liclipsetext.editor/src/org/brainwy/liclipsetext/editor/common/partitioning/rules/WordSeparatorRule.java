@@ -11,11 +11,11 @@ import java.util.Set;
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.brainwy.liclipsetext.shared_core.partitioner.IChangeTokenRule;
 import org.eclipse.jface.text.rules.ICharacterScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
-public class WordSeparatorRule implements IPredicateRule, IChangeTokenRule, ILanguageDependentRule {
+public class WordSeparatorRule implements ILiClipsePredicateRule, IChangeTokenRule, ILanguageDependentRule {
 
     private IToken fToken;
     private LiClipseLanguage liClipseLanguage;

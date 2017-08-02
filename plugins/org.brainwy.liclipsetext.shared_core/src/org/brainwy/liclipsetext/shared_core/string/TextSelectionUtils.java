@@ -388,6 +388,10 @@ public class TextSelectionUtils {
         }
     }
 
+    public static String getLineContentsOfOffset(IDocument doc, int offset) {
+        return getLine(doc, getLineOfOffset(doc, offset));
+    }
+
     /**
      * Deletes a line from the document
      * @param i
@@ -766,7 +770,10 @@ public class TextSelectionUtils {
     public boolean intersects(int offset, int len) {
         int currOffset = this.textSelection.getOffset();
         int currLen = this.textSelection.getLength();
+        return intersects2(currOffset, currLen, offset, len);
+    }
 
+    public static boolean intersects2(int currOffset, int currLen, int offset, int len) {
         ///The end is after the end of the current sel
         if (offset >= currOffset + currLen) {
             return false;
@@ -1164,7 +1171,7 @@ public class TextSelectionUtils {
     /**
      * Performs a simple sort without taking into account the actual contents of the selection (aside from lines
      * ending with '\' which are considered as a single line).
-     * 
+     *
      * @param doc the document to be sorted
      * @param startLine the first line where the sort should happen
      * @param endLine the last line where the sort should happen

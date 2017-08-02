@@ -4,8 +4,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.brainwy.liclipsetext.editor.common.partitioning.LiClipseDocumentPartitioner;
-import org.brainwy.liclipsetext.editor.languages.LanguageMetadataZipFileInfo;
+import org.brainwy.liclipsetext.editor.languages.LanguageMetadataTmBundleZipFileInfo;
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner;
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
@@ -28,7 +27,7 @@ public class PartitioningTmHtmlTest extends TestCase {
     }
 
     public void testTmHtmlPartitioning() throws Exception {
-        LanguageMetadataZipFileInfo metadata = new LanguageMetadataZipFileInfo(
+        LanguageMetadataTmBundleZipFileInfo metadata = new LanguageMetadataTmBundleZipFileInfo(
                 new File(TestUtils.getLanguagesDir(), "html.tmbundle"), "html.tmbundle-master/Syntaxes/HTML.plist");
 
         LiClipseLanguage language = metadata.loadLanguage(true);
@@ -37,21 +36,20 @@ public class PartitioningTmHtmlTest extends TestCase {
                 + "<html>test <a href=\"foo\">rara</a></html>");
         language.connect(document);
         String partition = TestUtils.partition(document);
-        assertEquals(TestUtils.listToExpected("meta.tag.structure.any.html:0:6",
-                "__dftl_partition_content_type:6:11",
-                "meta.tag.inline.any.html:11:25",
-                "__dftl_partition_content_type:25:29",
-                "meta.tag.inline.any.html:29:33",
-                "meta.tag.structure.any.html:33:"), partition);
+        assertEquals(TestUtils.listToExpected("text.html.basic:0:"), partition);
 
         Map<String, ICustomPartitionTokenScanner> contentTypeToScanner = new HashMap<String, ICustomPartitionTokenScanner>();
         LiClipseDocumentPartitioner documentPartitioner = (LiClipseDocumentPartitioner) document
                 .getDocumentPartitioner();
         ICustomPartitionTokenScanner scannerForContentType = documentPartitioner.obtainTokenScannerForContentType(
                 "meta.tag.inline.any.html", contentTypeToScanner, language);
-        ScannerRange range = scannerForContentType.createScannerRange(document, 11, 25);
+        ScannerRange range = scannerForContentType.createScannerRange(document, 0, document.getLength());
         String scan = TestUtils.scan(scannerForContentType, range, false);
-        assertEquals(TestUtils.listToExpected("punctuation.definition.tag.begin.html:11:1",
+        assertEquals(TestUtils.listToExpected("punctuation.definition.tag.html:0:1",
+                "entity.name.tag.structure.any.html:1:4",
+                "punctuation.definition.tag.html:5:1",
+                "text.html.basic:6:5",
+                "punctuation.definition.tag.begin.html:11:1",
                 "entity.name.tag.inline.any.html:12:1",
                 "meta.tag.inline.any.html:13:1",
                 "entity.other.attribute-name.html:14:4",
@@ -60,13 +58,13 @@ public class PartitioningTmHtmlTest extends TestCase {
                 "string.quoted.double.html:20:3",
                 "punctuation.definition.string.end.html:23:1",
                 "punctuation.definition.tag.end.html:24:1",
-                "meta.tag.inline.any.html:25:4",
+                "text.html.basic:25:4",
                 "punctuation.definition.tag.begin.html:29:2",
                 "entity.name.tag.inline.any.html:31:1",
                 "punctuation.definition.tag.end.html:32:1",
-                "punctuation.definition.tag.begin.html:33:2",
-                "entity.name.tag.inline.any.html:35:4",
-                "punctuation.definition.tag.end.html:39:1"), scan);
+                "punctuation.definition.tag.html:33:2",
+                "entity.name.tag.structure.any.html:35:4",
+                "punctuation.definition.tag.html:39:1"), scan);
     }
 
     //    public void testTmHtmlPartitioning3() throws Exception {

@@ -8,7 +8,7 @@ import org.brainwy.liclipsetext.editor.common.partitioning.TestUtils;
 import org.brainwy.liclipsetext.editor.common.partitioning.rules.IPrintableRule;
 import org.brainwy.liclipsetext.editor.languages.tmbundle.TmLanguageHandler;
 import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 
 import junit.framework.TestCase;
 
@@ -17,9 +17,9 @@ public class TmLanguageHandlerTest extends TestCase {
     public void testLanguageHandler() throws Exception {
         TmLanguageHandler parser = new TmLanguageHandler();
         parser.parse(new File(TestUtils.getTestLanguagesDir(), "language_test.tmLanguage"));
-        Map<String, IPredicateRule> loadRepositoryRules = parser.loadRepositoryRules(null);
+        Map<String, ILiClipsePredicateRule> loadRepositoryRules = parser.loadRepositoryRules(null);
         FastStringBuffer buf = new FastStringBuffer();
-        for (Entry<String, IPredicateRule> entry : loadRepositoryRules.entrySet()) {
+        for (Entry<String, ILiClipsePredicateRule> entry : loadRepositoryRules.entrySet()) {
             buf.append(entry.getKey()).append(": ").append(((IPrintableRule) entry.getValue()).toTmYaml());
             buf.append("\n");
         }

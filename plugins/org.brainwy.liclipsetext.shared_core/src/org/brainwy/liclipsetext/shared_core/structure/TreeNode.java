@@ -37,7 +37,11 @@ public class TreeNode<T> implements IAdaptable {
     }
 
     public void setParent(Object parent) {
-        if (this.parent != null) {
+        this.setParent(parent, true);
+    }
+
+    public void setParent(Object parent, boolean detachFromCurrParent) {
+        if (detachFromCurrParent && this.parent != null) {
             this.detachFromParent();
         }
         this.parent = parent;

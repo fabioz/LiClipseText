@@ -20,6 +20,7 @@ import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
 import org.brainwy.liclipsetext.shared_core.callbacks.ICallback;
 import org.brainwy.liclipsetext.shared_core.document.DocumentSync;
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.partitioner.SubRuleToken;
 import org.brainwy.liclipsetext.shared_core.partitioner.TypedPositionWithSubTokens;
@@ -120,6 +121,7 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
     /*
      * @see org.eclipse.jface.text.IDocumentPartitionerExtension2#getManagingPositionCategories()
      */
+    @Override
     public String[] getManagingPositionCategories() {
         return new String[] { fPositionCategory };
     }
@@ -127,6 +129,7 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
     /*
      * @see org.eclipse.jface.text.IDocumentPartitioner#connect(org.eclipse.jface.text.IDocument)
      */
+    @Override
     public final void connect(IDocument document) {
         connect(document, false);
     }
@@ -137,6 +140,7 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
      * May be extended by subclasses.
      * </p>
      */
+    @Override
     public void connect(IDocument document, boolean delayInitialization) {
         Assert.isNotNull(document);
         Assert.isTrue(!document.containsPositionCategory(fPositionCategory));
@@ -173,10 +177,10 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
             @Override
             public Object call(IDocument doc) {
                 Assert.isTrue(doc == fDocument); // Make sure no copy is done here.
-                ScannerRange scannerRange = fScanner.createScannerRange(doc, 0, doc.getLength());
+                ScannerRange scannerRange = fScanner.createScannerRange(doc);
 
                 try {
-                    fScanner.nextToken(scannerRange);
+                    scannerRange.nextToken(fScanner);
                     while (!scannerRange.getToken().isEOF()) {
                         //                System.out.println("tok:" + token.getData() + " " + fScanner.getTokenOffset() + " "
                         //                        + fScanner.getTokenLength());
@@ -211,12 +215,17 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
                             }
                         }
 
-                        fScanner.nextToken(scannerRange);
+                        scannerRange.nextToken(fScanner);
                     }
                 } catch (BadLocationException x) {
                     // cannot happen as offsets come from scanner
+                    Log.log(x);
                 } catch (BadPositionCategoryException x) {
                     // cannot happen if document has been connected before
+                    Log.log(x);
+                } catch (DocumentTimeStampChangedException e) {
+                    // This one *should* be done in the main thread, so, this *shouldn't* happen.
+                    Log.log(e);
                 }
                 return null;
             }
@@ -231,6 +240,7 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
      * May be extended by subclasses.
      * </p>
      */
+    @Override
     public void disconnect() {
 
         Assert.isTrue(fDocument.containsPositionCategory(fPositionCategory));
@@ -248,6 +258,7 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
      * May be extended by subclasses.
      * </p>
      */
+    @Override
     public void documentAboutToBeChanged(DocumentEvent e) {
         if (fIsInitialized) {
 
@@ -263,6 +274,7 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
     /*
      * @see IDocumentPartitioner#documentChanged(DocumentEvent)
      */
+    @Override
     public final boolean documentChanged(DocumentEvent e) {
         if (fIsInitialized) {
             IRegion region = documentChanged2(e);
@@ -333,6 +345,7 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
      * May be extended by subclasses.
      * </p>
      */
+    @Override
     public IRegion documentChanged2(final DocumentEvent e) {
 
         if (!fIsInitialized) {
@@ -381,6 +394,7 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
                             partitionStart = partition.getOffset();
                             contentType = partition.getType();
                             if (e.getOffset() == partition.getOffset() + partition.getLength()) {
+                                // if editing at end of partition, reparse from the partition start
                                 reparseStart = partitionStart;
                             }
                             --first;
@@ -408,18 +422,19 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
 
                     positionsInCategory = getPositions();
 
-                    ScannerRange scannerRange = fScanner.createPartialScannerRange(fDocument, reparseStart,
-                            fDocument.getLength() - reparseStart,
-                            contentType, partitionStart);
+                    ScannerRange scannerRange = fScanner.createResumableScannerRange(fDocument, reparseStart,
+                            fDocument.getLength() - reparseStart, contentType, partitionStart);
 
                     int behindLastScannedPosition = reparseStart;
-                    fScanner.nextToken(scannerRange);
+                    scannerRange.nextToken(fScanner);
+                    List<SwitchLanguageToken> switchLanguageTokens = new ArrayList<>();
 
                     while (!scannerRange.getToken().isEOF()) {
 
                         if (scannerRange.getToken() instanceof SwitchLanguageToken) {
                             //fabioz: we have to deal with a top-partition that has multiple sub-partitions inside.
                             SwitchLanguageToken switchLanguageToken = (SwitchLanguageToken) scannerRange.getToken();
+                            switchLanguageTokens.add(switchLanguageToken);
                             SubLanguageToken[] subTokens = switchLanguageToken.subTokens;
                             int len = subTokens.length;
                             for (int i = 0; i < len; i++) {
@@ -460,6 +475,8 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
                                             typedPositionWithSubTokens.clearSubRuleToken();
                                         }
                                         if (lastScannedPosition >= e.getOffset() + newLength) {
+                                            onParsingFoundSwitchLanguageTokensAndPartitioningChanged(e,
+                                                    switchLanguageTokens);
                                             return createRegion();
                                         }
                                         ++first;
@@ -520,6 +537,8 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
                                             typedPositionWithSubTokens.setSubRuleToken(scannerRange.getSubRuleToken());
                                         }
                                         if (lastScannedPosition >= e.getOffset() + newLength) {
+                                            onParsingFoundSwitchLanguageTokensAndPartitioningChanged(e,
+                                                    switchLanguageTokens);
                                             return createRegion();
                                         }
                                         ++first;
@@ -539,10 +558,11 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
                             }
 
                         }
-                        fScanner.nextToken(scannerRange);
+                        scannerRange.nextToken(fScanner);
 
                     }
 
+                    // If we got here, partitioning didn't change (so, don't call onParsingFoundSwitchLanguageTokensAndPartitioningChanged).
                     int first2 = fDocument.computeIndexInCategory(fPositionCategory, behindLastScannedPosition);
 
                     clearPositionCache();
@@ -556,7 +576,11 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
 
                 } catch (BadPositionCategoryException x) {
                     // should never happen on connected documents
+                    Log.log(x);
                 } catch (BadLocationException x) {
+                    Log.log(x);
+                } catch (DocumentTimeStampChangedException e1) {
+                    Log.log(e1); // Shouldn't happen as this should *not* be in a thread.
                 } finally {
                     clearPositionCache();
                 }
@@ -567,6 +591,14 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
         DocumentSync.runWithDocumentSynched(fDocument, iCallback, false);
 
         return createRegion();
+    }
+
+    /**
+     * Made for subclasses to override.
+     */
+    protected void onParsingFoundSwitchLanguageTokensAndPartitioningChanged(DocumentEvent e,
+            List<SwitchLanguageToken> switchLanguageTokens) {
+
     }
 
     private Position getExactPosition(int start, int length)
@@ -655,6 +687,7 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
      * May be replaced or extended by subclasses.
      * </p>
      */
+    @Override
     public String getContentType(int offset) {
         checkInitialization();
 
@@ -672,6 +705,7 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
      * May be replaced or extended by subclasses.
      * </p>
      */
+    @Override
     public ITypedRegion getPartition(int offset) {
         checkInitialization();
 
@@ -729,6 +763,7 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
     /*
      * @see IDocumentPartitioner#computePartitioning(int, int)
      */
+    @Override
     public final ITypedRegion[] computePartitioning(int offset, int length) {
         return computePartitioning(offset, length, false);
     }
@@ -739,6 +774,7 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
      * May be replaced or extended by subclasses.
      * </p>
      */
+    @Override
     public String[] getLegalContentTypes() {
         return TextUtilities.copy(fLegalContentTypes);
     }
@@ -790,6 +826,7 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
      * May be replaced or extended by subclasses.
      * </p>
      */
+    @Override
     public String getContentType(int offset, boolean preferOpenPartitions) {
         return getPartition(offset, preferOpenPartitions).getType();
     }
@@ -800,6 +837,7 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
      * May be replaced or extended by subclasses.
      * </p>
      */
+    @Override
     public ITypedRegion getPartition(int offset, boolean preferOpenPartitions) {
         ITypedRegion region = getPartition(offset);
         if (preferOpenPartitions) {
@@ -822,6 +860,7 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
      * May be replaced or extended by subclasses.
      * </p>
      */
+    @Override
     public ITypedRegion[] computePartitioning(int offset, int length, boolean includeZeroLengthPartitions) {
         checkInitialization();
         List<ITypedRegion> list = new ArrayList<>();
@@ -842,7 +881,8 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
 
                 current = (TypedPosition) category[i];
                 TypedPositionWithSubTokens typedPositionWithSubTokens = (TypedPositionWithSubTokens) (current instanceof TypedPositionWithSubTokens
-                        ? current : null);
+                        ? current
+                        : null);
 
                 gapOffset = (previous != null) ? previous.getOffset() + previous.getLength() : 0;
                 gap.setOffset(gapOffset);
@@ -970,6 +1010,7 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
     /*
      * @see org.eclipse.jface.text.IDocumentPartitionerExtension3#startRewriteSession(org.eclipse.jface.text.DocumentRewriteSession)
      */
+    @Override
     public void startRewriteSession(DocumentRewriteSession session) throws IllegalStateException {
         if (fActiveRewriteSession != null) {
             throw new IllegalStateException();
@@ -983,6 +1024,7 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
      * May be extended by subclasses.
      * </p>
      */
+    @Override
     public void stopRewriteSession(DocumentRewriteSession session) {
         if (fActiveRewriteSession == session) {
             flushRewriteSession();
@@ -995,6 +1037,7 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
      * May be extended by subclasses.
      * </p>
      */
+    @Override
     public DocumentRewriteSession getActiveRewriteSession() {
         return fActiveRewriteSession;
     }

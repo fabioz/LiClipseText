@@ -17,22 +17,23 @@ import org.brainwy.liclipsetext.editor.languages.LanguagesManager;
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
 import org.brainwy.liclipsetext.editor.rules.IRuleWithSubRules;
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.partitioner.DummyToken;
 import org.brainwy.liclipsetext.shared_core.partitioner.IChangeTokenRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.brainwy.liclipsetext.shared_core.partitioner.SubRuleToken;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.rules.ICharacterScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
-public class TmIncludeRule implements IPredicateRule, IRuleWithSubRules, IRuleWithSubRules2, IChangeTokenRule,
+public class TmIncludeRule implements ILiClipsePredicateRule, IRuleWithSubRules, IRuleWithSubRules2, IChangeTokenRule,
         ILanguageDependentRule, ITextMateRule, IPrintableRule {
 
     private String include;
     private LiClipseLanguage language;
-    private IPredicateRule wrappedRule;
+    private ILiClipsePredicateRule wrappedRule;
     private boolean resolved = false;
     private IToken fToken = new DummyToken("TmIncludeRule: " + this.include + " " + this.hashCode());
 
@@ -42,7 +43,7 @@ public class TmIncludeRule implements IPredicateRule, IRuleWithSubRules, IRuleWi
     }
 
     @Override
-    public IToken evaluate(ICharacterScanner scanner) {
+    public IToken evaluate(ICharacterScanner scanner) throws DocumentTimeStampChangedException {
         resolve();
         if (wrappedRule != null) {
             IToken ret = wrappedRule.evaluate(scanner);
@@ -54,7 +55,7 @@ public class TmIncludeRule implements IPredicateRule, IRuleWithSubRules, IRuleWi
     }
 
     @Override
-    public IToken evaluate(ICharacterScanner scanner, boolean resume) {
+    public IToken evaluate(ICharacterScanner scanner, boolean resume) throws DocumentTimeStampChangedException {
         if (resume) { //non-resumable
             return Token.UNDEFINED;
         }
@@ -65,8 +66,8 @@ public class TmIncludeRule implements IPredicateRule, IRuleWithSubRules, IRuleWi
         if (!resolved) {
             resolved = true;
             if (include.startsWith("#")) {
-                Map<String, IPredicateRule> ruleAliases = language.ruleAliases;
-                IPredicateRule rule = ruleAliases.get(include.substring(1));
+                Map<String, ILiClipsePredicateRule> ruleAliases = language.ruleAliases;
+                ILiClipsePredicateRule rule = ruleAliases.get(include.substring(1));
                 if (rule == null) {
                     Log.log("Unable to resolve repository include: " + include + " in language: " + this.language.name);
                 } else {
@@ -102,7 +103,8 @@ public class TmIncludeRule implements IPredicateRule, IRuleWithSubRules, IRuleWi
     }
 
     @Override
-    public SubRuleToken evaluateSubRules(ScannerRange scanner, boolean generateSubRuleTokens) {
+    public SubRuleToken evaluateSubRules(ScannerRange scanner, boolean generateSubRuleTokens)
+            throws DocumentTimeStampChangedException {
         resolve();
         if (wrappedRule instanceof IRuleWithSubRules) {
             return ((IRuleWithSubRules) wrappedRule).evaluateSubRules(scanner, generateSubRuleTokens);

@@ -64,6 +64,8 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.preference.IPersistentPreferenceStore;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.tm4e.core.grammar.IGrammar;
+import org.eclipse.tm4e.core.registry.Registry;
 import org.yaml.snakeyaml.Yaml;
 
 @SuppressWarnings("unchecked")
@@ -79,6 +81,8 @@ public class LanguagesManager {
     private final Map<String, LanguageMetadata> languageNameToMetadata = new HashMap<String, LanguageMetadata>();
     private File[] languagesDir;
     private IPathWatch pathWatch;
+
+    private final Registry fRegistry = new Registry();
 
     public final CallbackWithListeners<LanguagesManager> onReload = new CallbackWithListeners<>();
 
@@ -299,7 +303,7 @@ public class LanguagesManager {
                             if (considerTmBundleZipName(elementName)) {
                                 ITmLanguagePart part = TmLanguagePart.create(file, zipFile, element);
                                 if (part instanceof TmGrammarPart) {
-                                    ILanguageMetadataFileInfo fileInfo = new LanguageMetadataZipFileInfo(file,
+                                    ILanguageMetadataFileInfo fileInfo = new LanguageMetadataTmBundleZipFileInfo(file,
                                             elementName);
                                     onGrammarFound(file, part, fileInfo);
                                 } else if (part instanceof TmSnippetPart) {
@@ -328,7 +332,8 @@ public class LanguagesManager {
                         if (considerTmBundleZipName(string)) {
                             ITmLanguagePart part = TmLanguagePart.create(path);
                             if (part instanceof TmGrammarPart) {
-                                ILanguageMetadataFileInfo fileInfo = new LanguageMetadataFileInfo(path.toFile());
+                                ILanguageMetadataFileInfo fileInfo = new LanguageMetadataFileInfo(path.toFile(),
+                                        path.toFile());
                                 onGrammarFound(file, part, fileInfo); //Note: the file is expected to be the tmbundle dir.
                             } else if (part instanceof TmSnippetPart) {
                                 onSnippetFound((TmSnippetPart) part);
@@ -416,8 +421,8 @@ public class LanguagesManager {
         languageNameToMetadata.put(name, languageMetadata);
 
         List<String> fileTypes = tmGrammarPart.getFileTypes();
-		registerFileExtensions(file, languageMetadata, fileTypes);
-		registerFilenames(file, languageMetadata, fileTypes);
+        registerFileExtensions(file, languageMetadata, fileTypes);
+        registerFilenames(file, languageMetadata, fileTypes);
     }
 
     public static boolean considerTmBundleZipName(String elementName) {
@@ -456,8 +461,7 @@ public class LanguagesManager {
                     }
                 }
             }
-
-            LanguageMetadata languageMetadata = new LanguageMetadata(name, new LanguageMetadataFileInfo(file),
+            LanguageMetadata languageMetadata = new LanguageMetadata(name, new LanguageMetadataFileInfo(file, data),
                     shebang == null ? null
                             : shebang.toArray(new Pattern[shebang.size()]),
                     LanguageType.LICLIPSE, name);
@@ -961,6 +965,17 @@ public class LanguagesManager {
                 fillLowerCaseSets(treeNode, extensions, filenamesRegistered);
             }
         }
+    }
+
+    public IGrammar getTm4EGrammar(LiClipseLanguage language) throws Exception {
+        IStreamProvider streamProvider = language.file.getTmLanguageStreamProvider();
+
+        IGrammar grammar = fRegistry.grammarForScopeName(language.name);
+        if (grammar == null) {
+            grammar = fRegistry.loadGrammarFromPathSync(".tmLanguage",
+                    streamProvider.getStream());
+        }
+        return grammar;
     }
 
 }

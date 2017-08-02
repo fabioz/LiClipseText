@@ -1,6 +1,7 @@
 package org.brainwy.liclipsetext.editor.tmbundle;
 
-import org.brainwy.liclipsetext.editor.common.partitioning.LiClipsePartitionScanner;
+import java.util.Arrays;
+
 import org.brainwy.liclipsetext.editor.common.partitioning.TestUtils;
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.eclipse.jface.text.Document;
@@ -9,6 +10,18 @@ import org.eclipse.jface.text.IDocument;
 import junit.framework.TestCase;
 
 public class TmBundlesLanguageTest extends TestCase {
+
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        TestUtils.configLanguagesManager();
+    }
+
+    @Override
+    protected void tearDown() throws Exception {
+        super.tearDown();
+        TestUtils.clearLanguagesManager();
+    }
 
     public void testTmBundleLanguage() throws Exception {
         String txt = "class A:\n"
@@ -20,18 +33,18 @@ public class TmBundlesLanguageTest extends TestCase {
         language.connect(document);
 
         String partition = TestUtils.partition(document);
-        assertEquals(TestUtils.listToExpected("meta.class.old-style.python:0:8",
-                "__dftl_partition_content_type:8:9",
-                "source.python.include.8:9:28",
-                "__dftl_partition_content_type:28:32",
-                "keyword.control.flow.python:32:"), partition);
+        assertEquals(TestUtils.listToExpected("source.python:0:"), partition);
 
-        LiClipsePartitionScanner scanner = TestUtils.createScanner("language_test.liclipse",
-                "source.python.include.8");
-
-        TestUtils.checkScan(new Document(txt.substring(9, 28)), scanner, "comment.block.python:0:4",
-                "punctuation.definition.string.begin.python:4:3",
-                "string.quoted.single.block.python:7:9",
-                "punctuation.definition.string.end.python:16:3");
+        assertEquals(TestUtils.listToExpected("storage.type.class.python:0:5",
+                "meta.class.old-style.python:5:1",
+                "entity.name.type.class.python:6:1",
+                "punctuation.section.class.begin.python:7:2",
+                "comment.block.python:9:4",
+                "punctuation.definition.string.begin.python:13:3",
+                "string.quoted.single.block.python:16:9",
+                "punctuation.definition.string.end.python:25:3",
+                "source.python:28:4",
+                "keyword.control.flow.python:32:4"),
+                TestUtils.scanAll(language, document, Arrays.asList("source.python:0:")));
     }
 }

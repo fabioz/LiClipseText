@@ -7,10 +7,8 @@
 package org.brainwy.liclipsetext.editor.common.partitioning;
 
 import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner;
-import org.brainwy.liclipsetext.editor.partitioning.PartitionCodeReaderInScannerHelper;
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
@@ -19,35 +17,27 @@ public class SingleTokenScanner implements ICustomPartitionTokenScanner {
 
     protected IToken fDefaultReturnToken = new Token(null);
 
+    @Override
     public void setDefaultReturnToken(IToken defaultReturnToken) {
         Assert.isNotNull(defaultReturnToken.getData());
         fDefaultReturnToken = defaultReturnToken;
     }
 
+    @Override
+    public IToken getDefaultReturnToken() {
+        return fDefaultReturnToken;
+    }
+
+    @Override
     public void nextToken(ScannerRange range) {
         range.startNextToken();
 
         if (range.read() == ICharacterScanner.EOF) {
             range.setToken(Token.EOF);
             return;
+        } else {
+            range.setMark(range.getRangeEndOffset());
+            range.setToken(fDefaultReturnToken);
         }
-        while (range.read() != ICharacterScanner.EOF) {
-            //keep on going until the end if the first was not an EOF.
-        }
-        range.unread(); //unread EOF
-        range.setToken(fDefaultReturnToken);
     }
-
-    @Override
-    public ScannerRange createPartialScannerRange(IDocument document, int offset, int length, String contentType,
-            int partitionOffset) {
-        return new ScannerRange(document, offset, length, contentType, partitionOffset,
-                new PartitionCodeReaderInScannerHelper());
-    }
-
-    @Override
-    public ScannerRange createScannerRange(IDocument document, int offset, int length) {
-        return new ScannerRange(document, offset, length, new PartitionCodeReaderInScannerHelper());
-    }
-
 }

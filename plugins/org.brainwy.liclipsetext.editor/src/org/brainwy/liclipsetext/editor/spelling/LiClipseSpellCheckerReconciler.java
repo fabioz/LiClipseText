@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import org.brainwy.liclipsetext.editor.common.partitioning.LiClipseDocumentPartitioner;
 import org.brainwy.liclipsetext.editor.common.partitioning.reader.SubPartitionCodeReader;
 import org.brainwy.liclipsetext.editor.common.partitioning.reader.SubPartitionCodeReader.TypedPart;
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.IDocument;
@@ -40,34 +41,36 @@ public class LiClipseSpellCheckerReconciler extends SpellingReconcileStrategy {
 
         @Override
         public IRegion[] getSubRegionsForReconcile(IDocument document) {
-            SubPartitionCodeReader reader = new SubPartitionCodeReader();
-            IDocumentPartitioner partitioner = document.getDocumentPartitioner();
+            return DocumentTimeStampChangedException.retryUntilNoDocChanges(() -> {
+                SubPartitionCodeReader reader = new SubPartitionCodeReader();
+                IDocumentPartitioner partitioner = document.getDocumentPartitioner();
 
-            if (partitioner instanceof LiClipseDocumentPartitioner) {
-                LiClipseDocumentPartitioner liClipsePartitioner = (LiClipseDocumentPartitioner) partitioner;
-                String[] spellCheckingContentTypes = liClipsePartitioner.getSpellCheckingContentTypes();
-                if (spellCheckingContentTypes == null || spellCheckingContentTypes.length == 0) {
+                if (partitioner instanceof LiClipseDocumentPartitioner) {
+                    LiClipseDocumentPartitioner liClipsePartitioner = (LiClipseDocumentPartitioner) partitioner;
+                    String[] spellCheckingContentTypes = liClipsePartitioner.getSpellCheckingContentTypes();
+                    if (spellCheckingContentTypes == null || spellCheckingContentTypes.length == 0) {
+                        return null;
+                    }
+                    reader.configurePartitions(true, document, this.baseRegionForReconcile.getOffset(),
+                            spellCheckingContentTypes);
+
+                    int finalOffset = this.baseRegionForReconcile.getOffset() + this.baseRegionForReconcile.getLength();
+
+                    ArrayList<IRegion> regions = new ArrayList<IRegion>();
+                    TypedPart read = reader.read();
+                    while (read != null) {
+                        if (read.offset >= finalOffset) {
+                            break;
+                        }
+                        regions.add(new Region(read.offset, read.length));
+                        read = reader.read();
+                    }
+                    return regions.toArray(new IRegion[regions.size()]);
+                } else {
+                    Log.log("Expected LiClipseDocumentPartitioner. Found: " + partitioner);
                     return null;
                 }
-                reader.configurePartitions(true, document, this.baseRegionForReconcile.getOffset(),
-                        spellCheckingContentTypes);
-
-                int finalOffset = this.baseRegionForReconcile.getOffset() + this.baseRegionForReconcile.getLength();
-
-                ArrayList<IRegion> regions = new ArrayList<IRegion>();
-                TypedPart read = reader.read();
-                while (read != null) {
-                    if (read.offset >= finalOffset) {
-                        break;
-                    }
-                    regions.add(new Region(read.offset, read.length));
-                    read = reader.read();
-                }
-                return regions.toArray(new IRegion[regions.size()]);
-            } else {
-                Log.log("Expected LiClipseDocumentPartitioner. Found: " + partitioner);
-                return null;
-            }
+            });
         }
     }
 
@@ -78,7 +81,7 @@ public class LiClipseSpellCheckerReconciler extends SpellingReconcileStrategy {
         this.preferenceStore = EditorsUI.getPreferenceStore();
     }
 
-    /*default for tests*/LiClipseSpellCheckerReconciler() {
+    /*default for tests*/ LiClipseSpellCheckerReconciler() {
         super();
     }
 

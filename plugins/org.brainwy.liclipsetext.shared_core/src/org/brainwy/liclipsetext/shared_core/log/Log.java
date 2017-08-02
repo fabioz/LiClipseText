@@ -69,6 +69,12 @@ public class Log {
             id = plugin.getBundle().getSymbolicName();
         }
 
+        if (SharedCorePlugin.inTestMode()) {
+            if (errorLevel >= IStatus.ERROR) {
+                throw new RuntimeException(message, e);
+            }
+        }
+
         Status s = new Status(errorLevel, id, errorLevel, message, e);
         CoreException coreException = new CoreException(s);
 
@@ -99,6 +105,7 @@ public class Log {
         } catch (Exception e1) {
             //logging should not fail!
         }
+
         return coreException;
     }
 }

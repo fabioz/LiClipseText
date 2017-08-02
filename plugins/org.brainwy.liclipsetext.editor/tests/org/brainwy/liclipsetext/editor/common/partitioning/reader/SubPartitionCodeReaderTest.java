@@ -7,10 +7,9 @@ import org.brainwy.liclipsetext.editor.common.partitioning.DummyColorCache;
 import org.brainwy.liclipsetext.editor.common.partitioning.IColorCache;
 import org.brainwy.liclipsetext.editor.common.partitioning.LiClipseDocumentPartitioner;
 import org.brainwy.liclipsetext.editor.common.partitioning.TestUtils;
-import org.brainwy.liclipsetext.editor.common.partitioning.reader.SubPartitionCodeReader;
 import org.brainwy.liclipsetext.editor.common.partitioning.reader.SubPartitionCodeReader.IAcceptPartition;
 import org.brainwy.liclipsetext.editor.common.partitioning.reader.SubPartitionCodeReader.TypedPart;
-import org.brainwy.liclipsetext.editor.languages.LanguageMetadataZipFileInfo;
+import org.brainwy.liclipsetext.editor.languages.LanguageMetadataTmBundleZipFileInfo;
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.brainwy.liclipsetext.shared_core.string.StringUtils;
 import org.eclipse.core.internal.filebuffers.SynchronizableDocument;
@@ -228,7 +227,7 @@ public class SubPartitionCodeReaderTest extends TestCase {
                 + "}\n?>";
         IDocument doc = new Document(txt);
 
-        LanguageMetadataZipFileInfo metadata = new LanguageMetadataZipFileInfo(
+        LanguageMetadataTmBundleZipFileInfo metadata = new LanguageMetadataTmBundleZipFileInfo(
                 new File(TestUtils.getLanguagesDir(), "php.tmbundle"), "php.tmbundle-master/Syntaxes/PHP.plist");
 
         LiClipseLanguage language = metadata.loadLanguage(true);
@@ -266,9 +265,7 @@ public class SubPartitionCodeReaderTest extends TestCase {
         }
         assertEquals(TestUtils.listToExpected("punctuation.section.embedded.end.php",
                 "source.php",
-                "source.php",
                 "punctuation.section.scope.end.php",
-                "source.php",
                 "punctuation.terminator.expression.php",
                 "variable.other.php",
                 "punctuation.definition.variable.php",
@@ -280,8 +277,6 @@ public class SubPartitionCodeReaderTest extends TestCase {
                 "entity.name.type.class.php",
                 "meta.class.php",
                 "storage.type.class.php",
-                "source.php",
-                "punctuation.whitespace.embedded.leading.php",
                 "punctuation.section.embedded.begin.php"), TestUtils.listToExpected(lst));
     }
 

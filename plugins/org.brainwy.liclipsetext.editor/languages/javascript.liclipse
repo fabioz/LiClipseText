@@ -48,11 +48,19 @@ scope:
       "throws", "transient", "true", "try", "typeof",
       "var", "void", "volatile", "while", "with",
       "yield", ]
+
+    localVariable: [ 'hasOwnProperty', 'Infinity',  'isFinite',  'isNaN',
+      'isPrototypeOf', 'length',  'Math',  'NaN',
+      'name',  'Number',  'Object',  'prototype',
+      'String',  'toString',  'undefined', 'valueOf' ]
+
     bracket: [(, '{', '[', ']', '}', )]
     operator: ['!', $, '%', '&', '*', +, '-', //, /, ':', <, '=', '>', '?', ^, '|',
       '~', is, new, sizeof, typeof, unchecked, ',', ;]
 
     sub_rules: [
+      {type: NumberRule, scope: number},
+
       {type: CompositeRule, sub_rules: [
         { type: SequenceRule, scope: keyword, sequence: 'class'}, #Define that 'class' is a keyword
         { type: OneOrMoreSpacesRule, scope: default},
@@ -76,31 +84,33 @@ scope:
         { type: WordSeparatorRule, scope: keyword},
         ]
       },
-      # Match function name 3: x = () =>
-      {type: CompositeRule, sub_rules: [
-        { type: AnyWordRule, scope: method },
-        { type: ZeroOrMoreSpacesRule, scope: default},
-        { type: SequenceRule, scope: operator, sequence: '='},
-        { type: ZeroOrMoreSpacesRule, scope: OFF_PARTITION},
-        { type: MultiLineRuleRecursive, scope: OFF_PARTITION, start: '(', end: ')', escapeCharacter: \0, skip_rules:[]},
-        { type: ZeroOrMoreSpacesRule, scope: OFF_PARTITION},
-        { type: SequenceRule, scope: OFF_PARTITION, sequence: '=>'}
-        ]
-      },
-      # Match function name 4 (inside a class): x() {}
-      {type: CompositeRule, sub_rules: [
-        { type: AnyWordRule, scope: method, except:[abstract, break, byte, case, catch, char, class, const, continue, default,
-          delete, do, double, else, export, extends, 'false', final, finally, float, for, from, function,
-          goto, if, implements, import, in, instanceof, int, interface, let, long, native,
-          'null', package, private, protected, public, reset, return, short, static, super,
-          switch, synchronized, this, throw, transient, 'true', try, var, void, while,
-          with] },
-        { type: ZeroOrMoreSpacesRule, scope: OFF_PARTITION},
-        { type: MultiLineRuleRecursive, scope: OFF_PARTITION, start: '(', end: ')', escapeCharacter: \0, skip_rules:[]},
-        { type: ZeroOrMoreSpacesRule, scope: OFF_PARTITION},
-        { type: SequenceRule, scope: OFF_PARTITION, sequence: '{'},
-        ]
-      },
+# Note: removed the 2 matches below because they can be pretty slow to match
+# (not a problem on small files, but it's common to find really big javascript files).
+#       # Match function name 3: x = () =>
+#       {type: CompositeRule, sub_rules: [
+#         { type: AnyWordRule, scope: method },
+#         { type: ZeroOrMoreSpacesRule, scope: default},
+#         { type: SequenceRule, scope: operator, sequence: '='},
+#         { type: ZeroOrMoreSpacesRule, scope: OFF_PARTITION},
+#         { type: MultiLineRuleRecursive, scope: OFF_PARTITION, start: '(', end: ')', escapeCharacter: \0, skip_rules:[]},
+#         { type: ZeroOrMoreSpacesRule, scope: OFF_PARTITION},
+#         { type: SequenceRule, scope: OFF_PARTITION, sequence: '=>'}
+#         ]
+#       },
+#       # Match function name 4 (inside a class): x() {}
+#       {type: CompositeRule, sub_rules: [
+#         { type: AnyWordRule, scope: method, except:[abstract, break, byte, case, catch, char, class, const, continue, default,
+#           delete, do, double, else, export, extends, 'false', final, finally, float, for, from, function,
+#           goto, if, implements, import, in, instanceof, int, interface, let, long, native,
+#           'null', package, private, protected, public, reset, return, short, static, super,
+#           switch, synchronized, this, throw, transient, 'true', try, var, void, while,
+#           with] },
+#         { type: ZeroOrMoreSpacesRule, scope: OFF_PARTITION},
+#         { type: MultiLineRuleRecursive, scope: OFF_PARTITION, start: '(', end: ')', escapeCharacter: \0, skip_rules:[]},
+#         { type: ZeroOrMoreSpacesRule, scope: OFF_PARTITION},
+#         { type: SequenceRule, scope: OFF_PARTITION, sequence: '{'},
+#         ]
+#       },
     ]
 
 file_extensions: [js]

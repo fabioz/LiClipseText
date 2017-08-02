@@ -11,34 +11,35 @@ import java.util.List;
 import org.brainwy.liclipsetext.editor.common.partitioning.IRuleWithSubRules2;
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
 import org.brainwy.liclipsetext.editor.rules.IRuleWithSubRules;
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.partitioner.IChangeTokenRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.brainwy.liclipsetext.shared_core.partitioner.SubRuleToken;
 import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
 import org.eclipse.jface.text.rules.ICharacterScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
 public class MatchWhileAnySubRuleMatches
-        implements ITextMateRule, IPredicateRule, IRuleWithSubRules, IRuleWithSubRules2,
+        implements ITextMateRule, ILiClipsePredicateRule, IRuleWithSubRules, IRuleWithSubRules2,
         IChangeTokenRule, IPrintableRule {
 
-    final private IPredicateRule[] subRules;
+    final private ILiClipsePredicateRule[] subRules;
     private IToken fToken;
 
-    public MatchWhileAnySubRuleMatches(List<IPredicateRule> rules, IToken token) {
-        this.subRules = rules.toArray(new IPredicateRule[0]);
+    public MatchWhileAnySubRuleMatches(List<ILiClipsePredicateRule> rules, IToken token) {
+        this.subRules = rules.toArray(new ILiClipsePredicateRule[0]);
 
         this.fToken = token;
     }
 
     @Override
-    public IToken evaluate(ICharacterScanner scanner) {
+    public IToken evaluate(ICharacterScanner scanner) throws DocumentTimeStampChangedException {
         return evaluate(scanner, false);
     }
 
     @Override
-    public IToken evaluate(ICharacterScanner scanner, boolean resume) {
+    public IToken evaluate(ICharacterScanner scanner, boolean resume) throws DocumentTimeStampChangedException {
         if (resume) {
             return Token.UNDEFINED;
         }
@@ -65,7 +66,8 @@ public class MatchWhileAnySubRuleMatches
     }
 
     @Override
-    public SubRuleToken evaluateSubRules(ScannerRange scanner, boolean generateSubRuleTokens) {
+    public SubRuleToken evaluateSubRules(ScannerRange scanner, boolean generateSubRuleTokens)
+            throws DocumentTimeStampChangedException {
         final int mark = scanner.getMark();
         SubRuleToken wholeMatch = null;
         boolean matchedSubRule = true;
@@ -98,7 +100,7 @@ public class MatchWhileAnySubRuleMatches
 
             matchedSubRule = false;
             for (int i = 0; i < length; i++) {
-                IPredicateRule subRule = subRules[i];
+                ILiClipsePredicateRule subRule = subRules[i];
                 if (subRule instanceof IRuleWithSubRules) {
                     IRuleWithSubRules iRuleWithSubRules = (IRuleWithSubRules) subRule;
                     SubRuleToken subRuleToken = iRuleWithSubRules.evaluateSubRules(scanner,
@@ -147,7 +149,7 @@ public class MatchWhileAnySubRuleMatches
         return wholeMatch;
     }
 
-    public IPredicateRule[] getSubRules() {
+    public ILiClipsePredicateRule[] getSubRules() {
         return subRules;
     }
 

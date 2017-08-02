@@ -6,10 +6,10 @@
  */
 package org.brainwy.liclipsetext.editor.partitioning;
 
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.log.Log;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.rules.IPredicateRule;
-import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.IToken;
 
 /**
@@ -24,29 +24,11 @@ import org.eclipse.jface.text.rules.IToken;
  */
 public class LiClipseRuleBasedPartitionScanner extends AbstractLiClipseRuleBasedScanner {
 
-    /**
-     * Disallow setting the rules since this scanner
-     * exclusively uses predicate rules.
-     *
-     * @param rules the sequence of rules controlling this scanner
-     */
-    @Override
-    public void setRules(IRule[] rules) {
-        throw new UnsupportedOperationException();
-    }
-
-    /*
-     * @see RuleBasedScanner#setRules(IRule[])
-     */
-    public void setPredicateRules(IPredicateRule[] rules) {
-        super.setRules(rules);
-    }
-
     /*
      * @see ITokenScanner#nextToken()
      */
     @Override
-    public void nextToken(ScannerRange range) {
+    public void nextToken(ScannerRange range) throws DocumentTimeStampChangedException {
         if (range.fContentType == null || fRules == null) {
             //don't try to resume
             super.nextToken(range);
@@ -58,11 +40,11 @@ public class LiClipseRuleBasedPartitionScanner extends AbstractLiClipseRuleBased
         boolean resume = (range.fPartitionOffset > -1 && range.fPartitionOffset < range.fOffset);
         range.fTokenOffset = resume ? range.fPartitionOffset : range.fOffset;
 
-        IPredicateRule rule;
+        ILiClipsePredicateRule rule;
         IToken token;
 
         for (int i = 0; i < fRules.length; i++) {
-            rule = (IPredicateRule) fRules[i];
+            rule = (ILiClipsePredicateRule) fRules[i];
             token = rule.getSuccessToken();
             if (token == null) {
                 Log.log("Rule: " + rule + " returned null as getSuccessToken.");

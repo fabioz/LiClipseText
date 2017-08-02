@@ -8,10 +8,10 @@ package org.brainwy.liclipsetext.editor.common.partitioning.rules;
 
 import org.brainwy.liclipsetext.shared_core.partitioner.IChangeTokenRule;
 import org.eclipse.jface.text.rules.ICharacterScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 
-public class ZeroOrMoreSpacesRule implements IPredicateRule, IChangeTokenRule {
+public class ZeroOrMoreSpacesRule implements ILiClipsePredicateRule, IChangeTokenRule {
 
     protected IToken fToken;
 

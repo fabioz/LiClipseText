@@ -11,7 +11,7 @@ import org.brainwy.liclipsetext.editor.common.partitioning.rules.TmBeginEndRule;
 import org.brainwy.liclipsetext.editor.common.partitioning.rules.TmMatchRule;
 import org.brainwy.liclipsetext.editor.languages.tmbundle.TmLanguageHandler;
 import org.brainwy.liclipsetext.editor.languages.tmbundle.TmRulesConverter;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 
 public class TmBundlesParserTest extends TestCase {
 
@@ -28,7 +28,7 @@ public class TmBundlesParserTest extends TestCase {
         assertTrue(repository instanceof Map);
         TmRulesConverter tmRulesConverter = new TmRulesConverter(null);
 
-        IPredicateRule rule = tmRulesConverter.convertDictToRule(parser.getMap("repository/constant_placeholder"),
+        ILiClipsePredicateRule rule = tmRulesConverter.convertDictToRule(parser.getMap("repository/constant_placeholder"),
                 "constant_placeholder");
         assertTrue(rule instanceof TmMatchRule);
         TmMatchRule r = (TmMatchRule) rule;

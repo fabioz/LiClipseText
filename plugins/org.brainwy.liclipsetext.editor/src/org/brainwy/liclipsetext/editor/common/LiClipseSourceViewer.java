@@ -20,6 +20,9 @@ import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.IOverviewRuler;
 import org.eclipse.jface.text.source.IVerticalRuler;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ST;
+import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.widgets.Composite;
 
@@ -141,18 +144,100 @@ public class LiClipseSourceViewer extends BaseSourceViewer implements ILiClipseS
     @Override
     protected StyledText createTextWidget(Composite parent, int styles) {
         try {
-        	ILiClipseEditorCustomizer editorCustomizer = (ILiClipseEditorCustomizer) BaseExtensionHelper.getParticipant(
-        			"org.brainwy.liclipsetext.editor.liclipse_editor_customizer", false);
-        	if(editorCustomizer != null){
-        		StyledText styledText = editorCustomizer.createTextWidget(this, parent, styles);
-        		if(styledText != null){
-        			return styledText;
-        		}
-        	}
-		} catch (Exception e) {
-			Log.log(e);
-		}
-    	return super.createTextWidget(parent, styles);
+            ILiClipseEditorCustomizer editorCustomizer = (ILiClipseEditorCustomizer) BaseExtensionHelper.getParticipant(
+                    "org.brainwy.liclipsetext.editor.liclipse_editor_customizer", false);
+            if (editorCustomizer != null) {
+                StyledText styledText = editorCustomizer.createTextWidget(this, parent, styles);
+                if (styledText != null) {
+                    return styledText;
+                }
+            }
+        } catch (Exception e) {
+            Log.log(e);
+        }
+
+        StyledText styledText = new StyledTextImproved(parent, styles);
+        styledText.setLeftMargin(Math.max(styledText.getLeftMargin(), 2));
+        return styledText;
     }
 
+    public final static class StyledTextImproved extends StyledText {
+
+        public StyledTextImproved(Composite parent, int style) {
+            super(parent, style);
+        }
+
+        /**
+         * Optimization:
+         * The method:
+         * org.eclipse.swt.custom.StyledTextRenderer.setStyleRanges(int[], StyleRange[])
+         *
+         * is *extremely* inefficient on huge documents with lots of styles when
+         * ranges are not passed and have to be computed in the block:
+         *
+         * if (newRanges == null && COMPACT_STYLES) {
+         *
+         * So, we just pre-create the ranges here (Same thing on org.python.pydev.overview_ruler.StyledTextWithoutVerticalBar)
+         * A patch should later be given to SWT itself.
+         */
+
+        @Override
+        public void setStyleRanges(StyleRange[] styles) {
+            if (styles != null) {
+                int[] newRanges = createRanges(styles);
+                super.setStyleRanges(newRanges, styles);
+                return;
+            }
+            super.setStyleRanges(styles);
+        }
+
+        @Override
+        public void replaceStyleRanges(int start, int length, StyleRange[] styles) {
+            checkWidget();
+            if (isListening(ST.LineGetStyle)) {
+                return;
+            }
+            if (styles == null) {
+                SWT.error(SWT.ERROR_NULL_ARGUMENT);
+            }
+            int[] newRanges = createRanges(styles);
+            setStyleRanges(start, length, newRanges, styles);
+        }
+
+        private int[] createRanges(StyleRange[] styles) throws AssertionError {
+            int charCount = this.getCharCount();
+
+            int[] newRanges = new int[styles.length << 1];
+            int endOffset = -1;
+            for (int i = 0, j = 0; i < styles.length; i++) {
+                StyleRange newStyle = styles[i];
+                if (endOffset > newStyle.start) {
+                    String msg = "Error endOffset (" + endOffset + ") > next style start (" + newStyle.start + ")";
+                    Log.log(msg);
+                    int diff = endOffset - newStyle.start;
+                    newStyle.start = endOffset;
+                    newStyle.length -= diff;
+                    if (newStyle.length < 0) {
+                        // Unable to fix it
+                        throw new AssertionError(msg);
+                    }
+                }
+
+                endOffset = newStyle.start + newStyle.length;
+                if (endOffset > charCount) {
+                    String msg = "Error endOffset (" + endOffset + ") > charCount (" + charCount + ")";
+                    Log.log(msg);
+                    newStyle.length -= endOffset - charCount;
+                    if (newStyle.length < 0) {
+                        // Unable to fix it
+                        throw new AssertionError(msg);
+                    }
+                }
+
+                newRanges[j++] = newStyle.start;
+                newRanges[j++] = newStyle.length;
+            }
+            return newRanges;
+        }
+    }
 }

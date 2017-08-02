@@ -15,10 +15,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.brainwy.liclipsetext.shared_core.callbacks.ICallback;
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipseTokenScanner;
 import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.rules.IToken;
-import org.eclipse.jface.text.rules.ITokenScanner;
 
 public class TestUtils {
 
@@ -98,30 +99,34 @@ public class TestUtils {
         return expectedBuf.toString();
     }
 
-    public static String scan(ITokenScanner scanner, IDocument document) {
-        scanner.setRange(document, 0, document.getLength());
+    public static String scan(ILiClipseTokenScanner scanner, IDocument document) {
+        try {
+            scanner.setRange(document, 0, document.getLength());
 
-        ArrayList<String> found = new ArrayList<String>();
-        FastStringBuffer buf = new FastStringBuffer();
-        IToken token = scanner.nextToken();
-        while (!token.isEOF()) {
-            Object data = token.getData();
-            if (data != null) {
-                buf.clear();
-                buf.append(data.toString()).append(":");
-                buf.append(scanner.getTokenOffset()).append(":");
-                buf.append(scanner.getTokenLength());
-                found.add(buf.toString());
-            } else {
-                buf.clear();
-                buf.append("null").append(":");
-                buf.append(scanner.getTokenOffset()).append(":");
-                buf.append(scanner.getTokenLength());
-                found.add(buf.toString());
+            ArrayList<String> found = new ArrayList<String>();
+            FastStringBuffer buf = new FastStringBuffer();
+            IToken token = scanner.nextToken();
+            while (!token.isEOF()) {
+                Object data = token.getData();
+                if (data != null) {
+                    buf.clear();
+                    buf.append(data.toString()).append(":");
+                    buf.append(scanner.getTokenOffset()).append(":");
+                    buf.append(scanner.getTokenLength());
+                    found.add(buf.toString());
+                } else {
+                    buf.clear();
+                    buf.append("null").append(":");
+                    buf.append(scanner.getTokenOffset()).append(":");
+                    buf.append(scanner.getTokenLength());
+                    found.add(buf.toString());
+                }
+                token = scanner.nextToken();
             }
-            token = scanner.nextToken();
+            return listToExpected(found);
+        } catch (DocumentTimeStampChangedException e) {
+            throw new RuntimeException(e);
         }
-        return listToExpected(found);
     }
 
     public static String arrayToExpected(byte[] bytes) {

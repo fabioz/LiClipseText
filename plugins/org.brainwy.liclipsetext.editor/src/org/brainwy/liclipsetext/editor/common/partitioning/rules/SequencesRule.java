@@ -12,11 +12,11 @@ import org.brainwy.liclipsetext.shared_core.partitioner.IChangeTokenRule;
 import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
 import org.brainwy.liclipsetext.shared_core.string.StringUtils;
 import org.eclipse.jface.text.rules.ICharacterScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
-public class SequencesRule implements IPredicateRule, IChangeTokenRule {
+public class SequencesRule implements ILiClipsePredicateRule, IChangeTokenRule {
 
     protected IToken fToken;
     private SequenceRule[] sequenceRules;

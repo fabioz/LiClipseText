@@ -24,7 +24,7 @@ import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.structure.LowMemoryArrayList;
 import org.brainwy.liclipsetext.shared_core.structure.OrderedMap;
 import org.eclipse.core.runtime.AssertionFailedException;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public class RulesFactory {
@@ -96,15 +96,15 @@ public class RulesFactory {
     // Note: kept out of cog because it's a special case (sub rules)
     private static final String COMPOSITE_RULE = "CompositeRule";
 
-    private IPredicateRule createCompositeRule(Map<String, Object> m) {
-        IPredicateRule rule = createCompositeRule((List) removeFromMap(m, "sub_rules"));
+    private ILiClipsePredicateRule createCompositeRule(Map<String, Object> m) {
+        ILiClipsePredicateRule rule = createCompositeRule((List) removeFromMap(m, "sub_rules"));
         checkCleared(m);
         return rule;
     }
 
-    private IPredicateRule createCompositeRule(List<Map> subRules) {
+    private ILiClipsePredicateRule createCompositeRule(List<Map> subRules) {
         List<String> subRulesDumpRepresentation = null;
-        List<IPredicateRule> loadedSubRules = null;
+        List<ILiClipsePredicateRule> loadedSubRules = null;
 
         pushRulesDumpRepresentation();
         loadedSubRules = this.load(subRules);
@@ -122,8 +122,8 @@ public class RulesFactory {
     //============================================================================= TmBeginEndRule
     private static final String TM_BEGIN_END_RULE = "TmBeginEndRule";
 
-    public IPredicateRule createTmBeginEndRule(Map m) {
-        IPredicateRule createTmBeginEndRule = createTmBeginEndRule(
+    public ILiClipsePredicateRule createTmBeginEndRule(Map m) {
+        ILiClipsePredicateRule createTmBeginEndRule = createTmBeginEndRule(
                 (String) removeFromMap(m, "begin"),
                 (String) removeFromMap(m, "end"),
                 (Map) removeFromMap(m, "beginCaptures", new TreeMap<>()),
@@ -136,11 +136,11 @@ public class RulesFactory {
         return createTmBeginEndRule;
     }
 
-    public IPredicateRule createTmBeginEndRule(String begin, String end, Map beginCaptures, Map endCaptures,
+    public ILiClipsePredicateRule createTmBeginEndRule(String begin, String end, Map beginCaptures, Map endCaptures,
             String scope, String contentScope, List<Map> subRules, int applyEndPatternLast) {
 
         List<String> subRulesDumpRepresentation = null;
-        List<IPredicateRule> loadedSubRules = null;
+        List<ILiClipsePredicateRule> loadedSubRules = null;
 
         pushRulesDumpRepresentation();
         loadedSubRules = this.load(subRules);
@@ -168,14 +168,14 @@ public class RulesFactory {
     // Note: kept out of cog because it's a special case (sub rules)
     private static final String SINGLE_LINE_RULE_WITH_SKIP = "SingleLineRuleWithSkip";
 
-    private IPredicateRule createSingleLineRuleWithSkip(Map<String, Object> m) {
+    private ILiClipsePredicateRule createSingleLineRuleWithSkip(Map<String, Object> m) {
         ArrayList<Object> dummyDefaultReturn = new ArrayList<>();
         List skipRules = (List) removeFromMap(m, "skip_rules", dummyDefaultReturn);
         if (skipRules == dummyDefaultReturn) {
             skipRules = (List) removeFromMap(m, "skipRules");
         }
 
-        IPredicateRule rule = createSingleLineRuleWithSkip((String) removeFromMap(m, "start"),
+        ILiClipsePredicateRule rule = createSingleLineRuleWithSkip((String) removeFromMap(m, "start"),
                 (String) removeFromMap(m, "scope"),
                 extractChar(removeFromMap(m, "escapeCharacter")),
                 (Boolean) removeFromMap(m, "escapeContinuesLine"),
@@ -187,11 +187,11 @@ public class RulesFactory {
     /**
      * @param start can be either a string with a sequence or a CompositeRule (Map)
      */
-    private IPredicateRule createSingleLineRuleWithSkip(String start, String scope,
+    private ILiClipsePredicateRule createSingleLineRuleWithSkip(String start, String scope,
             Character escapeCharacter, boolean escapeContinuesLine, List<Map> subRules) {
 
         List<String> subRulesDumpRepresentation = null;
-        List<IPredicateRule> loadedSubRules = null;
+        List<ILiClipsePredicateRule> loadedSubRules = null;
 
         // Skip rules always a list
         pushRulesDumpRepresentation();
@@ -219,13 +219,13 @@ public class RulesFactory {
     // Note: kept out of cog because it's a special case (sub rules)
     private static final String MULTI_LINE_RULE_WITH_SKIP = "MultiLineRuleWithSkip";
 
-    private IPredicateRule createMultiLineRuleWithSkip(Map<String, Object> m) {
+    private ILiClipsePredicateRule createMultiLineRuleWithSkip(Map<String, Object> m) {
         ArrayList<Object> dummyDefaultReturn = new ArrayList<>();
         List skipRules = (List) removeFromMap(m, "skip_rules", dummyDefaultReturn);
         if (skipRules == dummyDefaultReturn) {
             skipRules = (List) removeFromMap(m, "skipRules");
         }
-        IPredicateRule rule = createMultiLineRuleWithSkip(removeFromMap(m, "start"),
+        ILiClipsePredicateRule rule = createMultiLineRuleWithSkip(removeFromMap(m, "start"),
                 (String) removeFromMap(m, "end"),
                 (String) removeFromMap(m, "scope"),
                 extractChar(removeFromMap(m, "escapeCharacter")),
@@ -237,13 +237,13 @@ public class RulesFactory {
     /**
      * @param start can be either a string with a sequence or a CompositeRule (Map)
      */
-    private IPredicateRule createMultiLineRuleWithSkip(Object start, String end, String scope,
+    private ILiClipsePredicateRule createMultiLineRuleWithSkip(Object start, String end, String scope,
             Character escapeCharacter, List<Map> subRules) {
 
         List<String> subRulesDumpRepresentation = null;
-        List<IPredicateRule> loadedSubRules = null;
+        List<ILiClipsePredicateRule> loadedSubRules = null;
         List<String> startSubRulesDumpRepresentation = null;
-        List<IPredicateRule> startLoadedSubRules = null;
+        List<ILiClipsePredicateRule> startLoadedSubRules = null;
 
         // Skip rules always a list
         pushRulesDumpRepresentation();
@@ -290,8 +290,8 @@ public class RulesFactory {
     // Note: kept out of cog because it's a special case (sub rules)
     private static final String MULTI_LINE_RULE_RECURSIVE = "MultiLineRuleRecursive";
 
-    private IPredicateRule createMultiLineRuleRecursive(Map<String, Object> m) {
-        IPredicateRule rule = createMultiLineRuleRecursive(removeFromMap(m, "start"),
+    private ILiClipsePredicateRule createMultiLineRuleRecursive(Map<String, Object> m) {
+        ILiClipsePredicateRule rule = createMultiLineRuleRecursive(removeFromMap(m, "start"),
                 (String) removeFromMap(m, "end"),
                 (String) removeFromMap(m, "scope"),
                 extractChar(removeFromMap(m, "escapeCharacter")),
@@ -303,13 +303,13 @@ public class RulesFactory {
     /**
      * @param start can be either a string with a sequence or a CompositeRule (Map)
      */
-    private IPredicateRule createMultiLineRuleRecursive(Object start, String end, String scope,
+    private ILiClipsePredicateRule createMultiLineRuleRecursive(Object start, String end, String scope,
             Character escapeCharacter, List<Map> subRules) {
 
         List<String> subRulesDumpRepresentation = null;
-        List<IPredicateRule> loadedSubRules = null;
+        List<ILiClipsePredicateRule> loadedSubRules = null;
         List<String> startSubRulesDumpRepresentation = null;
-        List<IPredicateRule> startLoadedSubRules = null;
+        List<ILiClipsePredicateRule> startLoadedSubRules = null;
 
         // Skip rules always a list
         pushRulesDumpRepresentation();
@@ -356,8 +356,8 @@ public class RulesFactory {
     // Note: kept out of cog because it's a special case (sub rules)
     private static final String INDENTED_BLOCK_RULE = "IndentedBlockRule";
 
-    public IPredicateRule createIndentedBlockRule(Map m) {
-        IPredicateRule createIndentedBlockRule = createIndentedBlockRule(
+    public ILiClipsePredicateRule createIndentedBlockRule(Map m) {
+        ILiClipsePredicateRule createIndentedBlockRule = createIndentedBlockRule(
                 (String) removeFromMap(m, "start"),
                 (String) removeFromMap(m, "scope"),
                 (List) removeFromMap(m, "additional_start", new ArrayList()),
@@ -366,9 +366,9 @@ public class RulesFactory {
         return createIndentedBlockRule;
     }
 
-    public IPredicateRule createIndentedBlockRule(String start, String scope, List<Map> additionalStart, int column) {
+    public ILiClipsePredicateRule createIndentedBlockRule(String start, String scope, List<Map> additionalStart, int column) {
         List<String> subRulesDumpRepresentation = null;
-        List<IPredicateRule> loadedSubRules = null;
+        List<ILiClipsePredicateRule> loadedSubRules = null;
 
         pushRulesDumpRepresentation();
         loadedSubRules = this.load(additionalStart);
@@ -464,8 +464,8 @@ public class RulesFactory {
     //============================================================================= %(rule)s
     //============================================================================= %(rule)s
 
-    public IPredicateRule create%(rule)s(Map m) {
-        IPredicateRule create%(rule)s = create%(rule)s(
+    public ILiClipsePredicateRule create%(rule)s(Map m) {
+        ILiClipsePredicateRule create%(rule)s = create%(rule)s(
     %(remove_from_dict)s);
         checkCleared(m);
         return create%(rule)s;
@@ -474,7 +474,7 @@ public class RulesFactory {
         cog.outl(template)
 
         template2 = '''
-    public IPredicateRule create%(rule)s(%(typed_parameters)s) {
+    public ILiClipsePredicateRule create%(rule)s(%(typed_parameters)s) {
         Map m = new OrderedMap(%(params_count)s);
         m.put("type", %(constant)s);
     %(put_in_dict)s;
@@ -510,7 +510,7 @@ public class RulesFactory {
     private Stack<Map> ruleAliases = new Stack<>();
 
     //Note: cog-generated!
-    public List<IPredicateRule> load(List<Object> rulesToLoad, Map ruleAliases) {
+    public List<ILiClipsePredicateRule> load(List<Object> rulesToLoad, Map ruleAliases) {
         this.ruleAliases.push(ruleAliases);
         try {
             return load(rulesToLoad);
@@ -522,8 +522,8 @@ public class RulesFactory {
     //rulesToLoad is List with Maps (rules) or Strings (aliases).
     //Note: will mutate internal maps (clear them). Pass a copy if that's not Ok.
     //Note: cog-generated!
-    private List<IPredicateRule> load(List rulesToLoad) {
-        List<IPredicateRule> rulesLoaded = new ArrayList<IPredicateRule>();
+    private List<ILiClipsePredicateRule> load(List rulesToLoad) {
+        List<ILiClipsePredicateRule> rulesLoaded = new ArrayList<ILiClipsePredicateRule>();
         for (Object ruleToLoad : rulesToLoad) {
             Map map;
             if (ruleToLoad instanceof Map) {
@@ -590,8 +590,8 @@ public class RulesFactory {
     //============================================================================= MultiLineRule
     //============================================================================= MultiLineRule
 
-    public IPredicateRule createMultiLineRule(Map m) {
-        IPredicateRule createMultiLineRule = createMultiLineRule(
+    public ILiClipsePredicateRule createMultiLineRule(Map m) {
+        ILiClipsePredicateRule createMultiLineRule = createMultiLineRule(
                 (String) removeFromMap(m, "start"),
                 (String) removeFromMap(m, "end"),
                 (String) removeFromMap(m, "scope"),
@@ -600,7 +600,7 @@ public class RulesFactory {
         return createMultiLineRule;
     }
 
-    public IPredicateRule createMultiLineRule(String start, String end, String scope, Character escapeCharacter) {
+    public ILiClipsePredicateRule createMultiLineRule(String start, String end, String scope, Character escapeCharacter) {
         Map m = new OrderedMap(5);
         m.put("type", MULTI_LINE_RULE);
         m.put("start", start);
@@ -617,8 +617,8 @@ public class RulesFactory {
     //============================================================================= OptionalMultiLineRule
     //============================================================================= OptionalMultiLineRule
 
-    public IPredicateRule createOptionalMultiLineRule(Map m) {
-        IPredicateRule createOptionalMultiLineRule = createOptionalMultiLineRule(
+    public ILiClipsePredicateRule createOptionalMultiLineRule(Map m) {
+        ILiClipsePredicateRule createOptionalMultiLineRule = createOptionalMultiLineRule(
                 (String) removeFromMap(m, "start"),
                 (String) removeFromMap(m, "end"),
                 (String) removeFromMap(m, "scope"),
@@ -627,7 +627,7 @@ public class RulesFactory {
         return createOptionalMultiLineRule;
     }
 
-    public IPredicateRule createOptionalMultiLineRule(String start, String end, String scope, Character escapeCharacter) {
+    public ILiClipsePredicateRule createOptionalMultiLineRule(String start, String end, String scope, Character escapeCharacter) {
         Map m = new OrderedMap(5);
         m.put("type", OPTIONAL_MULTI_LINE_RULE);
         m.put("start", start);
@@ -644,8 +644,8 @@ public class RulesFactory {
     //============================================================================= AnyWordRule
     //============================================================================= AnyWordRule
 
-    public IPredicateRule createAnyWordRule(Map m) {
-        IPredicateRule createAnyWordRule = createAnyWordRule(
+    public ILiClipsePredicateRule createAnyWordRule(Map m) {
+        ILiClipsePredicateRule createAnyWordRule = createAnyWordRule(
                 (String) removeFromMap(m, "scope"),
                 (List<String>) removeFromMap(m, "except", Collections.EMPTY_LIST),
                 (String) removeFromMap(m, "additionalChars", ""),
@@ -654,7 +654,7 @@ public class RulesFactory {
         return createAnyWordRule;
     }
 
-    public IPredicateRule createAnyWordRule(String scope, List<String> except, String additionalChars, Boolean mustStartUppercase) {
+    public ILiClipsePredicateRule createAnyWordRule(String scope, List<String> except, String additionalChars, Boolean mustStartUppercase) {
         Map m = new OrderedMap(5);
         m.put("type", ANY_WORD_RULE);
         m.put("scope", scope);
@@ -671,15 +671,15 @@ public class RulesFactory {
     //============================================================================= RegexpRule
     //============================================================================= RegexpRule
 
-    public IPredicateRule createRegexpRule(Map m) {
-        IPredicateRule createRegexpRule = createRegexpRule(
+    public ILiClipsePredicateRule createRegexpRule(Map m) {
+        ILiClipsePredicateRule createRegexpRule = createRegexpRule(
                 (String) removeFromMap(m, "regexp"),
                 (String) removeFromMap(m, "scope"));
         checkCleared(m);
         return createRegexpRule;
     }
 
-    public IPredicateRule createRegexpRule(String regexp, String scope) {
+    public ILiClipsePredicateRule createRegexpRule(String regexp, String scope) {
         Map m = new OrderedMap(3);
         m.put("type", REGEXP_RULE);
         m.put("regexp", regexp);
@@ -694,8 +694,8 @@ public class RulesFactory {
     //============================================================================= PatternRule
     //============================================================================= PatternRule
 
-    public IPredicateRule createPatternRule(Map m) {
-        IPredicateRule createPatternRule = createPatternRule(
+    public ILiClipsePredicateRule createPatternRule(Map m) {
+        ILiClipsePredicateRule createPatternRule = createPatternRule(
                 (String) removeFromMap(m, "startSequence"),
                 (String) removeFromMap(m, "endSequence"),
                 (String) removeFromMap(m, "scope"),
@@ -707,7 +707,7 @@ public class RulesFactory {
         return createPatternRule;
     }
 
-    public IPredicateRule createPatternRule(String startSequence, String endSequence, String scope, Character escapeCharacter, Boolean breaksOnEOL, Boolean breaksOnEOF, Boolean escapeContinuesLine) {
+    public ILiClipsePredicateRule createPatternRule(String startSequence, String endSequence, String scope, Character escapeCharacter, Boolean breaksOnEOL, Boolean breaksOnEOF, Boolean escapeContinuesLine) {
         Map m = new OrderedMap(8);
         m.put("type", PATTERN_RULE);
         m.put("startSequence", startSequence);
@@ -727,8 +727,8 @@ public class RulesFactory {
     //============================================================================= SingleLineRule
     //============================================================================= SingleLineRule
 
-    public IPredicateRule createSingleLineRule(Map m) {
-        IPredicateRule createSingleLineRule = createSingleLineRule(
+    public ILiClipsePredicateRule createSingleLineRule(Map m) {
+        ILiClipsePredicateRule createSingleLineRule = createSingleLineRule(
                 (String) removeFromMap(m, "sequence"),
                 (String) removeFromMap(m, "scope"),
                 (Character) extractChar(removeFromMap(m, "escapeCharacter")),
@@ -737,7 +737,7 @@ public class RulesFactory {
         return createSingleLineRule;
     }
 
-    public IPredicateRule createSingleLineRule(String sequence, String scope, Character escapeCharacter, Boolean escapeContinuesLine) {
+    public ILiClipsePredicateRule createSingleLineRule(String sequence, String scope, Character escapeCharacter, Boolean escapeContinuesLine) {
         Map m = new OrderedMap(5);
         m.put("type", SINGLE_LINE_RULE);
         m.put("sequence", sequence);
@@ -754,15 +754,15 @@ public class RulesFactory {
     //============================================================================= SequenceRule
     //============================================================================= SequenceRule
 
-    public IPredicateRule createSequenceRule(Map m) {
-        IPredicateRule createSequenceRule = createSequenceRule(
+    public ILiClipsePredicateRule createSequenceRule(Map m) {
+        ILiClipsePredicateRule createSequenceRule = createSequenceRule(
                 (String) removeFromMap(m, "sequence"),
                 (String) removeFromMap(m, "scope"));
         checkCleared(m);
         return createSequenceRule;
     }
 
-    public IPredicateRule createSequenceRule(String sequence, String scope) {
+    public ILiClipsePredicateRule createSequenceRule(String sequence, String scope) {
         Map m = new OrderedMap(3);
         m.put("type", SEQUENCE_RULE);
         m.put("sequence", sequence);
@@ -777,14 +777,14 @@ public class RulesFactory {
     //============================================================================= WordSeparatorRule
     //============================================================================= WordSeparatorRule
 
-    public IPredicateRule createWordSeparatorRule(Map m) {
-        IPredicateRule createWordSeparatorRule = createWordSeparatorRule(
+    public ILiClipsePredicateRule createWordSeparatorRule(Map m) {
+        ILiClipsePredicateRule createWordSeparatorRule = createWordSeparatorRule(
                 (String) removeFromMap(m, "scope"));
         checkCleared(m);
         return createWordSeparatorRule;
     }
 
-    public IPredicateRule createWordSeparatorRule(String scope) {
+    public ILiClipsePredicateRule createWordSeparatorRule(String scope) {
         Map m = new OrderedMap(2);
         m.put("type", WORD_SEPARATOR_RULE);
         m.put("scope", scope);
@@ -798,15 +798,15 @@ public class RulesFactory {
     //============================================================================= SequencesRule
     //============================================================================= SequencesRule
 
-    public IPredicateRule createSequencesRule(Map m) {
-        IPredicateRule createSequencesRule = createSequencesRule(
+    public ILiClipsePredicateRule createSequencesRule(Map m) {
+        ILiClipsePredicateRule createSequencesRule = createSequencesRule(
                 (List<String>) removeFromMap(m, "sequences", Collections.EMPTY_LIST),
                 (String) removeFromMap(m, "scope"));
         checkCleared(m);
         return createSequencesRule;
     }
 
-    public IPredicateRule createSequencesRule(List<String> sequences, String scope) {
+    public ILiClipsePredicateRule createSequencesRule(List<String> sequences, String scope) {
         Map m = new OrderedMap(3);
         m.put("type", SEQUENCES_RULE);
         m.put("sequences", sequences);
@@ -821,14 +821,14 @@ public class RulesFactory {
     //============================================================================= OneOrMoreSpacesRule
     //============================================================================= OneOrMoreSpacesRule
 
-    public IPredicateRule createOneOrMoreSpacesRule(Map m) {
-        IPredicateRule createOneOrMoreSpacesRule = createOneOrMoreSpacesRule(
+    public ILiClipsePredicateRule createOneOrMoreSpacesRule(Map m) {
+        ILiClipsePredicateRule createOneOrMoreSpacesRule = createOneOrMoreSpacesRule(
                 (String) removeFromMap(m, "scope"));
         checkCleared(m);
         return createOneOrMoreSpacesRule;
     }
 
-    public IPredicateRule createOneOrMoreSpacesRule(String scope) {
+    public ILiClipsePredicateRule createOneOrMoreSpacesRule(String scope) {
         Map m = new OrderedMap(2);
         m.put("type", ONE_OR_MORE_SPACES_RULE);
         m.put("scope", scope);
@@ -842,15 +842,15 @@ public class RulesFactory {
     //============================================================================= EndOfLineRule
     //============================================================================= EndOfLineRule
 
-    public IPredicateRule createEndOfLineRule(Map m) {
-        IPredicateRule createEndOfLineRule = createEndOfLineRule(
+    public ILiClipsePredicateRule createEndOfLineRule(Map m) {
+        ILiClipsePredicateRule createEndOfLineRule = createEndOfLineRule(
                 (String) removeFromMap(m, "start"),
                 (String) removeFromMap(m, "scope"));
         checkCleared(m);
         return createEndOfLineRule;
     }
 
-    public IPredicateRule createEndOfLineRule(String start, String scope) {
+    public ILiClipsePredicateRule createEndOfLineRule(String start, String scope) {
         Map m = new OrderedMap(3);
         m.put("type", END_OF_LINE_RULE);
         m.put("start", start);
@@ -865,14 +865,14 @@ public class RulesFactory {
     //============================================================================= ZeroOrMoreSpacesRule
     //============================================================================= ZeroOrMoreSpacesRule
 
-    public IPredicateRule createZeroOrMoreSpacesRule(Map m) {
-        IPredicateRule createZeroOrMoreSpacesRule = createZeroOrMoreSpacesRule(
+    public ILiClipsePredicateRule createZeroOrMoreSpacesRule(Map m) {
+        ILiClipsePredicateRule createZeroOrMoreSpacesRule = createZeroOrMoreSpacesRule(
                 (String) removeFromMap(m, "scope"));
         checkCleared(m);
         return createZeroOrMoreSpacesRule;
     }
 
-    public IPredicateRule createZeroOrMoreSpacesRule(String scope) {
+    public ILiClipsePredicateRule createZeroOrMoreSpacesRule(String scope) {
         Map m = new OrderedMap(2);
         m.put("type", ZERO_OR_MORE_SPACES_RULE);
         m.put("scope", scope);
@@ -886,14 +886,14 @@ public class RulesFactory {
     //============================================================================= NumberRule
     //============================================================================= NumberRule
 
-    public IPredicateRule createNumberRule(Map m) {
-        IPredicateRule createNumberRule = createNumberRule(
+    public ILiClipsePredicateRule createNumberRule(Map m) {
+        ILiClipsePredicateRule createNumberRule = createNumberRule(
                 (String) removeFromMap(m, "scope"));
         checkCleared(m);
         return createNumberRule;
     }
 
-    public IPredicateRule createNumberRule(String scope) {
+    public ILiClipsePredicateRule createNumberRule(String scope) {
         Map m = new OrderedMap(2);
         m.put("type", NUMBER_RULE);
         m.put("scope", scope);
@@ -907,14 +907,14 @@ public class RulesFactory {
     //============================================================================= NimNumberRule
     //============================================================================= NimNumberRule
 
-    public IPredicateRule createNimNumberRule(Map m) {
-        IPredicateRule createNimNumberRule = createNimNumberRule(
+    public ILiClipsePredicateRule createNimNumberRule(Map m) {
+        ILiClipsePredicateRule createNimNumberRule = createNimNumberRule(
                 (String) removeFromMap(m, "scope"));
         checkCleared(m);
         return createNimNumberRule;
     }
 
-    public IPredicateRule createNimNumberRule(String scope) {
+    public ILiClipsePredicateRule createNimNumberRule(String scope) {
         Map m = new OrderedMap(2);
         m.put("type", NIM_NUMBER_RULE);
         m.put("scope", scope);
@@ -928,15 +928,15 @@ public class RulesFactory {
     //============================================================================= PrevCharNotIn
     //============================================================================= PrevCharNotIn
 
-    public IPredicateRule createPrevCharNotIn(Map m) {
-        IPredicateRule createPrevCharNotIn = createPrevCharNotIn(
+    public ILiClipsePredicateRule createPrevCharNotIn(Map m) {
+        ILiClipsePredicateRule createPrevCharNotIn = createPrevCharNotIn(
                 (String) removeFromMap(m, "scope"),
                 (String) removeFromMap(m, "chars"));
         checkCleared(m);
         return createPrevCharNotIn;
     }
 
-    public IPredicateRule createPrevCharNotIn(String scope, String chars) {
+    public ILiClipsePredicateRule createPrevCharNotIn(String scope, String chars) {
         Map m = new OrderedMap(3);
         m.put("type", PREV_CHAR_NOT_IN);
         m.put("scope", scope);
@@ -951,14 +951,14 @@ public class RulesFactory {
     //============================================================================= MatchLineStartRule
     //============================================================================= MatchLineStartRule
 
-    public IPredicateRule createMatchLineStartRule(Map m) {
-        IPredicateRule createMatchLineStartRule = createMatchLineStartRule(
+    public ILiClipsePredicateRule createMatchLineStartRule(Map m) {
+        ILiClipsePredicateRule createMatchLineStartRule = createMatchLineStartRule(
                 (String) removeFromMap(m, "scope"));
         checkCleared(m);
         return createMatchLineStartRule;
     }
 
-    public IPredicateRule createMatchLineStartRule(String scope) {
+    public ILiClipsePredicateRule createMatchLineStartRule(String scope) {
         Map m = new OrderedMap(2);
         m.put("type", MATCH_LINE_START_RULE);
         m.put("scope", scope);
@@ -972,14 +972,14 @@ public class RulesFactory {
     //============================================================================= SkipLineRule
     //============================================================================= SkipLineRule
 
-    public IPredicateRule createSkipLineRule(Map m) {
-        IPredicateRule createSkipLineRule = createSkipLineRule(
+    public ILiClipsePredicateRule createSkipLineRule(Map m) {
+        ILiClipsePredicateRule createSkipLineRule = createSkipLineRule(
                 (String) removeFromMap(m, "scope"));
         checkCleared(m);
         return createSkipLineRule;
     }
 
-    public IPredicateRule createSkipLineRule(String scope) {
+    public ILiClipsePredicateRule createSkipLineRule(String scope) {
         Map m = new OrderedMap(2);
         m.put("type", SKIP_LINE_RULE);
         m.put("scope", scope);
@@ -993,8 +993,8 @@ public class RulesFactory {
     //============================================================================= TmMatchRule
     //============================================================================= TmMatchRule
 
-    public IPredicateRule createTmMatchRule(Map m) {
-        IPredicateRule createTmMatchRule = createTmMatchRule(
+    public ILiClipsePredicateRule createTmMatchRule(Map m) {
+        ILiClipsePredicateRule createTmMatchRule = createTmMatchRule(
                 (String) removeFromMap(m, "match"),
                 (String) removeFromMap(m, "scope"),
                 (Map) removeFromMap(m, "captures"));
@@ -1002,7 +1002,7 @@ public class RulesFactory {
         return createTmMatchRule;
     }
 
-    public IPredicateRule createTmMatchRule(String match, String scope, Map captures) {
+    public ILiClipsePredicateRule createTmMatchRule(String match, String scope, Map captures) {
         Map m = new OrderedMap(4);
         m.put("type", TM_MATCH_RULE);
         m.put("match", match);
@@ -1018,14 +1018,14 @@ public class RulesFactory {
     //============================================================================= TmIncludeRule
     //============================================================================= TmIncludeRule
 
-    public IPredicateRule createTmIncludeRule(Map m) {
-        IPredicateRule createTmIncludeRule = createTmIncludeRule(
+    public ILiClipsePredicateRule createTmIncludeRule(Map m) {
+        ILiClipsePredicateRule createTmIncludeRule = createTmIncludeRule(
                 (String) removeFromMap(m, "include"));
         checkCleared(m);
         return createTmIncludeRule;
     }
 
-    public IPredicateRule createTmIncludeRule(String include) {
+    public ILiClipsePredicateRule createTmIncludeRule(String include) {
         Map m = new OrderedMap(2);
         m.put("type", TM_INCLUDE_RULE);
         m.put("include", include);
@@ -1039,14 +1039,14 @@ public class RulesFactory {
     //============================================================================= JSRegexRule
     //============================================================================= JSRegexRule
 
-    public IPredicateRule createJSRegexRule(Map m) {
-        IPredicateRule createJSRegexRule = createJSRegexRule(
+    public ILiClipsePredicateRule createJSRegexRule(Map m) {
+        ILiClipsePredicateRule createJSRegexRule = createJSRegexRule(
                 (String) removeFromMap(m, "scope"));
         checkCleared(m);
         return createJSRegexRule;
     }
 
-    public IPredicateRule createJSRegexRule(String scope) {
+    public ILiClipsePredicateRule createJSRegexRule(String scope) {
         Map m = new OrderedMap(2);
         m.put("type", J_S_REGEX_RULE);
         m.put("scope", scope);
@@ -1060,15 +1060,15 @@ public class RulesFactory {
     //============================================================================= RepeatCharToEolRule
     //============================================================================= RepeatCharToEolRule
 
-    public IPredicateRule createRepeatCharToEolRule(Map m) {
-        IPredicateRule createRepeatCharToEolRule = createRepeatCharToEolRule(
+    public ILiClipsePredicateRule createRepeatCharToEolRule(Map m) {
+        ILiClipsePredicateRule createRepeatCharToEolRule = createRepeatCharToEolRule(
                 (String) removeFromMap(m, "scope"),
                 (List<String>) removeFromMap(m, "chars", Collections.EMPTY_LIST));
         checkCleared(m);
         return createRepeatCharToEolRule;
     }
 
-    public IPredicateRule createRepeatCharToEolRule(String scope, List<String> chars) {
+    public ILiClipsePredicateRule createRepeatCharToEolRule(String scope, List<String> chars) {
         Map m = new OrderedMap(3);
         m.put("type", REPEAT_CHAR_TO_EOL_RULE);
         m.put("scope", scope);
@@ -1083,15 +1083,15 @@ public class RulesFactory {
     //============================================================================= OptionalSequenceRule
     //============================================================================= OptionalSequenceRule
 
-    public IPredicateRule createOptionalSequenceRule(Map m) {
-        IPredicateRule createOptionalSequenceRule = createOptionalSequenceRule(
+    public ILiClipsePredicateRule createOptionalSequenceRule(Map m) {
+        ILiClipsePredicateRule createOptionalSequenceRule = createOptionalSequenceRule(
                 (String) removeFromMap(m, "sequence"),
                 (String) removeFromMap(m, "scope"));
         checkCleared(m);
         return createOptionalSequenceRule;
     }
 
-    public IPredicateRule createOptionalSequenceRule(String sequence, String scope) {
+    public ILiClipsePredicateRule createOptionalSequenceRule(String sequence, String scope) {
         Map m = new OrderedMap(3);
         m.put("type", OPTIONAL_SEQUENCE_RULE);
         m.put("sequence", sequence);
@@ -1106,8 +1106,8 @@ public class RulesFactory {
     //============================================================================= SwitchLanguageRule
     //============================================================================= SwitchLanguageRule
 
-    public IPredicateRule createSwitchLanguageRule(Map m) {
-        IPredicateRule createSwitchLanguageRule = createSwitchLanguageRule(
+    public ILiClipsePredicateRule createSwitchLanguageRule(Map m) {
+        ILiClipsePredicateRule createSwitchLanguageRule = createSwitchLanguageRule(
                 (String) removeFromMap(m, "start"),
                 (String) removeFromMap(m, "end"),
                 (String) removeFromMap(m, "scope"),
@@ -1116,7 +1116,7 @@ public class RulesFactory {
         return createSwitchLanguageRule;
     }
 
-    public IPredicateRule createSwitchLanguageRule(String start, String end, String scope, String language) {
+    public ILiClipsePredicateRule createSwitchLanguageRule(String start, String end, String scope, String language) {
         Map m = new OrderedMap(5);
         m.put("type", SWITCH_LANGUAGE_RULE);
         m.put("start", start);
@@ -1133,8 +1133,8 @@ public class RulesFactory {
     //============================================================================= SwitchLanguageHtmlRule
     //============================================================================= SwitchLanguageHtmlRule
 
-    public IPredicateRule createSwitchLanguageHtmlRule(Map m) {
-        IPredicateRule createSwitchLanguageHtmlRule = createSwitchLanguageHtmlRule(
+    public ILiClipsePredicateRule createSwitchLanguageHtmlRule(Map m) {
+        ILiClipsePredicateRule createSwitchLanguageHtmlRule = createSwitchLanguageHtmlRule(
                 (Map) removeFromMap(m, "type_attr"),
                 (Map) removeFromMap(m, "language_attr"),
                 (String) removeFromMap(m, "tag"),
@@ -1143,7 +1143,7 @@ public class RulesFactory {
         return createSwitchLanguageHtmlRule;
     }
 
-    public IPredicateRule createSwitchLanguageHtmlRule(Map type_attr, Map language_attr, String tag, String scope) {
+    public ILiClipsePredicateRule createSwitchLanguageHtmlRule(Map type_attr, Map language_attr, String tag, String scope) {
         Map m = new OrderedMap(5);
         m.put("type", SWITCH_LANGUAGE_HTML_RULE);
         m.put("type_attr", type_attr);
@@ -1160,7 +1160,7 @@ public class RulesFactory {
     private Stack<Map> ruleAliases = new Stack<>();
 
     //Note: cog-generated!
-    public List<IPredicateRule> load(List<Object> rulesToLoad, Map ruleAliases) {
+    public List<ILiClipsePredicateRule> load(List<Object> rulesToLoad, Map ruleAliases) {
         this.ruleAliases.push(ruleAliases);
         try {
             return load(rulesToLoad);
@@ -1172,8 +1172,8 @@ public class RulesFactory {
     //rulesToLoad is List with Maps (rules) or Strings (aliases).
     //Note: will mutate internal maps (clear them). Pass a copy if that's not Ok.
     //Note: cog-generated!
-    private List<IPredicateRule> load(List rulesToLoad) {
-        List<IPredicateRule> rulesLoaded = new ArrayList<IPredicateRule>();
+    private List<ILiClipsePredicateRule> load(List rulesToLoad) {
+        List<ILiClipsePredicateRule> rulesLoaded = new ArrayList<ILiClipsePredicateRule>();
         for (Object ruleToLoad : rulesToLoad) {
             Map map;
             if (ruleToLoad instanceof Map) {
@@ -1306,7 +1306,7 @@ public class RulesFactory {
 
     /*[[[end]]]*/
 
-    private void addToRulesLoaded(List<IPredicateRule> rulesLoaded, IPredicateRule rule) {
+    private void addToRulesLoaded(List<ILiClipsePredicateRule> rulesLoaded, ILiClipsePredicateRule rule) {
         rulesLoaded.add(rule);
         if (rule instanceof ILanguageDependentRule) {
             ILanguageDependentRule languageDependentRule = (ILanguageDependentRule) rule;

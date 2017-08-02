@@ -6,12 +6,6 @@
  */
 package org.brainwy.liclipsetext.editor.handlers;
 
-import org.eclipse.core.commands.AbstractHandler;
-import org.eclipse.core.commands.ExecutionEvent;
-import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.IDocument;
-import org.eclipse.ui.texteditor.ITextEditor;
 import org.brainwy.liclipsetext.editor.LiClipseTextEditorPlugin;
 import org.brainwy.liclipsetext.editor.common.BaseLiClipseEditor;
 import org.brainwy.liclipsetext.editor.common.partitioning.reader.SubPartitionCodeReader;
@@ -22,10 +16,17 @@ import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.brainwy.liclipsetext.editor.languages.comment.LanguageComment;
 import org.brainwy.liclipsetext.editor.rules.SwitchLanguageToken;
 import org.brainwy.liclipsetext.shared_core.actions.ToggleLineCommentAction;
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.string.TextSelectionUtils;
 import org.brainwy.liclipsetext.shared_core.structure.Tuple;
 import org.brainwy.liclipsetext.shared_ui.EditorUtils;
+import org.eclipse.core.commands.AbstractHandler;
+import org.eclipse.core.commands.ExecutionEvent;
+import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.ui.texteditor.ITextEditor;
 
 public class ToggleComment extends AbstractHandler {
 
@@ -47,9 +48,13 @@ public class ToggleComment extends AbstractHandler {
     public static void execute(BaseLiClipseEditor liClipseEditor, IDocument document, TextSelectionUtils ts,
             LiClipseLanguage language) throws ExecutionException {
         //if we have no selection, we have to get the offset of the start of the line.
-        SubPartitionCodeReader subPartitionCodeReader = new SubPartitionCodeReader();
-        subPartitionCodeReader.configureReadAllTopPartition(true, document, ts.getStartLineOffset());
-        TypedPart read = subPartitionCodeReader.read();
+
+        TypedPart read = DocumentTimeStampChangedException.retryUntilNoDocChanges(() -> {
+            SubPartitionCodeReader subPartitionCodeReader = new SubPartitionCodeReader();
+            subPartitionCodeReader.configureReadAllTopPartition(true, document, ts.getStartLineOffset());
+            return subPartitionCodeReader.read();
+        });
+
         if (read != null) {
             if (SwitchLanguageToken.isSubLanguagePartition(read.type)) {
                 Tuple<String, String> topAndSub = SwitchLanguageToken.getSubLanguageAndContentType(read.type);

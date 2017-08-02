@@ -8,7 +8,7 @@ import org.brainwy.liclipsetext.editor.common.partitioning.rules.IPrintableRule;
 import org.brainwy.liclipsetext.editor.common.partitioning.rules.ITextMateRule;
 import org.brainwy.liclipsetext.editor.languages.tmbundle.TmLanguageHandler;
 import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 
 import junit.framework.TestCase;
 
@@ -20,7 +20,7 @@ public class TmLanguageHandler2Test extends TestCase {
         LinkedList<ITextMateRule> loadRegularRules = parser.loadRegularRules(null);
 
         FastStringBuffer buf = new FastStringBuffer();
-        for (IPredicateRule entry : loadRegularRules) {
+        for (ILiClipsePredicateRule entry : loadRegularRules) {
             buf.append(((IPrintableRule) entry).toTmYaml());
             buf.append("\n");
         }

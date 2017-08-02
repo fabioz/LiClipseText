@@ -1,11 +1,12 @@
 package org.brainwy.liclipsetext.editor.common.partitioning;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.brainwy.liclipsetext.editor.common.partitioning.LiClipseDocumentPartitioner;
-import org.brainwy.liclipsetext.editor.languages.LanguageMetadataZipFileInfo;
+import org.brainwy.liclipsetext.editor.languages.LanguageMetadataTmBundleZipFileInfo;
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner;
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
@@ -28,7 +29,7 @@ public class PartitioningRubyTest extends TestCase {
     }
 
     public void testRubyPartitioning() throws Exception {
-        LanguageMetadataZipFileInfo metadata = new LanguageMetadataZipFileInfo(
+        LanguageMetadataTmBundleZipFileInfo metadata = new LanguageMetadataTmBundleZipFileInfo(
                 new File(TestUtils.getLanguagesDir(), "ruby.tmbundle"), "ruby.tmbundle-master/Syntaxes/Ruby.plist");
 
         LiClipseLanguage language = metadata.loadLanguage(true);
@@ -39,14 +40,19 @@ public class PartitioningRubyTest extends TestCase {
                 + "end");
         language.connect(document);
         String partition = TestUtils.partition(document);
-        assertEquals(TestUtils.listToExpected("meta.class.ruby:0:10",
-                "__dftl_partition_content_type:10:11",
-                "source.ruby:11:24",
-                "__dftl_partition_content_type:24:"), partition.replaceFirst("source\\.ruby\\.(\\d+)", "source.ruby"));
+        assertEquals(TestUtils.listToExpected("source.ruby:0:"), partition);
+
+        assertEquals(TestUtils.listToExpected("keyword.control.class.ruby:0:5",
+        		"meta.class.ruby:5:1",
+        		"entity.name.type.class.ruby:6:5",
+        		"punctuation.whitespace.comment.leading.ruby:11:2",
+        		"punctuation.definition.comment.ruby:13:1",
+        		"comment.line.number-sign.ruby:14:9",
+        		"keyword.control.ruby:23:3"), TestUtils.scanAll(language, document, Arrays.asList("source.ruby:0:")));
     }
 
     public void testRubyPartitioning2() throws Exception {
-        LanguageMetadataZipFileInfo metadata = new LanguageMetadataZipFileInfo(
+        LanguageMetadataTmBundleZipFileInfo metadata = new LanguageMetadataTmBundleZipFileInfo(
                 new File(TestUtils.getLanguagesDir(), "ruby.tmbundle"), "ruby.tmbundle-master/Syntaxes/Ruby.plist");
 
         LiClipseLanguage language = metadata.loadLanguage(true);
@@ -59,20 +65,29 @@ public class PartitioningRubyTest extends TestCase {
                 "");
         language.connect(document);
         String partition = TestUtils.partition(document);
-        assertEquals(TestUtils.listToExpected("meta.function.method.with-arguments.ruby:0:17",
-                "__dftl_partition_content_type:17:18",
-                "keyword.control.ruby:18:21",
-                "__dftl_partition_content_type:21:28",
-                "keyword.operator.assignment.ruby:28:29",
-                "support.class.ruby:29:37",
-                "punctuation.separator.method.ruby:37:38",
-                "keyword.other.special-method.ruby:38:41",
-                "punctuation.section.function.ruby:41:43",
-                "__dftl_partition_content_type:43:"), partition);
+        assertEquals(TestUtils.listToExpected("source.ruby:0:"), partition);
+
+        assertEquals(TestUtils.listToExpected("keyword.control.def.ruby:0:3",
+        		"meta.function.method.with-arguments.ruby:3:1",
+        		"entity.name.function.ruby:4:10",
+        		"punctuation.definition.parameters.ruby:14:1",
+        		"variable.parameter.function.ruby:15:1",
+        		"punctuation.definition.parameters.ruby:16:2",
+        		"keyword.control.ruby:18:4",
+        		"source.ruby:22:1",
+        		"source.ruby:23:5",
+        		"keyword.operator.assignment.ruby:28:1",
+        		"support.class.ruby:29:8",
+        		"punctuation.separator.method.ruby:37:1",
+        		"keyword.other.special-method.ruby:38:3",
+        		"punctuation.section.function.ruby:41:1",
+        		"punctuation.section.function.ruby:42:2"),
+        		TestUtils.scanAll(language, document, Arrays.asList("source.ruby:0:")));
+
     }
 
     public void testRubyPartitioning3() throws Exception {
-        LanguageMetadataZipFileInfo metadata = new LanguageMetadataZipFileInfo(
+        LanguageMetadataTmBundleZipFileInfo metadata = new LanguageMetadataTmBundleZipFileInfo(
                 new File(TestUtils.getLanguagesDir(), "ruby.tmbundle"), "ruby.tmbundle-master/Syntaxes/Ruby.plist");
 
         LiClipseLanguage language = metadata.loadLanguage(true);
@@ -93,55 +108,97 @@ public class PartitioningRubyTest extends TestCase {
                 "nthesonth uonth uasonth ");
         language.connect(document);
         String partition = TestUtils.partition(document);
-        assertEquals(TestUtils.listToExpected("meta.function.method.with-arguments.ruby:0:17",
-                "__dftl_partition_content_type:17:18",
-                "keyword.control.ruby:18:21",
-                "__dftl_partition_content_type:21:28",
-                "keyword.operator.assignment.ruby:28:29",
-                "support.class.ruby:29:37",
-                "punctuation.separator.method.ruby:37:38",
-                "keyword.other.special-method.ruby:38:41",
-                "punctuation.section.function.ruby:41:42",
-                "__dftl_partition_content_type:42:43",
-                "punctuation.separator.object.ruby:43:44",
-                "__dftl_partition_content_type:44:46",
-                "punctuation.section.function.ruby:46:47",
-                "__dftl_partition_content_type:47:49",
-                "meta.function.method.with-arguments.ruby:49:69",
-                "__dftl_partition_content_type:69:77",
-                "string.quoted.double.ruby:77:88",
-                "__dftl_partition_content_type:88:92",
-                "punctuation.separator.method.ruby:92:93",
-                "__dftl_partition_content_type:93:97",
-                "punctuation.section.scope.begin.ruby:97:98",
-                "source.ruby.23:98:101",
-                "__dftl_partition_content_type:101:108",
-                "string.quoted.double.ruby:108:117",
-                "punctuation.section.scope.end.ruby:117:118",
-                "__dftl_partition_content_type:118:120",
-                "source.ruby.20:120:173",
-                "__dftl_partition_content_type:173:181",
-                "constant.numeric.integer.ruby:181:182",
-                "punctuation.separator.object.ruby:182:183",
-                "__dftl_partition_content_type:183:184",
-                "constant.numeric.integer.ruby:184:185",
-                "punctuation.separator.object.ruby:185:186",
-                "__dftl_partition_content_type:186:187",
-                "constant.numeric.integer.ruby:187:188",
-                "punctuation.separator.object.ruby:188:189",
-                "__dftl_partition_content_type:189:190",
-                "constant.numeric.integer.ruby:190:192",
-                "punctuation.separator.object.ruby:192:193",
-                "__dftl_partition_content_type:193:194",
-                "constant.numeric.integer.ruby:194:196",
-                "punctuation.separator.object.ruby:196:197",
-                "__dftl_partition_content_type:197:198",
-                "constant.numeric.integer.ruby:198:200",
-                "__dftl_partition_content_type:200:"), partition);
+        assertEquals(TestUtils.listToExpected("source.ruby:0:"), partition);
+
+        assertEquals(TestUtils.listToExpected("keyword.control.def.ruby:0:3",
+        		"meta.function.method.with-arguments.ruby:3:1",
+        		"entity.name.function.ruby:4:10",
+        		"punctuation.definition.parameters.ruby:14:1",
+        		"variable.parameter.function.ruby:15:1",
+        		"punctuation.definition.parameters.ruby:16:2",
+        		"keyword.control.ruby:18:4",
+        		"source.ruby:22:1",
+        		"source.ruby:23:5",
+        		"keyword.operator.assignment.ruby:28:1",
+        		"support.class.ruby:29:8",
+        		"punctuation.separator.method.ruby:37:1",
+        		"keyword.other.special-method.ruby:38:3",
+        		"punctuation.section.function.ruby:41:1",
+        		"source.ruby:42:1",
+        		"punctuation.separator.object.ruby:43:1",
+        		"source.ruby:44:2",
+        		"punctuation.section.function.ruby:46:2",
+        		"source.ruby:48:1",
+        		"keyword.control.def.ruby:49:3",
+        		"meta.function.method.with-arguments.ruby:52:1",
+        		"entity.name.function.ruby:53:4",
+        		"punctuation.definition.parameters.ruby:57:1",
+        		"variable.parameter.function.ruby:58:1",
+        		"keyword.operator.assignment.ruby:59:1",
+        		"constant.numeric.integer.ruby:60:1",
+        		"meta.function.method.with-arguments.ruby:61:1",
+        		"variable.parameter.function.ruby:62:1",
+        		"keyword.operator.assignment.ruby:63:1",
+        		"constant.numeric.integer.ruby:64:1",
+        		"meta.function.method.with-arguments.ruby:65:1",
+        		"storage.type.variable.ruby:66:1",
+        		"variable.parameter.function.ruby:67:1",
+        		"punctuation.definition.parameters.ruby:68:2",
+        		"source.ruby:70:7",
+        		"punctuation.definition.string.begin.ruby:77:1",
+        		"punctuation.section.embedded.begin.ruby:78:2",
+        		"source.ruby:80:1",
+        		"source.ruby:81:1",
+        		"string.quoted.double.ruby:82:1",
+        		"punctuation.section.embedded.begin.ruby:83:2",
+        		"source.ruby:85:1",
+        		"source.ruby:86:1",
+        		"punctuation.definition.string.end.ruby:87:2",
+        		"source.ruby:89:3",
+        		"punctuation.separator.method.ruby:92:1",
+        		"source.ruby:93:4",
+        		"punctuation.section.scope.begin.ruby:97:1",
+        		"punctuation.separator.variable.ruby:98:1",
+        		"variable.other.block.ruby:99:1",
+        		"punctuation.separator.variable.ruby:100:1",
+        		"source.ruby:101:7",
+        		"punctuation.definition.string.begin.ruby:108:1",
+        		"string.quoted.double.ruby:109:1",
+        		"punctuation.section.embedded.begin.ruby:110:2",
+        		"source.ruby:112:1",
+        		"source.ruby:113:1",
+        		"string.quoted.double.ruby:114:2",
+        		"punctuation.definition.string.end.ruby:116:1",
+        		"punctuation.section.scope.end.ruby:117:1",
+        		"source.ruby:118:2",
+        		"punctuation.definition.comment.ruby:120:1",
+        		"comment.line.number-sign.ruby:121:51",
+        		"keyword.control.ruby:172:4",
+        		"source.ruby:176:5",
+        		"constant.numeric.integer.ruby:181:1",
+        		"punctuation.separator.object.ruby:182:1",
+        		"source.ruby:183:1",
+        		"constant.numeric.integer.ruby:184:1",
+        		"punctuation.separator.object.ruby:185:1",
+        		"source.ruby:186:1",
+        		"constant.numeric.integer.ruby:187:1",
+        		"punctuation.separator.object.ruby:188:1",
+        		"source.ruby:189:1",
+        		"constant.numeric.integer.ruby:190:2",
+        		"punctuation.separator.object.ruby:192:1",
+        		"source.ruby:193:1",
+        		"constant.numeric.integer.ruby:194:2",
+        		"punctuation.separator.object.ruby:196:1",
+        		"source.ruby:197:1",
+        		"constant.numeric.integer.ruby:198:3",
+        		"source.ruby:201:1",
+        		"source.ruby:202:1",
+        		"source.ruby:203:24"),
+        		TestUtils.scanAll(language, document, Arrays.asList("source.ruby:0:")));
     }
 
     public void testRubyPartitioning4() throws Exception {
-        LanguageMetadataZipFileInfo metadata = new LanguageMetadataZipFileInfo(
+        LanguageMetadataTmBundleZipFileInfo metadata = new LanguageMetadataTmBundleZipFileInfo(
                 new File(TestUtils.getLanguagesDir(), "ruby.tmbundle"), "ruby.tmbundle-master/Syntaxes/Ruby.plist");
 
         LiClipseLanguage language = metadata.loadLanguage(true);
@@ -171,78 +228,63 @@ public class PartitioningRubyTest extends TestCase {
                 "");
         language.connect(document);
         String partition = TestUtils.partition(document);
-        assertEquals(TestUtils.listToExpected("source.ruby.20:0:103",
-                "meta.class.ruby:103:151",
-                "__dftl_partition_content_type:151:154",
-                "meta.function.method.without-arguments.ruby:154:161",
-                "__dftl_partition_content_type:161:164",
-                "keyword.control.ruby:164:167",
-                "__dftl_partition_content_type:167:171",
-                "meta.function.method.without-arguments.ruby:171:181",
-                "__dftl_partition_content_type:181:184",
-                "keyword.control.ruby:184:187",
-                "__dftl_partition_content_type:187:188",
-                "keyword.control.ruby:188:191",
-                "__dftl_partition_content_type:191:192",
-                "meta.class.ruby:192:240",
-                "__dftl_partition_content_type:240:243",
-                "meta.function.method.without-arguments.ruby:243:250",
-                "__dftl_partition_content_type:250:253",
-                "keyword.control.ruby:253:256",
-                "__dftl_partition_content_type:256:260",
-                "meta.function.method.without-arguments.ruby:260:270",
-                "__dftl_partition_content_type:270:273",
-                "keyword.control.ruby:273:276",
-                "__dftl_partition_content_type:276:277",
-                "keyword.control.ruby:277:280",
-                "__dftl_partition_content_type:280:"), partition);
+        assertEquals(TestUtils.listToExpected("source.ruby:0:"), partition);
 
-        Map<String, ICustomPartitionTokenScanner> contentTypeToScanner = new HashMap<>();
-        LiClipseDocumentPartitioner documentPartitioner = (LiClipseDocumentPartitioner) document
-                .getDocumentPartitioner();
-        ICustomPartitionTokenScanner scannerForContentType = documentPartitioner.obtainTokenScannerForContentType(
-                "meta.class.ruby", contentTypeToScanner, language);
-        ScannerRange range = scannerForContentType.createScannerRange(document, 103, 151 - 103);
-        String scan = TestUtils.scan(scannerForContentType, range, false);
-        assertEquals(TestUtils.listToExpected("keyword.control.class.ruby:103:5",
-                "meta.class.ruby:108:1",
-                "entity.name.type.class.ruby:109:18",
-                "entity.other.inherited-class.ruby:127:1",
-                "punctuation.separator.inheritance.ruby:128:1",
-                "entity.other.inherited-class.ruby:129:22"), scan);
-
-    }
-
-    public void testRubyPartitioning5() throws Exception {
-        LanguageMetadataZipFileInfo metadata = new LanguageMetadataZipFileInfo(
-                new File(TestUtils.getLanguagesDir(), "ruby.tmbundle"), "ruby.tmbundle-master/Syntaxes/Ruby.plist");
-
-        LiClipseLanguage language = metadata.loadLanguage(true);
-
-        Document document = new Document(""
-                + "puts \"a#{'b'}c\"" +
-                "");
-        language.connect(document);
-        String partition = TestUtils.partition(document);
-        assertEquals(TestUtils.listToExpected("__dftl_partition_content_type:0:5",
-                "string.quoted.double.ruby:5:"), partition);
-
-        Map<String, ICustomPartitionTokenScanner> contentTypeToScanner = new HashMap<>();
-        LiClipseDocumentPartitioner documentPartitioner = (LiClipseDocumentPartitioner) document
-                .getDocumentPartitioner();
-        ICustomPartitionTokenScanner scannerForContentType = documentPartitioner.obtainTokenScannerForContentType(
-                "string.quoted.double.ruby", contentTypeToScanner, language);
-        ScannerRange range = scannerForContentType.createScannerRange(document, 5, document.getLength() - 5);
-        String scan = TestUtils.scan(scannerForContentType, range, false);
-        assertEquals(TestUtils.listToExpected("punctuation.definition.string.begin.ruby:5:1",
-                "string.quoted.double.ruby:6:1",
-                "punctuation.section.embedded.begin.ruby:7:2",
-                "punctuation.definition.string.begin.ruby:9:1",
-                "string.quoted.single.ruby:10:1",
-                "punctuation.definition.string.end.ruby:11:1",
-                "source.ruby:12:1",
-                "string.quoted.double.ruby:13:1",
-                "punctuation.definition.string.end.ruby:14:1"), scan);
+        assertEquals(TestUtils.listToExpected("punctuation.definition.comment.ruby:0:1",
+        		"comment.line.number-sign.ruby:1:50",
+        		"punctuation.definition.comment.ruby:51:1",
+        		"comment.line.number-sign.ruby:52:11",
+        		"punctuation.definition.comment.ruby:63:1",
+        		"comment.line.number-sign.ruby:64:7",
+        		"punctuation.definition.comment.ruby:71:2",
+        		"punctuation.definition.comment.ruby:73:1",
+        		"comment.line.number-sign.ruby:74:14",
+        		"punctuation.definition.comment.ruby:88:1",
+        		"comment.line.number-sign.ruby:89:7",
+        		"punctuation.definition.comment.ruby:96:1",
+        		"comment.line.number-sign.ruby:97:5",
+        		"source.ruby:102:1",
+        		"keyword.control.class.ruby:103:5",
+        		"meta.class.ruby:108:1",
+        		"entity.name.type.class.ruby:109:18",
+        		"entity.other.inherited-class.ruby:127:1",
+        		"punctuation.separator.inheritance.ruby:128:1",
+        		"entity.other.inherited-class.ruby:129:23",
+        		"source.ruby:152:2",
+        		"keyword.control.def.ruby:154:3",
+        		"meta.function.method.without-arguments.ruby:157:1",
+        		"entity.name.function.ruby:158:4",
+        		"source.ruby:162:2",
+        		"keyword.control.ruby:164:4",
+        		"source.ruby:168:1",
+        		"source.ruby:169:2",
+        		"keyword.control.def.ruby:171:3",
+        		"meta.function.method.without-arguments.ruby:174:1",
+        		"entity.name.function.ruby:175:7",
+        		"source.ruby:182:2",
+        		"keyword.control.ruby:184:4",
+        		"keyword.control.ruby:188:4",
+        		"keyword.control.class.ruby:192:5",
+        		"meta.class.ruby:197:1",
+        		"entity.name.type.class.ruby:198:18",
+        		"entity.other.inherited-class.ruby:216:1",
+        		"punctuation.separator.inheritance.ruby:217:1",
+        		"entity.other.inherited-class.ruby:218:23",
+        		"source.ruby:241:2",
+        		"keyword.control.def.ruby:243:3",
+        		"meta.function.method.without-arguments.ruby:246:1",
+        		"entity.name.function.ruby:247:4",
+        		"source.ruby:251:2",
+        		"keyword.control.ruby:253:4",
+        		"source.ruby:257:1",
+        		"source.ruby:258:2",
+        		"keyword.control.def.ruby:260:3",
+        		"meta.function.method.without-arguments.ruby:263:1",
+        		"entity.name.function.ruby:264:7",
+        		"source.ruby:271:2",
+        		"keyword.control.ruby:273:4",
+        		"keyword.control.ruby:277:4"),
+        		TestUtils.scanAll(language, document, Arrays.asList("source.ruby:0:")));
 
     }
 

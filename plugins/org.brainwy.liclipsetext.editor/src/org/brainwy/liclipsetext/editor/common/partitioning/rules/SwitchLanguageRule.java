@@ -20,6 +20,7 @@ import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
 import org.brainwy.liclipsetext.editor.rules.PatternRule;
 import org.brainwy.liclipsetext.editor.rules.SubLanguageToken;
 import org.brainwy.liclipsetext.editor.rules.SwitchLanguageToken;
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.string.FastStringBuffer;
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IToken;
@@ -36,7 +37,7 @@ public class SwitchLanguageRule extends PatternRule implements ISwitchLanguageRu
 
     private final String switchToLanguageName;
     private final LiClipseLanguage language;
-    private ICustomPartitionTokenScanner fScanner;
+    private final ICustomPartitionTokenScanner fScanner;
     private IToken token;
 
     public SwitchLanguageRule(String startSequence, String endSequence, IToken token, String targetLanguage) {
@@ -47,6 +48,8 @@ public class SwitchLanguageRule extends PatternRule implements ISwitchLanguageRu
         this.language = languagesManager.getLanguageFromName(this.switchToLanguageName);
         if (this.language != null) {
             this.fScanner = new LiClipseContentTypeDefinitionScanner(language);
+        } else {
+            this.fScanner = null;
         }
     }
 
@@ -66,7 +69,7 @@ public class SwitchLanguageRule extends PatternRule implements ISwitchLanguageRu
     }
 
     @Override
-    protected IToken doEvaluate(ICharacterScanner scanner, boolean resume) {
+    protected IToken doEvaluate(ICharacterScanner scanner, boolean resume) throws DocumentTimeStampChangedException {
         if (resume) {
             return Token.UNDEFINED;
         }
@@ -85,14 +88,14 @@ public class SwitchLanguageRule extends PatternRule implements ISwitchLanguageRu
                 List<SubLanguageToken> subTokens = new ArrayList<SubLanguageToken>();
                 subTokens.add(new SubLanguageToken("this", (String) token.getData(), tokenScanner.getTokenOffset(),
                         fStartSequence.length));
-                this.fScanner.nextToken(range);
+                IToken tok = range.nextToken(this.fScanner);
                 String baseLanguage = (String) ret.getData();
-                while (!range.getToken().isEOF()) {
+                while (!tok.isEOF()) {
                     subTokens.add(
                             new SubLanguageToken(baseLanguage, (String) range.getToken().getData(),
                                     range.getTokenOffset(),
                                     range.getTokenLength()));
-                    this.fScanner.nextToken(range);
+                    tok = range.nextToken(this.fScanner);
                 }
                 int offset2 = offset + len;
                 subTokens.add(new SubLanguageToken("this", (String) token.getData(), offset2, fEndSequence.length));

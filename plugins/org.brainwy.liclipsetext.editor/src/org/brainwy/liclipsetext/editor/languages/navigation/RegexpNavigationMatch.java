@@ -43,21 +43,29 @@ public class RegexpNavigationMatch extends ScopeNavigationMatch {
         if (region != null) {
             for (int i = 0; i < region.length; i++) {
                 IRegion iRegion = region[i];
+                String contents;
+                if (iRegion.getOffset() > document.getLength()) {
+                    continue;
+                }
                 try {
-                    String contents = document.get(iRegion.getOffset(), iRegion.getLength());
-                    Matcher matcher = pattern.matcher(contents);
-                    while (true) {
-                        //find will always get the next subsequence
-                        boolean found = matcher.find();
-                        if (!found) {
-                            break;
-                        }
-                        int start = matcher.start(group);
-                        foundRegions.add(new Region(iRegion.getOffset() + start, matcher.end(group) - start));
+                    int len = iRegion.getLength();
+                    if (iRegion.getOffset() + len > document.getLength()) {
+                        len = document.getLength() - iRegion.getOffset();
                     }
+                    contents = document.get(iRegion.getOffset(), len);
                 } catch (BadLocationException e) {
                     Log.log(e);
-                    return null;
+                    continue;
+                }
+                Matcher matcher = pattern.matcher(contents);
+                while (true) {
+                    //find will always get the next subsequence
+                    boolean found = matcher.find();
+                    if (!found) {
+                        break;
+                    }
+                    int start = matcher.start(group);
+                    foundRegions.add(new Region(iRegion.getOffset() + start, matcher.end(group) - start));
                 }
             }
         }

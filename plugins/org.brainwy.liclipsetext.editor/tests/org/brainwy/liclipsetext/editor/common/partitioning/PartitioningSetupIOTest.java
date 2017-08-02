@@ -6,13 +6,13 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Arrays;
 
-import junit.framework.TestCase;
-
 import org.brainwy.liclipsetext.editor.languages.LanguageMetadataFileInfo;
 import org.brainwy.liclipsetext.editor.languages.LanguageMetadataInMemoryFileInfo;
 import org.brainwy.liclipsetext.editor.languages.LiClipseLanguage;
 import org.brainwy.liclipsetext.shared_core.string.StringUtils;
 import org.yaml.snakeyaml.Yaml;
+
+import junit.framework.TestCase;
 
 public class PartitioningSetupIOTest extends TestCase {
 
@@ -208,14 +208,14 @@ public class PartitioningSetupIOTest extends TestCase {
     public void testLoadBase() throws Exception {
         File languagesDirFile = TestUtils.getLanguagesDir();
         File file = new File(languagesDirFile, "base.liclipse");
-        assertNotNull(new LanguageMetadataFileInfo(file).loadLanguage(true));
+        assertNotNull(new LanguageMetadataFileInfo(file, (File) null).loadLanguage(true));
     }
 
     public void testInheritOnDjango() throws Exception {
         File languagesDirFile = TestUtils.configLanguagesManager();
         try {
             File file = new File(languagesDirFile, "django.liclipse");
-            LiClipseLanguage load = new LanguageMetadataFileInfo(file).loadLanguage(true);
+            LiClipseLanguage load = new LanguageMetadataFileInfo(file, (File) null).loadLanguage(true);
             assertEquals(load.name, "Django");
         } finally {
             TestUtils.clearLanguagesManager();

@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.brainwy.liclipsetext.shared_core.partitioner;
 
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.BadLocationException;
@@ -17,7 +18,6 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.IToken;
-import org.eclipse.jface.text.rules.ITokenScanner;
 import org.eclipse.jface.text.rules.Token;
 
 /**
@@ -32,10 +32,11 @@ import org.eclipse.jface.text.rules.Token;
  *
  * @see IRule
  */
-public abstract class AbstractCustomRuleBasedScanner implements ICharacterScanner, ITokenScanner, IDocumentScanner {
+public abstract class AbstractCustomRuleBasedScanner
+        implements ICharacterScanner, ILiClipseTokenScanner, IDocumentScanner {
 
     /** The list of rules of this scanner */
-    protected IRule[] fRules;
+    protected ILiClipsePredicateRule[] fRules;
     /** The token to be returned by default if no rule fires */
     protected IToken fDefaultReturnToken;
     /** The document to be scanned */
@@ -61,12 +62,12 @@ public abstract class AbstractCustomRuleBasedScanner implements ICharacterScanne
 
     /**
      * Configures the scanner with the given sequence of rules.
-     * 
+     *
      * @param rules the sequence of rules controlling this scanner (can be null).
      * @note the rules may be null and a reference to them will be kept (i.e.: the
      * passed array should not be modified outside of this method).
      */
-    public void setRules(IRule[] rules) {
+    public void setRules(ILiClipsePredicateRule[] rules) {
         fRules = rules;
     }
 
@@ -187,7 +188,7 @@ public abstract class AbstractCustomRuleBasedScanner implements ICharacterScanne
      *
      */
     @Override
-    public IToken nextToken() {
+    public IToken nextToken() throws DocumentTimeStampChangedException {
         //Treat case where we have no rules (read to the end).
         if (fRules == null) {
             int c;

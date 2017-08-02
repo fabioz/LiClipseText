@@ -9,21 +9,22 @@ package org.brainwy.liclipsetext.editor.common.partitioning.rules;
 import java.util.List;
 
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.partitioner.IChangeTokenRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.brainwy.liclipsetext.shared_core.partitioner.IMarkScanner;
 import org.brainwy.liclipsetext.shared_core.partitioner.SubRuleToken;
 import org.eclipse.jface.text.rules.ICharacterScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
-public class IndentedBlockRule implements IPredicateRule, IChangeTokenRule {
+public class IndentedBlockRule implements ILiClipsePredicateRule, IChangeTokenRule {
 
     private IToken fToken;
     private final String start;
     private final SequenceRule sequenceRule;
     private final CompositeRule additionalStartCompositeRule;
-    private int column;
+    private final int column;
 
     /**
      * If start = '..'
@@ -51,11 +52,13 @@ public class IndentedBlockRule implements IPredicateRule, IChangeTokenRule {
         this.column = column;
     }
 
-    public IToken evaluate(ICharacterScanner scanner) {
+    @Override
+    public IToken evaluate(ICharacterScanner scanner) throws DocumentTimeStampChangedException {
         return evaluate(scanner, false);
     }
 
-    public IToken evaluate(ICharacterScanner scanner, boolean resume) {
+    @Override
+    public IToken evaluate(ICharacterScanner scanner, boolean resume) throws DocumentTimeStampChangedException {
 
         IMarkScanner markScanner = (IMarkScanner) scanner;
         int mark = markScanner.getMark();
@@ -144,10 +147,12 @@ public class IndentedBlockRule implements IPredicateRule, IChangeTokenRule {
         }
     }
 
+    @Override
     public void setToken(IToken token) {
         this.fToken = token;
     }
 
+    @Override
     public IToken getSuccessToken() {
         return fToken;
     }

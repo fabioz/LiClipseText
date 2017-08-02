@@ -8,19 +8,20 @@ package org.brainwy.liclipsetext.editor.common.partitioning.rules;
 
 import java.io.IOException;
 
+import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.partitioner.IChangeTokenRule;
-import org.brainwy.liclipsetext.shared_core.partitioner.IDocumentScanner;
 import org.brainwy.liclipsetext.shared_core.partitioner.IMarkScanner;
 import org.brainwy.liclipsetext.shared_core.partitioner.PartitionCodeReader;
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.BadPositionCategoryException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.rules.ICharacterScanner;
-import org.eclipse.jface.text.rules.IPredicateRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
-public class JSRegexRule implements IPredicateRule, IChangeTokenRule {
+public class JSRegexRule implements ILiClipsePredicateRule, IChangeTokenRule {
 
     private IToken fToken;
     private SingleLineRule rule;
@@ -62,9 +63,8 @@ public class JSRegexRule implements IPredicateRule, IChangeTokenRule {
             }
 
             //We found something which could be a JS regexp, let's see its context to know if it really matched.
-            IDocument doc = ((IDocumentScanner) scanner).getDocument();
             try {
-                if (contextIsJSRegex(doc, initialMark)) {
+                if (contextIsJSRegex(initialMark, (ScannerRange) scanner)) {
                     int c = scanner.read();
                     while (c == 'g' || c == 'i' || c == 'm') {
                         c = scanner.read();
@@ -84,25 +84,60 @@ public class JSRegexRule implements IPredicateRule, IChangeTokenRule {
         return ret;
     }
 
-    private boolean contextIsJSRegex(IDocument doc, int mark) throws IOException, BadPositionCategoryException {
+    private boolean contextIsJSRegex(int mark, ScannerRange scanner)
+            throws IOException, BadPositionCategoryException {
         mark--; //I.e.: the mark passed is the position of the '/' and we want to check before that.
         if (mark < 0) {
             //skip
             return true; //at pos 0 it's a regexp (can't be a division).
         }
-        //PartitionCodeReader partitionCodeReader = new PartitionCodeReader(IDocument.DEFAULT_CONTENT_TYPE);
-        PartitionCodeReader partitionCodeReader = new PartitionCodeReader(
-                PartitionCodeReader.ALL_CONTENT_TYPES_AVAILABLE);
-        partitionCodeReader.configureBackwardReader(doc, mark);
 
-        int c = partitionCodeReader.read();
+        final int initialOffset = mark;
+        final IDocument doc = scanner.getDocument();
+        ICharacterScanner backwardScanner = new ICharacterScanner() {
+
+            private int fOffset = initialOffset;
+
+            @Override
+            public void unread() {
+                throw new RuntimeException("Not implemented");
+            }
+
+            @Override
+            public int read() {
+                if (fOffset >= doc.getLength() || fOffset <= 0) {
+                    return PartitionCodeReader.EOF;
+                }
+                int c;
+                try {
+                    c = doc.getChar(fOffset);
+                } catch (BadLocationException e) {
+                    Log.log(e);
+                    return PartitionCodeReader.EOF;
+                }
+                fOffset--;
+                return c;
+            }
+
+            @Override
+            public char[][] getLegalLineDelimiters() {
+                return null;
+            }
+
+            @Override
+            public int getColumn() {
+                return 0;
+            }
+        };
+
+        int c = backwardScanner.read();
         while (Character.isWhitespace(c)) {
             if (c == '\r' || c == '\n' || c == PartitionCodeReader.EOF) {
                 //only whitespaces before means regex
                 return true;
             }
 
-            c = partitionCodeReader.read();
+            c = backwardScanner.read();
         }
         if (PartitionCodeReader.EOF == c) {
             //only whitespaces before means regex
@@ -115,7 +150,7 @@ public class JSRegexRule implements IPredicateRule, IChangeTokenRule {
         }
         //++/ or --/ means division
         if (c == '-' || c == '+') {
-            int c2 = partitionCodeReader.read();
+            int c2 = backwardScanner.read();
             if (c2 == c) {
                 return false;
             }

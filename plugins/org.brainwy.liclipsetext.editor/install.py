@@ -25,7 +25,7 @@ def RunCog():
         dict(ext='rst', kind='restructured text', img='rst'),
         dict(ext='dart', kind='dart', img='dart'),
         dict(ext='mako', kind='mako', img='mako'),
-        dict(ext='xgui2,xgui2_', kind='xgui20', img='liclipse'),
+        dict(ext='xgui2,xgui2_,xinc', kind='xgui20', img='liclipse'),
         dict(ext='kv', kind='kivy', img='kivy'),
         dict(ext='jl', kind='julia', img='julia'),
         dict(ext='st,stg', kind='stringtemplate', img='stringtemplate'),

@@ -6,6 +6,20 @@
  */
 package org.brainwy.liclipsetext.editor.views.partitioning;
 
+import org.brainwy.liclipsetext.editor.common.LiClipseEditor;
+import org.brainwy.liclipsetext.editor.common.partitioning.reader.SubPartitionCodeReader;
+import org.brainwy.liclipsetext.editor.common.partitioning.reader.SubPartitionCodeReader.TypedPart;
+import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
+import org.brainwy.liclipsetext.shared_core.model.ErrorDescription;
+import org.brainwy.liclipsetext.shared_core.model.IModelListener;
+import org.brainwy.liclipsetext.shared_core.model.ISimpleNode;
+import org.brainwy.liclipsetext.shared_core.structure.DataAndImageTreeNode;
+import org.brainwy.liclipsetext.shared_core.structure.TreeNode;
+import org.brainwy.liclipsetext.shared_ui.SharedUiPlugin;
+import org.brainwy.liclipsetext.shared_ui.UIConstants;
+import org.brainwy.liclipsetext.shared_ui.quick_outline.DataAndImageTreeNodeContentProvider;
+import org.brainwy.liclipsetext.shared_ui.tree.PyFilteredTree;
+import org.brainwy.liclipsetext.shared_ui.utils.RunInUiThread;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TypedPosition;
@@ -26,18 +40,6 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.dialogs.FilteredTree;
 import org.eclipse.ui.dialogs.PatternFilter;
 import org.eclipse.ui.part.ViewPart;
-import org.brainwy.liclipsetext.editor.common.LiClipseEditor;
-import org.brainwy.liclipsetext.editor.common.partitioning.reader.SubPartitionCodeReader;
-import org.brainwy.liclipsetext.editor.common.partitioning.reader.SubPartitionCodeReader.TypedPart;
-import org.brainwy.liclipsetext.shared_core.model.ErrorDescription;
-import org.brainwy.liclipsetext.shared_core.model.IModelListener;
-import org.brainwy.liclipsetext.shared_core.model.ISimpleNode;
-import org.brainwy.liclipsetext.shared_core.structure.DataAndImageTreeNode;
-import org.brainwy.liclipsetext.shared_ui.SharedUiPlugin;
-import org.brainwy.liclipsetext.shared_ui.UIConstants;
-import org.brainwy.liclipsetext.shared_ui.quick_outline.DataAndImageTreeNodeContentProvider;
-import org.brainwy.liclipsetext.shared_ui.tree.PyFilteredTree;
-import org.brainwy.liclipsetext.shared_ui.utils.RunInUiThread;
 
 public class LiClipsePartitioningView extends ViewPart implements ISelectionChangedListener, IPartListener,
         IModelListener {
@@ -112,33 +114,38 @@ public class LiClipsePartitioningView extends ViewPart implements ISelectionChan
             public void run() {
                 if (!disposed) {
                     LiClipseEditor editor = currentEditor;
-                    DataAndImageTreeNode<Object> root = new DataAndImageTreeNode<>(null, null, null);
                     if (editor != null && !editor.isDisposed()) {
                         IDocument document = editor.getDocument();
 
-                        SubPartitionCodeReader subPartitionCodeReader = new SubPartitionCodeReader();
-                        subPartitionCodeReader.configureReadAllTopPartition(true, document, 0);
+                        DataAndImageTreeNode<Object> rootInput = DocumentTimeStampChangedException
+                                .retryUntilNoDocChanges(() -> {
+                                    DataAndImageTreeNode<Object> root = new DataAndImageTreeNode<>(null, null, null);
+                                    SubPartitionCodeReader subPartitionCodeReader = new SubPartitionCodeReader();
+                                    subPartitionCodeReader.configureReadAllTopPartition(true, document, 0);
 
-                        Image image = SharedUiPlugin.getImageCache().get(UIConstants.PUBLIC_ATTR_ICON);
-                        int i = 0;
-                        while (true) {
-                            TypedPart read;
-                            read = subPartitionCodeReader.read();
-                            if (read == null) {
-                                break;
-                            }
-                            i += 1;
-                            if (i > 500) {
-                                new DataAndImageTreeNode<>(root, "Too many items to show ( > 500), bailing out.",
-                                        image);
-                                break;
-                            } else {
-                                new DataAndImageTreeNode<>(root, read, image);
-                            }
-
-                        }
-                        treeViewer.setInput(root);
+                                    Image image = SharedUiPlugin.getImageCache().get(UIConstants.PUBLIC_ATTR_ICON);
+                                    int i = 0;
+                                    while (true) {
+                                        TypedPart read;
+                                        read = subPartitionCodeReader.read();
+                                        if (read == null) {
+                                            break;
+                                        }
+                                        i += 1;
+                                        if (i > 500) {
+                                            new DataAndImageTreeNode<>(root,
+                                                    "Too many items to show ( > 500), bailing out.",
+                                                    image);
+                                            break;
+                                        } else {
+                                            new DataAndImageTreeNode<>(root, read, image);
+                                        }
+                                    }
+                                    return root;
+                                });
+                        treeViewer.setInput(rootInput);
                     } else {
+                        DataAndImageTreeNode<Object> root = new DataAndImageTreeNode<>(null, null, null);
                         treeViewer.setInput(root);
                     }
                 }
@@ -224,26 +231,34 @@ public class LiClipsePartitioningView extends ViewPart implements ISelectionChan
                         }
                     });
             Image image = SharedUiPlugin.getImageCache().get(UIConstants.PRIVATE_FIELD_ICON);
-            boolean created = false;
-            int i = 0;
-            while (true) {
-                i += 1;
-                TypedPart read;
-                read = subPartitionCodeReader.read();
-                if (read == null) {
-                    break;
+            boolean[] created = new boolean[1];
+            DataAndImageTreeNode<Object> rootInput = DocumentTimeStampChangedException.retryUntilNoDocChanges(() -> {
+                created[0] = false;
+                int i = 0;
+                DataAndImageTreeNode<Object> root = new DataAndImageTreeNode<>(null, null, null);
+                while (true) {
+                    i += 1;
+                    TypedPart read;
+                    read = subPartitionCodeReader.read();
+                    if (read == null) {
+                        break;
+                    }
+                    created[0] = true;
+                    if (i > 500) {
+                        new DataAndImageTreeNode<>(root, "Too many items to show ( > 500), bailing out.",
+                                image);
+                        break;
+                    } else {
+                        new DataAndImageTreeNode<>(root, read, image);
+                    }
                 }
-                created = true;
-                if (i > 500) {
-                    new DataAndImageTreeNode<>(dataAndImageTreeNode, "Too many items to show ( > 500), bailing out.",
-                            image);
-                    break;
-                } else {
-                    new DataAndImageTreeNode<>(dataAndImageTreeNode, read, image);
-                }
-
+                return root;
+            });
+            for (TreeNode c : rootInput.getChildren()) {
+                c.setParent(dataAndImageTreeNode, false);
             }
-            if (created) {
+
+            if (created[0]) {
                 treeViewer.refresh(dataAndImageTreeNode);
             }
         }

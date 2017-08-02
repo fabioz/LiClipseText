@@ -54,6 +54,11 @@ public final class LanguageMetadataInMemoryFileInfo implements ILanguageMetadata
     }
 
     @Override
+    public IStreamProvider getTmLanguageStreamProvider() throws Exception {
+        throw new RuntimeException("Not available for in memory language metadata.");
+    }
+
+    @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
