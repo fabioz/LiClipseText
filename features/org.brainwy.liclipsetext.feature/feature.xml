@@ -2,7 +2,7 @@
 <feature
       id="org.brainwy.liclipsetext.feature"
       label="LiClipseText Feature"
-      version="1.1.2.qualifier"
+      version="2.0.0.qualifier"
       provider-name="Brainwy Software Ltda">
 
    <description>
@@ -142,18 +142,18 @@ COPYRIGHT 20016 BRAINWY SOFTWARE LTDA-ME
          id="org.brainwy.liclipsetext.editor"
          download-size="2912"
          install-size="2912"
-         version="1.1.2.qualifier"/>
+         version="2.0.0.qualifier"/>
 
    <plugin
          id="org.brainwy.liclipsetext.shared_core"
          download-size="530"
          install-size="530"
-         version="1.1.2.qualifier"/>
+         version="2.0.0.qualifier"/>
 
    <plugin
          id="org.brainwy.liclipsetext.shared_ui"
          download-size="151"
          install-size="151"
-         version="1.1.2.qualifier"/>
+         version="2.0.0.qualifier"/>
 
 </feature>
