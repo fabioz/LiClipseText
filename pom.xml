@@ -26,8 +26,8 @@ Using:
         <tycho-version>0.24.0</tycho-version>
         <tycho-extras-version>0.24.0</tycho-extras-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <repository.id>eclipse-neon</repository.id>
-        <repository.url>http://download.eclipse.org/releases/neon/</repository.url>
+        <repository.id>eclipse-oxygen</repository.id>
+        <repository.url>http://download.eclipse.org/releases/oxygen/</repository.url>
     </properties>
     <prerequisites>
         <maven>3.0</maven>
@@ -35,7 +35,7 @@ Using:
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.brainwy.liclipsetext</groupId>
     <artifactId>parent</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
     <name>LiClipseText Build Parent</name>
     <packaging>pom</packaging>
     <modules>
@@ -151,10 +151,13 @@ Using:
                         <artifactId>maven-jarsigner-plugin</artifactId>
                         <version>1.4</version>
                         <configuration>
-                            <keystore>${env.SIGN_KEYSTORE}</keystore>
-                            <storepass>${env.SIGN_STOREPASS}</storepass>
-                            <alias>${env.SIGN_ALIAS}</alias>
-                            <keypass>${env.SIGN_KEYPASS}</keypass>
+							<keystore>${env.SIGN_KEYSTORE}</keystore>
+							<storepass>${env.SIGN_STOREPASS}</storepass>
+							<alias>${env.SIGN_ALIAS}</alias>
+							<keypass>${env.SIGN_KEYPASS}</keypass>
+							<storetype>${env.SIGN_STORETYPE}</storetype>
+							<tsa>${env.SIGN_TSA}</tsa>
+							<verbose>true</verbose>
                         </configuration>
                         <executions>
                             <execution>
