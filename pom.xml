@@ -26,8 +26,6 @@ Using:
         <tycho-version>0.24.0</tycho-version>
         <tycho-extras-version>0.24.0</tycho-extras-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <repository.id>eclipse-oxygen</repository.id>
-        <repository.url>http://download.eclipse.org/releases/oxygen/</repository.url>
     </properties>
     <prerequisites>
         <maven>3.0</maven>
@@ -173,10 +171,15 @@ Using:
         </profile>
     </profiles>
     <repositories>
-        <repository>
-            <id>${repository.id}</id>
+		<repository>
             <layout>p2</layout>
-            <url>${repository.url}</url>
-        </repository>
+			<id>orbit</id>
+			<url>http://download.eclipse.org/tools/orbit/downloads/drops/R20170516192513/repository</url>
+		</repository>
+		<repository>
+            <layout>p2</layout>
+			<id>eclipse-oxygen</id>
+			<url>http://download.eclipse.org/releases/oxygen</url>
+		</repository>
     </repositories>
 </project>

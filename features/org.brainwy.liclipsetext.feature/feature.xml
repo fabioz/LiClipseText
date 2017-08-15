@@ -118,7 +118,6 @@ COPYRIGHT 20016 BRAINWY SOFTWARE LTDA-ME
       <import plugin="org.eclipse.jface.text"/>
       <import plugin="org.eclipse.ui.editors"/>
       <import plugin="org.eclipse.core.resources"/>
-      <import plugin="org.eclipse.search"/>
       <import plugin="org.eclipse.ui.workbench.texteditor"/>
       <import plugin="org.eclipse.ui.views"/>
       <import plugin="org.eclipse.e4.ui.services"/>
@@ -136,6 +135,12 @@ COPYRIGHT 20016 BRAINWY SOFTWARE LTDA-ME
       <import plugin="org.eclipse.ltk.core.refactoring"/>
       <import plugin="org.eclipse.ltk.ui.refactoring"/>
       <import plugin="org.eclipse.ui.forms"/>
+      <import plugin="com.ibm.icu"/>
+      <import plugin="org.eclipse.core.expressions"/>
+      <import plugin="com.google.gson" version="2.2.4" match="greaterOrEqual"/>
+      <import plugin="org.jcodings" version="1.0.18" match="greaterOrEqual"/>
+      <import plugin="org.joni" version="2.1.11" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.search"/>
    </requires>
 
    <plugin
@@ -155,5 +160,33 @@ COPYRIGHT 20016 BRAINWY SOFTWARE LTDA-ME
          download-size="151"
          install-size="151"
          version="2.0.0.qualifier"/>
+
+   <plugin
+         id="org.jcodings"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.joni"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="com.google.gson"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.objectweb.asm"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
 
 </feature>

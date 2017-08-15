@@ -42,13 +42,18 @@
                             <type>eclipse-feature</type>
                         </dependency>
                     </dependencies>
-                    <repositories>
-                        <repository>
-                            <id>${repository.id}</id>
-                            <layout>p2</layout>
-                            <url>${repository.url}</url>
-                        </repository>
-                    </repositories>
+				    <repositories>
+						<repository>
+				            <layout>p2</layout>
+							<id>orbit</id>
+							<url>http://download.eclipse.org/tools/orbit/downloads/drops/R20170516192513/repository</url>
+						</repository>
+						<repository>
+				            <layout>p2</layout>
+							<id>eclipse-oxygen</id>
+							<url>http://download.eclipse.org/releases/oxygen</url>
+						</repository>
+				    </repositories>
                 </configuration>
                 <executions>
                     <execution>
