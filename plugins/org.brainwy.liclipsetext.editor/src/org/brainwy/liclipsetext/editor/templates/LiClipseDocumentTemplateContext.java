@@ -14,11 +14,12 @@ import org.brainwy.liclipsetext.shared_core.string.TextSelectionUtils;
 import org.brainwy.liclipsetext.shared_ui.templates.AbstractDocumentTemplateContextWithIndent;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.text.templates.TemplateContextType;
 
 public class LiClipseDocumentTemplateContext extends AbstractDocumentTemplateContextWithIndent {
 
-	private LiClipseLanguage language;
+    private LiClipseLanguage language;
     public String prefix;
     public String prefixWithSeparators;
 
@@ -29,12 +30,12 @@ public class LiClipseDocumentTemplateContext extends AbstractDocumentTemplateCon
     }
 
     public LiClipseDocumentTemplateContext(TemplateContextType type, IDocument document,
-			int offset, int length, String indentTo, LiClipseLanguage language) {
+            int offset, int length, String indentTo, LiClipseLanguage language) {
         super(type, document, offset, length, indentTo);
         this.language = language;
-	}
+    }
 
-	@Override
+    @Override
     protected int getTabWidth() {
         return language.getIndent().getTabWidth();
     }
@@ -45,7 +46,8 @@ public class LiClipseDocumentTemplateContext extends AbstractDocumentTemplateCon
     }
 
     public TextSelectionUtils createTextSelectionUtils() {
-    	return new TextSelectionUtils(getDocument(), getCompletionOffset());
+        return new TextSelectionUtils(getDocument(),
+                new TextSelection(getDocument(), getCompletionOffset(), getCompletionLength()));
     }
 
     public TextSelectionUtils markSelection() {
