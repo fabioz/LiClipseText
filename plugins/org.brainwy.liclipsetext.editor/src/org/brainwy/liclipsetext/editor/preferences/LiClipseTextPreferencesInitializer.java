@@ -7,6 +7,7 @@
 package org.brainwy.liclipsetext.editor.preferences;
 
 import org.brainwy.liclipsetext.editor.LiClipseTextEditorPlugin;
+import org.brainwy.liclipsetext.shared_ui.word_boundaries.SubWordPreferences;
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.osgi.service.prefs.Preferences;
@@ -23,9 +24,13 @@ public class LiClipseTextPreferencesInitializer extends AbstractPreferenceInitia
                 node.putInt((String) o[0] + "_STYLE", (Integer) o[2]); //style
             }
         }
-        node.putBoolean(LiClipseTextPreferences.USE_MATCHING_BRACKETS, LiClipseTextPreferences.DEFAULT_USE_MATCHING_BRACKETS);
+        node.putBoolean(LiClipseTextPreferences.USE_MATCHING_BRACKETS,
+                LiClipseTextPreferences.DEFAULT_USE_MATCHING_BRACKETS);
 
-        node.putBoolean(LiClipseTextPreferences.USE_MARK_OCCURRENCES, LiClipseTextPreferences.DEFAULT_USE_MARK_OCCURRENCES);
+        node.putBoolean(LiClipseTextPreferences.USE_MARK_OCCURRENCES,
+                LiClipseTextPreferences.DEFAULT_USE_MARK_OCCURRENCES);
+
+        node.put(SubWordPreferences.WORD_NAVIGATION_STYLE, SubWordPreferences.DEFAULT_WORD_NAVIGATION_STYLE);
     }
 
 }

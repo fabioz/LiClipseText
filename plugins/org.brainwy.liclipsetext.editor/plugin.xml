@@ -1911,6 +1911,8 @@
 
       <page class="org.brainwy.liclipsetext.editor.preferences.LiClipseColorsPreferencesPage"
             id="liclipse.colors" name="Colors" category="liclipse" />
+      <page class="org.brainwy.liclipsetext.editor.preferences.LiClipseWordNavigationPreferencesPage"
+            id="liclipse.word_navigation" name="Word Navigation" category="liclipse" />
    </extension>
 
    <extension point="org.eclipse.ui.ide.editorAssociationOverride">
