@@ -18,6 +18,7 @@ package org.eclipse.tm4e.core.internal.grammar;
 import java.util.List;
 
 import org.eclipse.tm4e.core.grammar.IToken;
+import org.eclipse.tm4e.core.internal.oniguruma.OnigString;
 
 class Token implements IToken {
 
@@ -52,7 +53,7 @@ class Token implements IToken {
 	public List<String> getScopes() {
 		return scopes;
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuilder s = new StringBuilder();
@@ -64,5 +65,11 @@ class Token implements IToken {
 		s.append(scopes);
 		s.append("}");
 		return s.toString();
+	}
+
+	@Override
+	public IToken toUtf16(OnigString onigLineText) {
+		return new Token(onigLineText.convertUtf8OffsetToUtf16(this.startIndex),
+				onigLineText.convertUtf8OffsetToUtf16(this.endIndex), scopes);
 	}
 }

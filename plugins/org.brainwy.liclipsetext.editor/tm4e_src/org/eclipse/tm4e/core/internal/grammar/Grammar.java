@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import org.eclipse.tm4e.core.grammar.GrammarHelper;
 import org.eclipse.tm4e.core.grammar.IGrammar;
 import org.eclipse.tm4e.core.grammar.IGrammarRepository;
+import org.eclipse.tm4e.core.grammar.IToken;
 import org.eclipse.tm4e.core.grammar.ITokenizeLineResult;
 import org.eclipse.tm4e.core.grammar.ITokenizeLineResult2;
 import org.eclipse.tm4e.core.grammar.Injection;
@@ -227,7 +228,7 @@ public class Grammar implements IGrammar, IRuleFactoryHelper {
 			prevState.reset();
 		}
 
-		if(lineText.isEmpty() || lineText.charAt(lineText.length()-1) != '\n') {
+		if (lineText.isEmpty() || lineText.charAt(lineText.length() - 1) != '\n') {
 			// Only add \n if the passed lineText didn't have it.
 			lineText += '\n';
 		}
@@ -240,7 +241,14 @@ public class Grammar implements IGrammar, IRuleFactoryHelper {
 		if (emitBinaryTokens) {
 			return (T) new TokenizeLineResult2(lineTokens.getBinaryResult(nextState, lineLength), nextState);
 		}
-		return (T) new TokenizeLineResult(lineTokens.getResult(nextState, lineLength), nextState);
+		IToken[] result = lineTokens.getResult(nextState, lineLength);
+		// return (T) new TokenizeLineResult(result, nextState);
+		IToken[] convertedFromUtf8ToUtf16 = new IToken[result.length];
+		for (int i = 0; i < result.length; i++) {
+			IToken iToken = result[i];
+			convertedFromUtf8ToUtf16[i] = iToken.toUtf16(onigLineText);
+		}
+		return (T) new TokenizeLineResult(convertedFromUtf8ToUtf16, nextState);
 	}
 
 	@Override

@@ -17,6 +17,8 @@ package org.eclipse.tm4e.core.grammar;
 
 import java.util.List;
 
+import org.eclipse.tm4e.core.internal.oniguruma.OnigString;
+
 public interface IToken {
 
 	int getStartIndex();
@@ -26,5 +28,7 @@ public interface IToken {
 	int getEndIndex();
 
 	List<String> getScopes();
+
+	IToken toUtf16(OnigString onigLineText);
 
 }
