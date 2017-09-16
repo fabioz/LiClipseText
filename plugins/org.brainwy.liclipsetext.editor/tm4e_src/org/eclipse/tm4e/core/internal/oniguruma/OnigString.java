@@ -13,11 +13,15 @@
  *  - GitHub Inc.: Initial code, written in JavaScript, licensed under MIT license
  *  - Angelo Zerr <angelo.zerr@gmail.com> - translation and adaptation to Java
  *  - Fabio Zadrozny <fabiofz@gmail.com> - Convert uniqueId to Object (for identity compare)
+ *  - Fabio Zadrozny <fabiofz@gmail.com> - Utilities to convert between utf-8 and utf-16
  */
 
 package org.eclipse.tm4e.core.internal.oniguruma;
 
 import java.nio.charset.Charset;
+import java.util.Arrays;
+
+import org.jcodings.specific.UTF8Encoding;
 
 /**
  * Oniguruma string.
@@ -30,8 +34,11 @@ public class OnigString {
 	private static final String UTF_8 = "UTF-8";
 
 	private final String str;
-	private byte[] value;
-	private Object uniqueId;
+	private final Object uniqueId;
+	private final byte[] value;
+
+	private int[] charsPosFromBytePos;
+	private boolean computedOffsets;
 
 	public OnigString(String str) {
 		this.str = str;
@@ -51,10 +58,91 @@ public class OnigString {
 	}
 
 	public int utf8_length() {
-		return str.length();
+		return value.length;
 	}
 
 	public String getString() {
 		return str;
+	}
+
+	public int convertUtf16OffsetToUtf8(int posInChars) {
+		if (!computedOffsets) {
+			computeOffsets();
+		}
+		if (charsPosFromBytePos == null) {
+			// Same conditions as code below, but taking into account that the
+			// bytes and chars len are the same.
+			if (posInChars < 0 || this.value.length == 0 || posInChars > this.value.length) {
+				throw new ArrayIndexOutOfBoundsException(posInChars);
+			}
+			return posInChars;
+		}
+
+		int[] charsLenInBytes = charsPosFromBytePos;
+		if (posInChars < 0 || charsLenInBytes.length == 0) {
+			throw new ArrayIndexOutOfBoundsException(posInChars);
+		}
+		if (posInChars == 0) {
+			return 0;
+		}
+
+		int last = charsLenInBytes[charsLenInBytes.length - 1];
+		if (last < posInChars) {
+			if (last == posInChars - 1) {
+				return charsLenInBytes.length;
+			} else {
+				throw new ArrayIndexOutOfBoundsException(posInChars);
+			}
+		}
+
+		int index = Arrays.binarySearch(charsLenInBytes, posInChars);
+		while (index > 0) {
+			if (charsLenInBytes[index - 1] == posInChars) {
+				index--;
+			} else {
+				break;
+			}
+		}
+		return index;
+	}
+
+	public int convertUtf8OffsetToUtf16(int posInBytes) {
+		if (!computedOffsets) {
+			computeOffsets();
+		}
+		if (charsPosFromBytePos == null) {
+			return posInBytes;
+		}
+		if (posInBytes < 0) {
+			return posInBytes;
+		}
+		if (posInBytes >= charsPosFromBytePos.length) {
+			//One off can happen when finding the end of a regexp (it's the right boundary).
+			return charsPosFromBytePos[posInBytes - 1] + 1;
+		}
+		return charsPosFromBytePos[posInBytes];
+	}
+
+	private void computeOffsets() {
+		if (this.value.length != this.str.length()) {
+			charsPosFromBytePos = new int[this.value.length];
+			int bytesLen = 0;
+			;
+			int charsLen = 0;
+			int length = this.value.length;
+			for (int i = 0; i < length;) {
+				int codeLen = UTF8Encoding.INSTANCE.length(this.value, i, length);
+				for (int i1 = 0; i1 < codeLen; i1++) {
+					charsPosFromBytePos[bytesLen + i1] = charsLen;
+				}
+				bytesLen += codeLen;
+				i += codeLen;
+				charsLen += 1;
+			}
+			if (bytesLen != this.value.length) {
+				throw new AssertionError(bytesLen + " != " + this.value.length);
+			}
+		}
+		computedOffsets = true;
 	}
 }
