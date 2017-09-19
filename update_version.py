@@ -26,6 +26,19 @@ def update_version(version):
             with open(f, 'w') as stream:
                 stream.write(new_contents)
 
+def update_version_in_liclipse(version):
+    liclipse_dirname = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    liclipse_dir = os.path.join(liclipse_dirname, 'liclipse')
+    assert os.path.exists(liclipse_dir)
+    for f in find_files(liclipse_dir):
+        with open(f, 'r') as stream:
+            contents = stream.read()
+
+        new_contents = fix_liclipse_contents_version(contents, version)
+        if contents != new_contents:
+            with open(f, 'w') as stream:
+                stream.write(new_contents)
+
 
 def fix_contents_version(contents, version):
     bugfixversion = int(re.sub(r'^\d\.\d\.(\d)', r'\1', version))
@@ -36,6 +49,14 @@ def fix_contents_version(contents, version):
     contents = re.sub(r'(<version)>\d\.\d\.\d(-SNAPSHOT</version>)', r'\1>%s\2' % (version,), contents)
     contents = re.sub(r'(Bundle-Version:)\s\d\.\d\.\d(\.qualifier)', r'\1 %s\2' % (version,), contents)
 
+    return contents
+
+def fix_liclipse_contents_version(contents, version):
+    bugfixversion = int(re.sub(r'^\d\.\d\.(\d)', r'\1', version))
+    nextversion = re.sub(r'^(\d\.\d\.)\d', r'\1', version) + str(bugfixversion + 1)
+
+    contents = re.sub(r'((org)\.brainwy\.liclipsetext(\.\w+)?;)(bundle-version=")\[\d\.\d\.\d,\d\.\d\.\d\)"', r'\1\4[%s,%s)"' % (version, nextversion), contents)
+    contents = re.sub(r'(<feature id="org\.brainwy\.liclipsetext\.feature" version=")(\d\.\d\.\d)(\.qualifier"/>)', r'\g<1>%s\3' % (version,), contents)
     return contents
 
 
@@ -69,5 +90,6 @@ if __name__ == '__main__':
             test_lines()
         else:
             update_version(sys.argv[1])
+            update_version_in_liclipse(sys.argv[1])
     else:
         print('This script requires the new version (i.e.: 3.6.0)')
