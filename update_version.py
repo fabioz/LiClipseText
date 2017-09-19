@@ -4,15 +4,16 @@ import re
 
 
 
-def find_files(top):
+def find_files(top, additional=()):
     print top
+    search = ('feature.xml', 'pom.xml', 'manifest.mf') + additional
     for root, dirs, files in os.walk(top):
         for d in ('.svn', '.git', '.metadata'):
             if d in dirs:
                   dirs.remove(d)
 
         for file in files:
-            if file.lower() in ('feature.xml', 'pom.xml', 'manifest.mf'):
+            if file.lower() in search:
                 yield os.path.join(root, file)
 
 def update_version(version):
@@ -30,7 +31,7 @@ def update_version_in_liclipse(version):
     liclipse_dirname = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     liclipse_dir = os.path.join(liclipse_dirname, 'liclipse')
     assert os.path.exists(liclipse_dir)
-    for f in find_files(liclipse_dir):
+    for f in find_files(liclipse_dir, ('liclipse.product',)):
         with open(f, 'r') as stream:
             contents = stream.read()
 
