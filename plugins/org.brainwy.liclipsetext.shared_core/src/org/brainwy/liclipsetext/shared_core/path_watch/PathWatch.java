@@ -244,39 +244,6 @@ public class PathWatch implements IPathWatch {
     }
 
     /* (non-Javadoc)
-     * @see org.brainwy.liclipsetext.shared_core.path_watch.IPathWatch#hasTracker(java.io.File, org.brainwy.liclipsetext.shared_core.path_watch.IFilesystemChangesListener)
-     */
-    @Override
-    public boolean hasTracker(File path, IFilesystemChangesListener listener) {
-        if (disposed) {
-            return false;
-        }
-        Assert.isNotNull(path);
-        Assert.isNotNull(listener);
-
-        Path watchedPath = Paths.get(FileUtils.getFileAbsolutePath(path));
-
-        if (log != null) {
-            log.append("Has Tracker: ").appendObject(path).append("Listener: ").appendObject(listener).append('\n');
-        }
-
-        synchronized (lock) {
-            EventsStackerRunnable stacker = pathToStacker.get(watchedPath);
-
-            if (stacker != null && stacker.list != null) {
-                ListenerList<IFilesystemChangesListener> list = stacker.list;
-                IFilesystemChangesListener[] listeners = list.getListeners();
-                for (IFilesystemChangesListener iFilesystemChangesListener : listeners) {
-                    if (list.equals(iFilesystemChangesListener)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    /* (non-Javadoc)
      * @see org.brainwy.liclipsetext.shared_core.path_watch.IPathWatch#dispose()
      */
     @Override

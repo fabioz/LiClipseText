@@ -58,7 +58,7 @@ public class ToggleComment extends AbstractHandler {
         if (read != null) {
             if (SwitchLanguageToken.isSubLanguagePartition(read.type)) {
                 Tuple<String, String> topAndSub = SwitchLanguageToken.getSubLanguageAndContentType(read.type);
-                if (!topAndSub.o1.equals("this") && !topAndSub.equals(language.name.toLowerCase())) {
+                if (!topAndSub.o1.equals("this") && !topAndSub.o1.equals(language.name.toLowerCase())) {
                     LanguagesManager languagesManager = LiClipseTextEditorPlugin.getLanguagesManager();
                     LiClipseLanguage temp = languagesManager.getLanguageFromName(topAndSub.o1);
                     if (temp != null) {

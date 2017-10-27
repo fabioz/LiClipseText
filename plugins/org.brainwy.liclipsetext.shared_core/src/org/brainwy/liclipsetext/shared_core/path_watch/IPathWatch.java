@@ -7,8 +7,6 @@ public interface IPathWatch {
 
     void stopTrack(File path, IFilesystemChangesListener listener);
 
-    boolean hasTracker(File path, IFilesystemChangesListener listener);
-
     void dispose();
 
     /**
