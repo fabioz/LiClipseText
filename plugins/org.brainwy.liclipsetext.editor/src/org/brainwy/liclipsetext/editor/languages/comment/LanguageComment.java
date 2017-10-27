@@ -22,8 +22,7 @@ public class LanguageComment extends LanguageConfig {
     }
 
     public enum CommentType {
-        COMMENT_TYPE_SINGLE_LINE,
-        COMMENT_TYPE_MULTI_LINE
+        COMMENT_TYPE_SINGLE_LINE, COMMENT_TYPE_MULTI_LINE
     }
 
     //Default is single line
@@ -43,7 +42,7 @@ public class LanguageComment extends LanguageConfig {
 
     public String scope;
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({ "rawtypes" })
     public void load(Map map, List<IStatus> errorList) {
         String type = (String) map.remove("type");
         type = type.toLowerCase();
