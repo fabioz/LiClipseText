@@ -2,7 +2,7 @@ Update the version:
 
 x:
 cd x:\liclipsetext
-python update_version.py 2.1.0
+python update_version.py 2.1.1
 
 
 
