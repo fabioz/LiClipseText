@@ -85,7 +85,16 @@ public final class SubRuleToken {
     private LinkedList<SubRuleToken> children;
 
     public void makeRelativeToOffset(int offset) {
+        // If in the process of making it relative to an offset it becomes negative
+        // we need to make it shorter (as offsets should not be negative).
         this.offset -= offset;
+        if (this.offset < 0) {
+            this.len += this.offset;
+            this.offset = 0;
+            if (this.len < 0) {
+                this.len = 0;
+            }
+        }
         if (this.children != null) {
             for (SubRuleToken c : this.children) {
                 c.makeRelativeToOffset(offset);

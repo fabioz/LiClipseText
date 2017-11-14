@@ -25,9 +25,25 @@ public final class TypedRegionWithSubTokens extends Region implements ITypedRegi
      */
     private SubRuleToken fSubRuleToken;
 
-    public TypedRegionWithSubTokens(int offset, int length, String type, SubRuleToken subRuleToken) {
+    public TypedRegionWithSubTokens(final int offset, final int length, final String type, SubRuleToken subRuleToken) {
         super(offset, length);
         fType = type;
+        if (subRuleToken != null && subRuleToken.len > this.getLength()) {
+            SubRuleToken newSubRuleToken = new SubRuleToken(subRuleToken.token, 0, length);
+            List<SubRuleToken> flatten = subRuleToken.flatten();
+            for (SubRuleToken subRuleToken2 : flatten) {
+                if (subRuleToken2.offset >= length) {
+                    break;
+                }
+                int endOffset = subRuleToken2.offset + subRuleToken2.len;
+                if (endOffset > length) {
+                    subRuleToken2 = new SubRuleToken(subRuleToken2.token, subRuleToken2.offset,
+                            endOffset - length);
+                }
+                newSubRuleToken.addChild(subRuleToken2);
+            }
+            subRuleToken = newSubRuleToken;
+        }
         fSubRuleToken = subRuleToken;
     }
 
