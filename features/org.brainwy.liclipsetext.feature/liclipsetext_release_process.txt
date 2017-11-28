@@ -8,13 +8,13 @@ python update_version.py 2.1.2
 
 X:\liclipsetext\features\org.brainwy.liclipsetext.feature\build_liclipsetext.bat
 
-Create "2.1.1" version in "https://bintray.com/fabioz/liclipsetext/liclipsetext/new/version"
-Add "2.1.1" in X:\release_tools\liclipsetext_uploader_bintray.py
-C:\tools\Miniconda\envs\tests_py27\python.exe X:\release_tools\liclipsetext_uploader_bintray.py -s X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\repository -d https://api.bintray.com/content/fabioz/liclipsetext/2.1.1/
+Create "2.1.2" version in "https://bintray.com/fabioz/liclipsetext/liclipsetext/new/version"
+Add "2.1.2" in X:\release_tools\liclipsetext_uploader_bintray.py
+C:\tools\Miniconda\envs\tests_py27\python.exe X:\release_tools\liclipsetext_uploader_bintray.py -s X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\repository -d https://api.bintray.com/content/fabioz/liclipsetext/2.1.2/
 
         ** Submit p2 repository to github
 
-git tag liclipsetext_2_1_1 -a -m "LiClipseText 2.1.1"
+git tag liclipsetext_2_1_2 -a -m "LiClipseText 2.1.2"
 git push --tags
 
 
