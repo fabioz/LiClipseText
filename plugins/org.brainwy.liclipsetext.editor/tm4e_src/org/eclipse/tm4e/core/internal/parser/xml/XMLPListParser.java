@@ -25,27 +25,30 @@ import org.xml.sax.XMLReader;
 
 public class XMLPListParser<T> {
 
-	private final boolean theme;
+    private final boolean theme;
 
-	public XMLPListParser(boolean theme) {
-		this.theme = theme;
-	}
+    public XMLPListParser(boolean theme) {
+        this.theme = theme;
+    }
 
-	public T parse(InputStream contents) throws Exception {
-		SAXParserFactory spf = SAXParserFactory.newInstance();
-		spf.setNamespaceAware(true);
-		SAXParser saxParser = spf.newSAXParser();
-		XMLReader xmlReader = saxParser.getXMLReader();
-		xmlReader.setEntityResolver(new EntityResolver() {
+    public T parse(InputStream contents) throws Exception {
+        SAXParserFactory spf = SAXParserFactory.newInstance();
+        spf.setNamespaceAware(true);
+        spf.setFeature("http://xml.org/sax/features/validation", false);
+        spf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+        SAXParser saxParser = spf.newSAXParser();
+        XMLReader xmlReader = saxParser.getXMLReader();
+        xmlReader.setEntityResolver(new EntityResolver() {
 
-			@Override
-			public InputSource resolveEntity(String arg0, String arg1) throws SAXException, IOException {
-				return new InputSource(new ByteArrayInputStream("<?xml version='1.0' encoding='UTF-8'?>".getBytes()));
-			}
-		});
-		PList<T> result = new PList<T>(theme);
-		xmlReader.setContentHandler(result);
-		xmlReader.parse(new InputSource(contents));
-		return result.getResult();
-	}
+            @Override
+            public InputSource resolveEntity(String arg0, String arg1) throws SAXException, IOException {
+                return new InputSource(new ByteArrayInputStream("<?xml version='1.0' encoding='UTF-8'?>".getBytes()));
+            }
+        });
+
+        PList<T> result = new PList<T>(theme);
+        xmlReader.setContentHandler(result);
+        xmlReader.parse(new InputSource(contents));
+        return result.getResult();
+    }
 }
