@@ -16,6 +16,7 @@ def RunCog():
         dict(ext='js', kind='javascript', img='javascript'),
         dict(ext='java', kind='java', img='java'),
         dict(ext='liclipse', kind='liclipse', img='liclipse'),
+        dict(ext='dxl', kind='dxl', img='dxl'),
         dict(ext='djhtml', kind='django', img='django'),
         dict(ext='py,pyw', kind='python', img='python', filenames="SConstruct,Sconstruct,sconstruct,SConscript"),
         dict(ext='c,cpp,h,hpp', kind='cpp', img='cpp'),
