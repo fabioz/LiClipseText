@@ -17,9 +17,9 @@ public class GetFiles {
     /**
      * This method is a workaround for w.getRoot().getFileForLocation(path); which does not work consistently because
      * it filters out files which should not be filtered (i.e.: if a project is not in the workspace but imported).
-     * 
+     *
      * Also, it can fail to get resources in linked folders in the pythonpath.
-     * 
+     *
      * @param project is optional (may be null): if given we'll search in it dependencies first.
      */
     public IFile getFileForLocation(IPath location, IProject project) {
@@ -34,9 +34,9 @@ public class GetFiles {
     /**
      * This method is a workaround for w.getRoot().getFilesForLocation(path); which does not work consistently because
      * it filters out files which should not be filtered (i.e.: if a project is not in the workspace but imported).
-     * 
+     *
      * Also, it can fail to get resources in linked folders in the pythonpath.
-     * 
+     *
      * @param project is optional (may be null): if given we'll search in it dependencies first.
      */
     public IFile[] getFilesForLocation(IPath location, IProject project, boolean stopOnFirst) {
@@ -102,7 +102,7 @@ public class GetFiles {
     protected IFile getFileInContainer(IPath location, IContainer container) {
         IPath projectLocation = container.getLocation();
         if (projectLocation != null) {
-            if (projectLocation.isPrefixOf(location)) {
+            if (GetContainers.isPrefixOf(projectLocation, location)) {
                 int segmentsToRemove = projectLocation.segmentCount();
                 IPath removingFirstSegments = location.removeFirstSegments(segmentsToRemove);
                 if (removingFirstSegments.segmentCount() == 0) {

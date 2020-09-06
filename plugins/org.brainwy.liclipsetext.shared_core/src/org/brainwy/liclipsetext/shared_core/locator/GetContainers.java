@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 import org.brainwy.liclipsetext.shared_core.log.Log;
+import org.brainwy.liclipsetext.shared_core.utils.PlatformUtils;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
@@ -15,9 +16,9 @@ public class GetContainers {
     /**
      * This method is a workaround for w.getRoot().getContainerForLocation(path); which does not work consistently because
      * it filters out files which should not be filtered (i.e.: if a project is not in the workspace but imported).
-     * 
+     *
      * Also, it can fail to get resources in linked folders in the pythonpath.
-     * 
+     *
      * @param project is optional (may be null): if given we'll search in it dependencies first.
      */
     public IContainer getContainerForLocation(IPath location, IProject project) {
@@ -32,9 +33,9 @@ public class GetContainers {
     /**
      * This method is a workaround for w.getRoot().getContainersForLocation(path); which does not work consistently because
      * it filters out files which should not be filtered (i.e.: if a project is not in the workspace but imported).
-     * 
+     *
      * Also, it can fail to get resources in linked folders in the pythonpath.
-     * 
+     *
      * @param project is optional (may be null): if given we'll search in it dependencies first.
      */
     public IContainer[] getContainersForLocation(IPath location, IProject project, boolean stopOnFirst) {
@@ -90,13 +91,47 @@ public class GetContainers {
         return lst.toArray(new IContainer[lst.size()]);
     }
 
+    public static boolean isPrefixOf(IPath thisPath, IPath anotherPath) {
+        if (thisPath.getDevice() == null) {
+            if (anotherPath.getDevice() != null) {
+                return false;
+            }
+        } else {
+            if (!thisPath.getDevice().equalsIgnoreCase(anotherPath.getDevice())) {
+                return false;
+            }
+        }
+        if (thisPath.isEmpty() || (thisPath.isRoot() && anotherPath.isAbsolute())) {
+            return true;
+        }
+        int len = thisPath.segmentCount();
+        if (len > anotherPath.segmentCount()) {
+            return false;
+        }
+        if (PlatformUtils.isWindowsPlatform()) {
+            // i.e.: On windows the path comparison should be case-independent.
+            for (int i = 0; i < len; i++) {
+                if (!thisPath.segment(i).equalsIgnoreCase(anotherPath.segment(i))) {
+                    return false;
+                }
+            }
+        } else {
+            for (int i = 0; i < len; i++) {
+                if (!thisPath.segment(i).equals(anotherPath.segment(i))) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     /**
      * Gets an IContainer inside a container given a path in the filesystem (resolves the full path of the container and
      * checks if the location given is under it).
      */
     protected IContainer getContainerInContainer(IPath location, IContainer container) {
         IPath projectLocation = container.getLocation();
-        if (projectLocation != null && projectLocation.isPrefixOf(location)) {
+        if (projectLocation != null && isPrefixOf(projectLocation, location)) {
             int segmentsToRemove = projectLocation.segmentCount();
             IPath removeFirstSegments = location.removeFirstSegments(segmentsToRemove);
             if (removeFirstSegments.segmentCount() == 0) {
