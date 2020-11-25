@@ -102,7 +102,7 @@ public class LanguagesManagerTest extends TestCase {
                 return false;
             }
         });
-        assertEquals(22, listFiles.length);
+        assertEquals(23, listFiles.length);
         for (File file : listFiles) {
             try {
                 LanguageMetadataFileInfo fileInfo = new LanguageMetadataFileInfo(file, (File) null);
@@ -128,6 +128,7 @@ public class LanguagesManagerTest extends TestCase {
                 "CSS",
                 "CoffeeScript",
                 "Cpp",
+                "DXL",
                 "Django",
                 "Go",
                 "HTML",
@@ -166,6 +167,7 @@ public class LanguagesManagerTest extends TestCase {
         assertEquals(TestUtils.listToExpected(names), TestUtils.listToExpected("BaseDefinitions",
                 "CoffeeScript",
                 "Cpp",
+                "DXL",
                 "Django",
                 "Go",
                 "HTML",
@@ -204,7 +206,7 @@ public class LanguagesManagerTest extends TestCase {
                 "text.html.erb",
                 "text.html.markdown",
                 "text.html.php"));
-        assertEquals(41, languagesMetadata.size());
+        assertEquals(42, languagesMetadata.size());
         for (LanguageMetadata languageMetadata : languagesMetadata) {
             LiClipseLanguage language = languageMetadata.file.loadLanguage(true);
             assertNotNull(language);

@@ -1,9 +1,10 @@
 /**
  *  Copyright (c) 2015-2017 Angelo ZERR.
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  which accompanies this distribution, and is available at
- *  http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
@@ -34,8 +35,7 @@ public class WorkingCopyGrammarRegistryManager extends AbstractGrammarRegistryMa
 		load();
 	}
 
-	@Override
-	public void load() {
+	private void load() {
 		// Copy grammar definitions
 		IGrammarDefinition[] definitions = manager.getDefinitions();
 		for (IGrammarDefinition definition : definitions) {
@@ -59,8 +59,8 @@ public class WorkingCopyGrammarRegistryManager extends AbstractGrammarRegistryMa
 	}
 
 	@Override
-	public void addGrammarDefinition(IGrammarDefinition definition) {
-		super.addGrammarDefinition(definition);
+	public void registerGrammarDefinition(IGrammarDefinition definition) {
+		super.registerGrammarDefinition(definition);
 		if (added == null) {
 			added = new ArrayList<>();
 		}
@@ -68,8 +68,8 @@ public class WorkingCopyGrammarRegistryManager extends AbstractGrammarRegistryMa
 	}
 
 	@Override
-	public void removeGrammarDefinition(IGrammarDefinition definition) {
-		super.removeGrammarDefinition(definition);
+	public void unregisterGrammarDefinition(IGrammarDefinition definition) {
+		super.unregisterGrammarDefinition(definition);
 		if (added != null && added.contains(definition)) {
 			added.remove(definition);
 		} else {
@@ -84,12 +84,12 @@ public class WorkingCopyGrammarRegistryManager extends AbstractGrammarRegistryMa
 	public void save() throws BackingStoreException {
 		if (added != null) {
 			for (IGrammarDefinition definition : added) {
-				manager.addGrammarDefinition(definition);
+				manager.registerGrammarDefinition(definition);
 			}
 		}
 		if (removed != null) {
 			for (IGrammarDefinition definition : removed) {
-				manager.removeGrammarDefinition(definition);
+				manager.unregisterGrammarDefinition(definition);
 			}
 		}
 		if (added != null || removed != null) {

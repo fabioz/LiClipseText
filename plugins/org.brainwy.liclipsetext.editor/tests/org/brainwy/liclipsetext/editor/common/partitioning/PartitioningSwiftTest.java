@@ -70,12 +70,14 @@ public class PartitioningSwiftTest extends TestCase {
                 "keyword.operator.assignment.swift:8:1",
                 "source.swift:9:1",
                 "punctuation.definition.string.begin.swift:10:1",
-                "string.quoted.double.swift:11:4",
-                "punctuation.definition.string.end.swift:15:1",
-                "source.swift:16:10",
-                "constant.numeric.integer.decimal.swift:26:2",
+                "string.quoted.double.swift:11:1",
+                "punctuation.definition.string.end.swift:12:1",
+                "source.swift:13:10",
+                "constant.numeric.integer.decimal.swift:23:2",
+                "source.swift:25:3",
                 "punctuation.definition.comment.swift:28:2",
-                "comment.line.double-slash.swift:30:13"), last);
+                "comment.line.double-slash.swift:30:11",
+                "comment.line.double-slash.swift:41:2"), last);
 
     }
 

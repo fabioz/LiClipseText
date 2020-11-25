@@ -1,9 +1,10 @@
 /**
  *  Copyright (c) 2015-2017 Angelo ZERR.
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  which accompanies this distribution, and is available at
- *  http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Initial code from https://github.com/Microsoft/vscode-textmate/
  * Initial copyright Copyright (C) Microsoft Corporation. All rights reserved.
@@ -22,7 +23,7 @@ import java.util.List;
 import org.eclipse.tm4e.core.internal.oniguruma.OnigScanner;
 
 /**
- * 
+ *
  * @see https://github.com/Microsoft/vscode-textmate/blob/master/src/rule.ts
  *
  */
@@ -51,12 +52,12 @@ public class RegExpSourceList {
 
 	public void push(RegExpSource item) {
 		this._items.add(item);
-		this._hasAnchors = this._hasAnchors ? this._hasAnchors : item.hasAnchor;
+		this._hasAnchors = this._hasAnchors ? this._hasAnchors : item.hasAnchor();
 	}
 
 	public void unshift(RegExpSource item) {
 		this._items.add(0, item);
-		this._hasAnchors = this._hasAnchors ? this._hasAnchors : item.hasAnchor;
+		this._hasAnchors = this._hasAnchors ? this._hasAnchors : item.hasAnchor();
 	}
 
 	public int length() {
@@ -65,7 +66,7 @@ public class RegExpSourceList {
 
 	public void setSource(int index, String newSource) {
 		RegExpSource r = this._items.get(index);
-		if (!r.source.equals(newSource)) {
+		if (!r.getSource().equals(newSource)) {
 			// bust the cache
 			this._cached = null;
 			this._anchorCache.A0_G0 = null;
@@ -81,7 +82,7 @@ public class RegExpSourceList {
 			if (this._cached == null) {
 				List<String> regexps = new ArrayList<String>();
 				for (RegExpSource regExpSource : _items) {
-					regexps.add(regExpSource.source);
+					regexps.add(regExpSource.getSource());
 				}
 				this._cached = new ICompiledRule(createOnigScanner(regexps.toArray(new String[0])), getRules());
 			}
@@ -135,7 +136,7 @@ public class RegExpSourceList {
 	private Integer[] getRules() {
 		Collection<Integer> ruleIds = new ArrayList<Integer>();
 		for (RegExpSource item : this._items) {
-			ruleIds.add(item.ruleId);
+			ruleIds.add(item.getRuleId());
 		}
 		return ruleIds.toArray(new Integer[0]);
 	}

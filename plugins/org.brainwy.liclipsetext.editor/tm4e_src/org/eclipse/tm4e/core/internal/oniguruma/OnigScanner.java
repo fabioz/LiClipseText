@@ -1,9 +1,10 @@
 /**
  *  Copyright (c) 2015-2017 Angelo ZERR.
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  which accompanies this distribution, and is available at
- *  http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Initial code from https://github.com/atom/node-oniguruma
  * Initial copyright Copyright (c) 2013 GitHub Inc.
@@ -13,7 +14,7 @@
  *  - GitHub Inc.: Initial code, written in JavaScript, licensed under MIT license
  *  - Angelo Zerr <angelo.zerr@gmail.com> - translation and adaptation to Java
  */
- 
+
 package org.eclipse.tm4e.core.internal.oniguruma;
 
 public class OnigScanner {
@@ -24,12 +25,16 @@ public class OnigScanner {
 		this.searcher = new OnigSearcher(regexps);
 	}
 
-	public IOnigNextMatchResult _findNextMatchSync(OnigString lin, int pos) {
-		OnigResult bestResult = searcher.search(lin, pos);
-		return bestResult;
+	public IOnigNextMatchResult findNextMatchSync(OnigString source, int charOffset) {
+		OnigResult bestResult = searcher.search(source, charOffset);
+		if (bestResult != null) {
+			return new OnigNextMatchResult(bestResult, source);
+		}
+		return null;
 	}
 
-	public IOnigNextMatchResult _findNextMatchSync(String lin, int pos) {
-		return _findNextMatchSync(new OnigString(lin), pos);
+	public IOnigNextMatchResult findNextMatchSync(String lin, int pos) {
+		return findNextMatchSync(new OnigString(lin), pos);
 	}
+
 }

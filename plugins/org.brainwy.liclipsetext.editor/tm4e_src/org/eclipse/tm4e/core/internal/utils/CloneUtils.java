@@ -1,30 +1,37 @@
 /**
  *  Copyright (c) 2015-2017 Angelo ZERR.
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  which accompanies this distribution, and is available at
- *  http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
  */
 package org.eclipse.tm4e.core.internal.utils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.eclipse.tm4e.core.internal.grammar.parser.Raw;
 import org.eclipse.tm4e.core.internal.types.IRawRepository;
-
-import java.util.Set;
 
 /**
  * Clone utilities.
  *
  */
 public class CloneUtils {
+
+	/**
+	 * Helper class, use methods statically
+	 */
+	private CloneUtils() {
+
+	}
 
 	public static Object clone(Object value) {
 		if (value instanceof Raw) {
@@ -35,14 +42,9 @@ public class CloneUtils {
 			}
 			return raw;
 		} else if (value instanceof List) {
-			List listToClone = (List) value;
-			List list = new ArrayList<>();
-			for (Object item : listToClone) {
-				list.add(clone(item));
-			}
-			return list;
+			return ((List<?>) value).stream().map(CloneUtils::clone).collect(Collectors.toList());
 		} else if (value instanceof String) {
-			return new String((String) value);
+			return value;
 		} else if (value instanceof Integer) {
 			return value;
 		} else if (value instanceof Boolean) {

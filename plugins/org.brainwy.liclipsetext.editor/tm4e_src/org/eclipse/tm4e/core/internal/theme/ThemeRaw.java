@@ -1,14 +1,26 @@
+/**
+ * Copyright (c) 2015-2017 Angelo ZERR.
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ * Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
+ */
 package org.eclipse.tm4e.core.internal.theme;
 
 import java.util.Collection;
 import java.util.HashMap;
 
-import org.eclipse.tm4e.core.theme.FontStyle;
 import org.eclipse.tm4e.core.theme.IRawTheme;
 import org.eclipse.tm4e.core.theme.IRawThemeSetting;
 import org.eclipse.tm4e.core.theme.IThemeSetting;
 
 public class ThemeRaw extends HashMap<String, Object> implements IRawTheme, IRawThemeSetting, IThemeSetting {
+
+	private static final long serialVersionUID = -3622927264735492387L;
 
 	@Override
 	public String getName() {

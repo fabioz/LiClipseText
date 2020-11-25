@@ -1,9 +1,10 @@
 /**
  *  Copyright (c) 2015-2017 Angelo ZERR.
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  which accompanies this distribution, and is available at
- *  http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Initial code from https://github.com/Microsoft/vscode-textmate/
  * Initial copyright Copyright (C) Microsoft Corporation. All rights reserved.
@@ -29,20 +30,19 @@ class ModelTokensChangedEventBuilder {
 	}
 
 	public void registerChangedTokens(int lineNumber) {
-		int rangesLength = ranges.size();
-		Range previousRange = rangesLength > 0 ? ranges.get(rangesLength - 1) : null;
+		Range previousRange = ranges.isEmpty() ? null : ranges.get(ranges.size() - 1);
 
 		if (previousRange != null && previousRange.toLineNumber == lineNumber - 1) {
 			// extend previous range
 			previousRange.toLineNumber++;
 		} else {
 			// insert new range
-			ranges.add(new Range(lineNumber, lineNumber));
+			ranges.add(new Range(lineNumber));
 		}
 	}
 
 	public ModelTokensChangedEvent build() {
-		if (this.ranges.size() == 0) {
+		if (this.ranges.isEmpty()) {
 			return null;
 		}
 		return new ModelTokensChangedEvent(ranges, model);

@@ -1,9 +1,10 @@
 /**
  *  Copyright (c) 2015-2017 Angelo ZERR.
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  which accompanies this distribution, and is available at
- *  http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Initial code from https://github.com/Microsoft/vscode-textmate/
  * Initial copyright Copyright (C) Microsoft Corporation. All rights reserved.
@@ -26,7 +27,7 @@ import org.eclipse.tm4e.core.internal.types.IRawRule;
 import org.eclipse.tm4e.core.internal.utils.CloneUtils;
 
 /**
- * 
+ *
  * @see https://github.com/Microsoft/vscode-textmate/blob/master/src/rule.ts
  *
  */
@@ -34,73 +35,64 @@ public class RuleFactory {
 
 	public static CaptureRule createCaptureRule(IRuleFactoryHelper helper, final String name, final String contentName,
 			final Integer retokenizeCapturedWithRuleId) {
-		return (CaptureRule) helper.registerRule(new IRuleFactory() {
-			@Override
-			public Rule create(int id) {
-				return new CaptureRule(id, name, contentName, retokenizeCapturedWithRuleId);
-			}
-		});
+		return (CaptureRule) helper.registerRule(id -> new CaptureRule(id, name, contentName, retokenizeCapturedWithRuleId));
 	}
 
 	public static int getCompiledRuleId(final IRawRule desc, final IRuleFactoryHelper helper,
 			final IRawRepository repository) {
 		if (desc.getId() == null) {
 
-			helper.registerRule(new IRuleFactory() {
+			helper.registerRule(id -> {
+				desc.setId(id);
 
-				@Override
-				public Rule create(int id) {
-					desc.setId(id);
+				if (desc.getMatch() != null) {
+					return new MatchRule(desc.getId(), desc.getName(), desc.getMatch(),
+							RuleFactory.compileCaptures(desc.getCaptures(), helper, repository));
+				}
 
-					if (desc.getMatch() != null) {
-						return new MatchRule(desc.getId(), desc.getName(), desc.getMatch(),
-								RuleFactory._compileCaptures(desc.getCaptures(), helper, repository));
+				if (desc.getBegin() == null) {
+					IRawRepository r = repository;
+					if (desc.getRepository() != null) {
+						r = CloneUtils.mergeObjects(repository, desc.getRepository());
 					}
+					return new IncludeOnlyRule(desc.getId(), desc.getName(), desc.getContentName(),
+							RuleFactory._compilePatterns(desc.getPatterns(), helper, r));
+				}
 
-					if (desc.getBegin() == null) {
-						IRawRepository r = repository;
-						if (desc.getRepository() != null) {
-							r = CloneUtils.mergeObjects(repository, desc.getRepository());
-						}
-						return new IncludeOnlyRule(desc.getId(), desc.getName(), desc.getContentName(),
-								RuleFactory._compilePatterns(desc.getPatterns(), helper, r));
-					}
-
-					String ruleWhile = desc.getWhile();
-					if (ruleWhile != null) {
-						return new BeginWhileRule(
-								/* desc.$vscodeTextmateLocation, */
-								desc.getId(), desc.getName(), desc.getContentName(), desc.getBegin(),
-								RuleFactory._compileCaptures(
-										desc.getBeginCaptures() != null ? desc.getBeginCaptures() : desc.getCaptures(),
-										helper, repository),
-								ruleWhile,
-								RuleFactory._compileCaptures(
-										desc.getWhileCaptures() != null ? desc.getWhileCaptures() : desc.getCaptures(),
-										helper, repository),
-								RuleFactory._compilePatterns(desc.getPatterns(), helper, repository));
-					}
-
-					return new BeginEndRule(desc.getId(), desc.getName(), desc.getContentName(), desc.getBegin(),
-							RuleFactory._compileCaptures(
+				String ruleWhile = desc.getWhile();
+				if (ruleWhile != null) {
+					return new BeginWhileRule(
+							/* desc.$vscodeTextmateLocation, */
+							desc.getId(), desc.getName(), desc.getContentName(), desc.getBegin(),
+							RuleFactory.compileCaptures(
 									desc.getBeginCaptures() != null ? desc.getBeginCaptures() : desc.getCaptures(),
 									helper, repository),
-							desc.getEnd(),
-							RuleFactory._compileCaptures(
-									desc.getEndCaptures() != null ? desc.getEndCaptures() : desc.getCaptures(), helper,
-									repository),
-							desc.isApplyEndPatternLast(),
+							ruleWhile,
+							RuleFactory.compileCaptures(
+									desc.getWhileCaptures() != null ? desc.getWhileCaptures() : desc.getCaptures(),
+									helper, repository),
 							RuleFactory._compilePatterns(desc.getPatterns(), helper, repository));
 				}
+
+				return new BeginEndRule(desc.getId(), desc.getName(), desc.getContentName(), desc.getBegin(),
+						RuleFactory.compileCaptures(
+								desc.getBeginCaptures() != null ? desc.getBeginCaptures() : desc.getCaptures(),
+								helper, repository),
+						desc.getEnd(),
+						RuleFactory.compileCaptures(
+								desc.getEndCaptures() != null ? desc.getEndCaptures() : desc.getCaptures(), helper,
+								repository),
+						desc.isApplyEndPatternLast(),
+						RuleFactory._compilePatterns(desc.getPatterns(), helper, repository));
 			});
 		}
 
 		return desc.getId();
 	}
 
-	private static List<CaptureRule> _compileCaptures(IRawCaptures captures, IRuleFactoryHelper helper,
+	private static List<CaptureRule> compileCaptures(IRawCaptures captures, IRuleFactoryHelper helper,
 			IRawRepository repository) {
-		List<CaptureRule> r = new ArrayList<CaptureRule>();
+		List<CaptureRule> r = new ArrayList<>();
 		int numericCaptureId;
 		int maximumCaptureId;
 		int i;

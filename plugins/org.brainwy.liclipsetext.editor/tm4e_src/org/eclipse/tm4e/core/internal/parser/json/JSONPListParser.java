@@ -1,9 +1,10 @@
 /**
- *  Copyright (c) 2015-2017 Angelo ZERR.
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  which accompanies this distribution, and is available at
- *  http://www.eclipse.org/legal/epl-v10.html
+ *  Copyright (c) 2015-2018 Angelo ZERR.
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
@@ -12,7 +13,7 @@ package org.eclipse.tm4e.core.internal.parser.json;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import org.eclipse.tm4e.core.internal.parser.PList;
 
@@ -29,7 +30,7 @@ public class JSONPListParser<T> {
 
 	public T parse(InputStream contents) throws Exception {
 		PList<T> pList = new PList<T>(theme);
-		JsonReader reader = new JsonReader(new InputStreamReader(contents, Charset.forName("UTF-8")));
+		JsonReader reader = new JsonReader(new InputStreamReader(contents, StandardCharsets.UTF_8));
 		// reader.setLenient(true);
 		boolean parsing = true;
 		while (parsing) {

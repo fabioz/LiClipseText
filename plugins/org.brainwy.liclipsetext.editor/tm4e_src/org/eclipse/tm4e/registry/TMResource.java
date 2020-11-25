@@ -1,9 +1,10 @@
 /**
  *  Copyright (c) 2015-2017 Angelo ZERR.
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  which accompanies this distribution, and is available at
- *  http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
@@ -38,7 +39,7 @@ public class TMResource implements ITMResource {
 
 	/**
 	 * Constructor for extension point.
-	 * 
+	 *
 	 * @param element
 	 */
 	public TMResource(String path) {
@@ -48,6 +49,11 @@ public class TMResource implements ITMResource {
 	public TMResource(IConfigurationElement ce) {
 		this(ce.getAttribute(XMLConstants.PATH_ATTR));
 		this.pluginId = ce.getNamespaceIdentifier();
+	}
+
+	public TMResource(String path, String pluginId) {
+		this.path = path;
+		this.pluginId = pluginId;
 	}
 
 	@Override
@@ -86,7 +92,15 @@ public class TMResource implements ITMResource {
 	}
 
 	private static String convertStreamToString(InputStream is) {
-		Scanner s = new Scanner(is).useDelimiter("\\A");
-		return s.hasNext() ? s.next() : "";
+		Scanner s = null;
+		try {
+			s = new Scanner(is);
+			s.useDelimiter("\\A");
+			return s.hasNext() ? s.next() : "";
+		} finally {
+			if (s != null) {
+				s.close();
+			}
+		}
 	}
 }

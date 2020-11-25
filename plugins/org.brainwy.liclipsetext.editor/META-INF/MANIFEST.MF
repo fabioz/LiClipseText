@@ -30,7 +30,7 @@ Require-Bundle: org.eclipse.ui,
  com.google.gson;bundle-version="2.2.4",
  org.jcodings;bundle-version="1.0.18",
  org.joni;bundle-version="2.1.11"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Bundle-ActivationPolicy: lazy
 Export-Package: com.eclipsesource.json,
  org.brainwy.liclipsetext.editor,
@@ -77,4 +77,5 @@ Export-Package: com.eclipsesource.json,
  org.brainwy.liclipsetext.editor.tmbundle,
  org.brainwy.liclipsetext.editor.views.languages,
  org.brainwy.liclipsetext.editor.views.partitioning
-Bundle-ClassPath: .
+Bundle-ClassPath: .,
+ libs/sac-1.3.jar

@@ -1,12 +1,14 @@
 /**
- *  Copyright (c) 2015-2017 Angelo ZERR.
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  which accompanies this distribution, and is available at
- *  http://www.eclipse.org/legal/epl-v10.html
+ *  Copyright (c) 2015-2019 Angelo ZERR.
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
+ *  Pierre-Yves B. - Issue #221 NullPointerException when retrieving fileTypes
  */
 package org.eclipse.tm4e.registry.internal;
 
@@ -17,10 +19,8 @@ import java.util.Collection;
 
 import org.eclipse.core.runtime.content.IContentType;
 import org.eclipse.tm4e.core.grammar.IGrammar;
-import org.eclipse.tm4e.core.logger.ILogger;
 import org.eclipse.tm4e.core.registry.IRegistryOptions;
 import org.eclipse.tm4e.core.registry.Registry;
-import org.eclipse.tm4e.registry.EclipseSystemLogger;
 import org.eclipse.tm4e.registry.IGrammarDefinition;
 import org.eclipse.tm4e.registry.IGrammarRegistryManager;
 
@@ -29,9 +29,6 @@ import org.eclipse.tm4e.registry.IGrammarRegistryManager;
  *
  */
 public abstract class AbstractGrammarRegistryManager extends Registry implements IGrammarRegistryManager {
-
-	private static final ILogger GRAMMAR_LOGGER = new EclipseSystemLogger(
-			"org.eclipse.tm4e.registry/debug/log/Grammar");
 
 	protected final GrammarCache pluginCache;
 	protected final GrammarCache userCache;
@@ -63,12 +60,12 @@ public abstract class AbstractGrammarRegistryManager extends Registry implements
 	};
 
 	public AbstractGrammarRegistryManager() {
-		this(new EclipseRegistryOptions(), GRAMMAR_LOGGER);
+		this(new EclipseRegistryOptions());
 		((EclipseRegistryOptions) getLocator()).setRegistry(this);
 	}
 
-	public AbstractGrammarRegistryManager(IRegistryOptions locator, ILogger logger) {
-		super(locator, logger);
+	public AbstractGrammarRegistryManager(IRegistryOptions locator) {
+		super(locator);
 		this.pluginCache = new GrammarCache();
 		this.userCache = new GrammarCache();
 	}
@@ -100,6 +97,10 @@ public abstract class AbstractGrammarRegistryManager extends Registry implements
 	public IGrammar getGrammarForFileType(String fileType) {
 		// TODO: cache grammar by file types
 		IGrammarDefinition[] definitions = getDefinitions();
+		// #202
+		if(fileType.startsWith(".")) {
+			fileType=fileType.substring(1);
+		}
 		for (IGrammarDefinition definition : definitions) {
 			// Not very optimized because it forces the load of the whole
 			// grammar.
@@ -108,7 +109,7 @@ public abstract class AbstractGrammarRegistryManager extends Registry implements
 			IGrammar grammar = getGrammarForScope(definition.getScopeName());
 			if (grammar != null) {
 				Collection<String> fileTypes = grammar.getFileTypes();
-				if (fileTypes != null && fileTypes.contains(fileType)) {
+				if (fileTypes.contains(fileType)) {
 					return grammar;
 				}
 			}
@@ -117,24 +118,11 @@ public abstract class AbstractGrammarRegistryManager extends Registry implements
 	}
 
 	/**
-	 * Register a grammar definition.
-	 * 
-	 * @param definition
-	 *            the grammar definition to register.
-	 */
-	public void registerGrammarDefinition(IGrammarDefinition definition) {
-		if (definition.getPluginId() == null) {
-			userCache.registerGrammarDefinition(definition);
-		} else {
-			pluginCache.registerGrammarDefinition(definition);
-		}
-	}
-
-	/**
 	 * Returns the whole registered grammar definition.
-	 * 
+	 *
 	 * @return
 	 */
+	@Override
 	public IGrammarDefinition[] getDefinitions() {
 		Collection<IGrammarDefinition> pluginDefinitions = pluginCache.getDefinitions();
 		Collection<IGrammarDefinition> userDefinitions = userCache.getDefinitions();
@@ -146,7 +134,7 @@ public abstract class AbstractGrammarRegistryManager extends Registry implements
 	/**
 	 * Returns the loaded grammar from the given <code>scopeName</code> and null
 	 * otherwise.
-	 * 
+	 *
 	 * @param scopeName
 	 * @return the loaded grammar from the given <code>scopeName</code> and null
 	 *         otherwise.
@@ -165,7 +153,7 @@ public abstract class AbstractGrammarRegistryManager extends Registry implements
 	/**
 	 * Returns the grammar definition from the given <code>scopeName</code> and
 	 * null otherwise.
-	 * 
+	 *
 	 * @param scopeName
 	 * @return the grammar definition from the given <code>scopeName</code> and
 	 *         null otherwise.
@@ -181,11 +169,12 @@ public abstract class AbstractGrammarRegistryManager extends Registry implements
 	/**
 	 * Returns list of scope names to inject for the given
 	 * <code>scopeName</code> and null otheriwse.
-	 * 
+	 *
 	 * @param scopeName
 	 * @return list of scope names to inject for the given
 	 *         <code>scopeName</code> and null otheriwse.
 	 */
+	@Override
 	public Collection<String> getInjections(String scopeName) {
 		return pluginCache.getInjections(scopeName);
 	}
@@ -193,7 +182,7 @@ public abstract class AbstractGrammarRegistryManager extends Registry implements
 	/**
 	 * Register the given <code>scopeName</code> to inject to the given scope
 	 * name <code>injectTo</code>.
-	 * 
+	 *
 	 * @param scopeName
 	 * @param injectTo
 	 */
@@ -203,7 +192,7 @@ public abstract class AbstractGrammarRegistryManager extends Registry implements
 
 	/**
 	 * Returns scope name bound with the given content type and null otherwise.
-	 * 
+	 *
 	 * @param contentTypeId
 	 * @return scope name bound with the given content type and null otherwise.
 	 */
@@ -211,6 +200,7 @@ public abstract class AbstractGrammarRegistryManager extends Registry implements
 		return pluginCache.getScopeNameForContentType(contentTypeId);
 	}
 
+	@Override
 	public String[] getContentTypesForScope(String scopeName) {
 		return pluginCache.getContentTypesForScope(scopeName);
 	}
@@ -220,12 +210,20 @@ public abstract class AbstractGrammarRegistryManager extends Registry implements
 	}
 
 	@Override
-	public void addGrammarDefinition(IGrammarDefinition definition) {
-		userCache.registerGrammarDefinition(definition);
+	public void registerGrammarDefinition(IGrammarDefinition definition) {
+		if (definition.getPluginId() == null) {
+			userCache.registerGrammarDefinition(definition);
+		} else {
+			pluginCache.registerGrammarDefinition(definition);
+		}
 	}
-	
+
 	@Override
-	public void removeGrammarDefinition(IGrammarDefinition definition) {
-		userCache.unregisterGrammarDefinition(definition);	
+	public void unregisterGrammarDefinition(IGrammarDefinition definition) {
+		if (definition.getPluginId() == null) {
+			userCache.unregisterGrammarDefinition(definition);
+		} else {
+			pluginCache.unregisterGrammarDefinition(definition);
+		}
 	}
 }

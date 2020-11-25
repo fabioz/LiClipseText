@@ -1,9 +1,10 @@
 /**
  *  Copyright (c) 2015-2017 Angelo ZERR.
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  which accompanies this distribution, and is available at
- *  http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Initial code from https://github.com/Microsoft/vscode-textmate/
  * Initial copyright Copyright (C) Microsoft Corporation. All rights reserved.
@@ -18,111 +19,122 @@ package org.eclipse.tm4e.core.internal.matcher;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
-
-import org.eclipse.tm4e.core.grammar.StackElement;
 
 /**
  * Matcher utilities.
- * 
+ *
  * @see https://github.com/Microsoft/vscode-textmate/blob/master/src/matcher.ts
  *
  */
-public class Matcher<T> implements IMatcher<T> {
+public class Matcher<T> implements Predicate<T> {
 
 	private static final Pattern IDENTIFIER_REGEXP = Pattern.compile("[\\w\\.:]+");
 
-	public static IMatcher<StackElement> createMatcher(String expression) {
-		return createMatcher(expression, IMatchesName.NAME_MATCHER);
+	public static Collection<MatcherWithPriority<List<String>>> createMatchers(String expression) {
+		return createMatchers(expression, IMatchesName.NAME_MATCHER);
 	}
 
-	public static <T> IMatcher<T> createMatcher(String expression, IMatchesName<T> matchesName) {
-		return new Matcher<T>(expression, matchesName);
+	private static <T> Collection<MatcherWithPriority<T>> createMatchers(String selector, IMatchesName<T> matchesName) {
+		return new Matcher<T>(selector, matchesName).results;
 	}
 
+	private final List<MatcherWithPriority<T>> results;
 	private final Tokenizer tokenizer;
 	private final IMatchesName<T> matchesName;
 	private String token;
-	private IMatcher<T> matcherRoot;
 
 	public Matcher(String expression, IMatchesName<T> matchesName) {
-		this.tokenizer = newTokenizer(expression);
-		this.token = tokenizer.next();
+		this.results = new ArrayList<>();
+		this.tokenizer = new Tokenizer(expression);
 		this.matchesName = matchesName;
-		this.matcherRoot = parseExpression();
+
+		this.token = tokenizer.next();
+		while (token != null) {
+			int priority = 0;
+			if (token.length() == 2 && token.charAt(1) == ':') {
+				switch (token.charAt(0)) {
+				case 'R':
+					priority = 1;
+					break;
+				case 'L':
+					priority = -1;
+					break;
+				default:
+					// console.log(`Unknown priority ${token} in scope selector`);
+				}
+				token = tokenizer.next();
+			}
+			Predicate<T> matcher = parseConjunction();
+			if (matcher != null) {
+				results.add(new MatcherWithPriority<T>(matcher, priority));
+			}
+			if (!",".equals(token)) {
+				break;
+			}
+			token = tokenizer.next();
+		}
 	}
 
-	private IMatcher<T> parseExpression() {
-		return parseExpression(",");
-	}
-
-	private IMatcher<T> parseExpression(String orOperatorToken) {
-		List<IMatcher<T>> matchers = new ArrayList<>();
-		IMatcher<T> matcher = parseConjunction();
+	private Predicate<T> parseInnerExpression() {
+		List<Predicate<T>> matchers = new ArrayList<>();
+		Predicate<T> matcher = parseConjunction();
 		while (matcher != null) {
 			matchers.add(matcher);
-			if (orOperatorToken.equals(token)) {
+			if (token.equals("|") || token.equals(",")) {
 				do {
 					token = tokenizer.next();
-				} while (orOperatorToken.equals(token)); // ignore subsequent
-															// commas
+				} while (token.equals("|") || token.equals(",")); // ignore subsequent
+				// commas
 			} else {
 				break;
 			}
 			matcher = parseConjunction();
 		}
 		// some (or)
-		return new IMatcher<T>() {
-			@Override
-			public boolean match(T matcherInput) {
-				for (IMatcher<T> matcher : matchers) {
-					if (matcher.match(matcherInput)) {
-						return true;
-					}
+		return matcherInput -> {
+			for (Predicate<T> matcher1 : matchers) {
+				if (matcher1.test(matcherInput)) {
+					return true;
 				}
-				return false;
 			}
+			return false;
 		};
 	}
 
-	private IMatcher<T> parseConjunction() {
-		List<IMatcher<T>> matchers = new ArrayList<>();
-		IMatcher<T> matcher = parseOperand();
+	private Predicate<T> parseConjunction() {
+		List<Predicate<T>> matchers = new ArrayList<>();
+		Predicate<T> matcher = parseOperand();
 		while (matcher != null) {
 			matchers.add(matcher);
 			matcher = parseOperand();
 		}
 		// every (and)
-		return new IMatcher<T>() {
-			@Override
-			public boolean match(T matcherInput) {
-				for (IMatcher<T> matcher : matchers) {
-					if (!matcher.match(matcherInput)) {
-						return false;
-					}
+		return matcherInput -> {
+			for (Predicate<T> matcher1 : matchers) {
+				if (!matcher1.test(matcherInput)) {
+					return false;
 				}
-				return true;
 			}
+			return true;
 		};
 	}
 
-	private IMatcher<T> parseOperand() {
+	private Predicate<T> parseOperand() {
 		if ("-".equals(token)) {
 			token = tokenizer.next();
-			IMatcher<T> expressionToNegate = parseOperand();
-			return new IMatcher<T>() {
-				@Override
-				public boolean match(T matcherInput) {
-					if (expressionToNegate == null) {
-						return false;
-					}
-					return !expressionToNegate.match(matcherInput);
+			Predicate<T> expressionToNegate = parseOperand();
+			return matcherInput -> {
+				if (expressionToNegate == null) {
+					return false;
 				}
+				return !expressionToNegate.test(matcherInput);
 			};
 		}
 		if ("(".equals(token)) {
 			token = tokenizer.next();
-			IMatcher<T> expressionInParents = parseExpression("|");
+			Predicate<T> expressionInParents = parseInnerExpression();
 			if (")".equals(token)) {
 				token = tokenizer.next();
 			}
@@ -134,12 +146,7 @@ public class Matcher<T> implements IMatcher<T> {
 				identifiers.add(token);
 				token = tokenizer.next();
 			} while (isIdentifier(token));
-			return new IMatcher<T>() {
-				@Override
-				public boolean match(T matcherInput) {
-					return Matcher.this.matchesName.match(identifiers, matcherInput);
-				}
-			};
+			return matcherInput -> Matcher.this.matchesName.match(identifiers, matcherInput);
 		}
 		return null;
 	}
@@ -149,16 +156,13 @@ public class Matcher<T> implements IMatcher<T> {
 	}
 
 	@Override
-	public boolean match(T matcherInput) {
-		if (matcherRoot != null) {
-			return matcherRoot.match(matcherInput);
-		}
+	public boolean test(T matcherInput) {
 		return false;
 	}
 
 	private static class Tokenizer {
 
-		private static final Pattern REGEXP = Pattern.compile("([\\w\\.:]+|[\\,\\|\\-\\(\\)])");
+		private static final Pattern REGEXP = Pattern.compile("([LR]:|[\\w\\.:]+|[\\,\\|\\-\\(\\)])");
 
 		private java.util.regex.Matcher regex;
 
@@ -172,10 +176,6 @@ public class Matcher<T> implements IMatcher<T> {
 			}
 			return null;
 		}
-	}
-
-	private static Tokenizer newTokenizer(String input) {
-		return new Tokenizer(input);
 	}
 
 }

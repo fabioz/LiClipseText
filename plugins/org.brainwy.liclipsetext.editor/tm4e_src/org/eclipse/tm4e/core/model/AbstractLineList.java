@@ -1,9 +1,10 @@
 /**
  *  Copyright (c) 2015-2017 Angelo ZERR.
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  which accompanies this distribution, and is available at
- *  http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
@@ -14,11 +15,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Abstract class for Model lines used by the TextMate model. Implementation
  * class must :
- * 
+ *
  * <ul>
  * <li>synchronizes lines with the lines of the editor content when it changed.</li>
  * <li>call {@link AbstractLineList#invalidateLine(int)} with the first changed line.</li>
@@ -26,6 +29,8 @@ import java.util.function.Consumer;
  *
  */
 public abstract class AbstractLineList implements IModelLines {
+
+	private static final Logger LOGGER = Logger.getLogger(AbstractLineList.class.getName());
 
 	private final List<ModelLine> list = Collections.synchronizedList(new ArrayList<>());
 
@@ -57,18 +62,13 @@ public abstract class AbstractLineList implements IModelLines {
 		try {
 			// this.list.get(line).text = this.lineToTextResolver.apply(line);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
 	}
 
 	@Override
 	public ModelLine get(int index) {
 		return this.list.get(index);
-	}
-
-	@Override
-	public int getSize() {
-		return this.list.size();
 	}
 
 	@Override
@@ -80,5 +80,11 @@ public abstract class AbstractLineList implements IModelLines {
 		if (model != null) {
 			model.invalidateLine(lineIndex);
 		}
+	}
+
+	@Override
+	@Deprecated
+	public int getSize() {
+		return getNumberOfLines();
 	}
 }

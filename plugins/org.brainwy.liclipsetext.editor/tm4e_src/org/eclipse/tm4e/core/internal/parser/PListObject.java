@@ -1,9 +1,10 @@
 /**
  *  Copyright (c) 2015-2017 Angelo ZERR.
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  which accompanies this distribution, and is available at
- *  http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
@@ -16,7 +17,7 @@ import java.util.Map;
 
 public abstract class PListObject {
 
-	private final PListObject parent;
+	public final PListObject parent;
 	private final List<Object> arrayValues;
 	private final Map<String, Object> mapValues;
 
@@ -25,16 +26,12 @@ public abstract class PListObject {
 	public PListObject(PListObject parent, boolean valueAsArray) {
 		this.parent = parent;
 		if (valueAsArray) {
-			this.arrayValues = new ArrayList<Object>();
+			this.arrayValues = new ArrayList<>();
 			this.mapValues = null;
 		} else {
 			this.arrayValues = null;
 			this.mapValues = createRaw();
 		}
-	}
-
-	public PListObject getParent() {
-		return parent;
 	}
 
 	public String getLastKey() {
@@ -52,7 +49,6 @@ public abstract class PListObject {
 			mapValues.put(getLastKey(), value);
 		}
 	}
-	// Object getValue();
 
 	public boolean isValueAsArray() {
 		return arrayValues != null;
@@ -64,6 +60,6 @@ public abstract class PListObject {
 		}
 		return mapValues;
 	}
-	
+
 	protected abstract Map<String, Object> createRaw();
 }

@@ -1,9 +1,10 @@
 /**
  *  Copyright (c) 2015-2017 Angelo ZERR.
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  which accompanies this distribution, and is available at
- *  http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
@@ -21,43 +22,53 @@ public interface IModelLines {
 
 	/**
 	 * Add a new line at specified index line.
-	 * 
-	 * @param line
+	 *
+	 * @param lineIndex (0-based)
 	 */
-	void addLine(int line);
+	void addLine(int lineIndex);
 
 	/**
 	 * Remove the line at specified index line.
-	 * 
-	 * @param line
+	 *
+	 * @param line (0-based)
 	 */
-	void removeLine(int line);
+	void removeLine(int lineIndex);
 
 	/**
 	 * Mark as line is updated.
-	 * 
-	 * @param line
+	 *
+	 * @param line (0-based)
 	 */
-	void updateLine(int line);
+	void updateLine(int lineIndex);
 
 	/**
-	 * Return lines size.
-	 * 
-	 * @return lines size.
+	 * @deprecated use {@link #getNumberOfLines()}
 	 */
+	@Deprecated
 	int getSize();
 
-	ModelLine get(int index);
-	
+	/**
+	 *
+	 * @param lineIndex (0-based)
+	 * @return
+	 */
+	ModelLine get(int lineIndex);
+
 	void forEach(Consumer<ModelLine> consumer);
-	
+
 	int getNumberOfLines();
 
-	String getLineText(int line) throws Exception;
+	/**
+	 *
+	 * @param line (0-based)
+	 * @return
+	 * @throws Exception
+	 */
+	String getLineText(int lineIndex) throws Exception;
 
-	int getLineLength(int line) throws Exception;
+	int getLineLength(int lineIndex) throws Exception;
 
 	void dispose();
-	
-	
+
+
 }

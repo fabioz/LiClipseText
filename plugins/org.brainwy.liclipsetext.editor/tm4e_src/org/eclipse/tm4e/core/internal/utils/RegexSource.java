@@ -1,9 +1,10 @@
 /**
  *  Copyright (c) 2015-2017 Angelo ZERR.
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  which accompanies this distribution, and is available at
- *  http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Initial code from https://github.com/Microsoft/vscode-textmate/
  * Initial copyright Copyright (C) Microsoft Corporation. All rights reserved.
@@ -21,6 +22,12 @@ import java.util.regex.Pattern;
 import org.eclipse.tm4e.core.internal.oniguruma.IOnigCaptureIndex;
 
 public class RegexSource {
+
+	/**
+	 * Helper class, access members statically
+	 */
+	private RegexSource() {
+	}
 
 	private static final Pattern CAPTURING_REGEX_SOURCE = Pattern
 			.compile("\\$(\\d+)|\\$\\{(\\d+):\\/(downcase|upcase)}");
@@ -47,7 +54,7 @@ public class RegexSource {
 	private static String getReplacement(String match, String captureSource, IOnigCaptureIndex[] captureIndices) {
 		int index = -1;
 		String command = null;
-		int doublePointIndex = match.indexOf(":");
+		int doublePointIndex = match.indexOf(':');
 		if (doublePointIndex != -1) {
 			index = Integer.parseInt(match.substring(2, doublePointIndex));
 			command = match.substring(doublePointIndex + 2, match.length() - 1);

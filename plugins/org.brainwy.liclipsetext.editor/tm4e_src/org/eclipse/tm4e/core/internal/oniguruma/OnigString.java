@@ -1,9 +1,10 @@
 /**
  *  Copyright (c) 2015-2017 Angelo ZERR.
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  which accompanies this distribution, and is available at
- *  http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Initial code from https://github.com/atom/node-oniguruma
  * Initial copyright Copyright (c) 2013 GitHub Inc.
@@ -18,7 +19,7 @@
 
 package org.eclipse.tm4e.core.internal.oniguruma;
 
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import org.jcodings.specific.UTF8Encoding;
@@ -31,48 +32,26 @@ import org.jcodings.specific.UTF8Encoding;
  */
 public class OnigString {
 
-	private static final String UTF_8 = "UTF-8";
-
-	private final String str;
-	private final Object uniqueId;
-	private final byte[] value;
+	public final String string;
+	public final byte[] utf8_value;
 
 	private int[] charsPosFromBytePos;
 	private boolean computedOffsets;
 
+
 	public OnigString(String str) {
-		this.str = str;
-		this.value = str.getBytes(Charset.forName(UTF_8));
-		this.uniqueId = new Object();
-	}
-
-	/**
-	 * An object to be compared by identity.
-	 */
-	public Object uniqueId() {
-		return uniqueId;
-	}
-
-	public byte[] utf8_value() {
-		return value;
-	}
-
-	public int utf8_length() {
-		return value.length;
-	}
-
-	public String getString() {
-		return str;
+		this.string = str;
+		this.utf8_value = str.getBytes(StandardCharsets.UTF_8);
 	}
 
 	public int convertUtf16OffsetToUtf8(int posInChars) {
-		if (!computedOffsets) {
+		if(!computedOffsets) {
 			computeOffsets();
 		}
 		if (charsPosFromBytePos == null) {
 			// Same conditions as code below, but taking into account that the
 			// bytes and chars len are the same.
-			if (posInChars < 0 || this.value.length == 0 || posInChars > this.value.length) {
+			if (posInChars < 0 || this.utf8_value.length == 0 || posInChars > this.utf8_value.length) {
 				throw new ArrayIndexOutOfBoundsException(posInChars);
 			}
 			return posInChars;
@@ -107,7 +86,7 @@ public class OnigString {
 	}
 
 	public int convertUtf8OffsetToUtf16(int posInBytes) {
-		if (!computedOffsets) {
+		if(!computedOffsets) {
 			computeOffsets();
 		}
 		if (charsPosFromBytePos == null) {
@@ -124,14 +103,13 @@ public class OnigString {
 	}
 
 	private void computeOffsets() {
-		if (this.value.length != this.str.length()) {
-			charsPosFromBytePos = new int[this.value.length];
-			int bytesLen = 0;
-			;
+		if (this.utf8_value.length != this.string.length()) {
+			charsPosFromBytePos = new int[this.utf8_value.length];
+			int bytesLen = 0;;
 			int charsLen = 0;
-			int length = this.value.length;
+			int length = this.utf8_value.length;
 			for (int i = 0; i < length;) {
-				int codeLen = UTF8Encoding.INSTANCE.length(this.value, i, length);
+				int codeLen = UTF8Encoding.INSTANCE.length(this.utf8_value, i, length);
 				for (int i1 = 0; i1 < codeLen; i1++) {
 					charsPosFromBytePos[bytesLen + i1] = charsLen;
 				}
@@ -139,8 +117,8 @@ public class OnigString {
 				i += codeLen;
 				charsLen += 1;
 			}
-			if (bytesLen != this.value.length) {
-				throw new AssertionError(bytesLen + " != " + this.value.length);
+			if(bytesLen != this.utf8_value.length) {
+				throw new AssertionError(bytesLen + " != "+this.utf8_value.length);
 			}
 		}
 		computedOffsets = true;

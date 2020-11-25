@@ -1,9 +1,10 @@
 /**
  *  Copyright (c) 2015-2017 Angelo ZERR.
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  which accompanies this distribution, and is available at
- *  http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Initial code from https://github.com/Microsoft/vscode-textmate/
  * Initial copyright Copyright (C) Microsoft Corporation. All rights reserved.
@@ -19,26 +20,28 @@ import java.util.List;
 
 public class MatchRule extends Rule {
 
-	private RegExpSource _match;
-	public List<CaptureRule> captures;
-	private RegExpSourceList _cachedCompiledPatterns;
+	private RegExpSource match;
+	public final List<CaptureRule> captures;
+	private RegExpSourceList cachedCompiledPatterns;
 
 	public MatchRule(int id, String name, String match, List<CaptureRule> captures) {
 		super(id, name, null);
-		this._match = new RegExpSource(match, this.id);
+		this.match = new RegExpSource(match, this.id);
 		this.captures = captures;
-		this._cachedCompiledPatterns = null;
+		this.cachedCompiledPatterns = null;
 	}
 
+	@Override
 	public void collectPatternsRecursive(IRuleRegistry grammar, RegExpSourceList out, boolean isFirst) {
-		out.push(this._match);
+		out.push(this.match);
 	}
 
+	@Override
 	public ICompiledRule compile(IRuleRegistry grammar, String endRegexSource, boolean allowA, boolean allowG) {
-		if (this._cachedCompiledPatterns == null) {
-			this._cachedCompiledPatterns = new RegExpSourceList();
-			this.collectPatternsRecursive(grammar, this._cachedCompiledPatterns, true);
+		if (this.cachedCompiledPatterns == null) {
+			this.cachedCompiledPatterns = new RegExpSourceList();
+			this.collectPatternsRecursive(grammar, this.cachedCompiledPatterns, true);
 		}
-		return this._cachedCompiledPatterns.compile(grammar, allowA, allowG);
+		return this.cachedCompiledPatterns.compile(grammar, allowA, allowG);
 	}
 }

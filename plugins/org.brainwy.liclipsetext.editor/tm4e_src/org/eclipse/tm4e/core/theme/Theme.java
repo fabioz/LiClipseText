@@ -1,9 +1,10 @@
 /**
  *  Copyright (c) 2015-2017 Angelo ZERR.
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  which accompanies this distribution, and is available at
- *  http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
@@ -17,6 +18,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -33,10 +35,10 @@ public class Theme {
 	private static final Pattern rgb = Pattern.compile("^#[0-9a-f]{3}", Pattern.CASE_INSENSITIVE);
 	private static final Pattern rgba = Pattern.compile("^#[0-9a-f]{4}", Pattern.CASE_INSENSITIVE);
 
-	private final ColorMap _colorMap;
-	private final ThemeTrieElement _root;
-	private final ThemeTrieElementRule _defaults;
-	private final Map<String /* scopeName */, List<ThemeTrieElementRule>> _cache;
+	private final ColorMap colorMap;
+	private final ThemeTrieElement root;
+	private final ThemeTrieElementRule defaults;
+	private final Map<String /* scopeName */, List<ThemeTrieElementRule>> cache;
 
 	public static Theme createFromRawTheme(IRawTheme source) {
 		return createFromParsedTheme(parseTheme(source));
@@ -61,15 +63,15 @@ public class Theme {
 			Object settingScope = entry.getScope();
 			List<String> scopes = new ArrayList<>();
 			if (settingScope instanceof String) {
-				String _scope = (String) settingScope;
+				String scope = (String) settingScope;
 
 				// remove leading commas
-				_scope = _scope.replaceAll("^[,]+", "");
+				scope = scope.replaceAll("^[,]+", "");
 
 				// remove trailing commans
-				_scope = _scope.replaceAll("[,]+$", "");
+				scope = scope.replaceAll("[,]+$", "");
 
-				scopes = Arrays.asList(_scope.split(","));
+				scopes = Arrays.asList(scope.split(","));
 			} else if (settingScope instanceof List) {
 				scopes = (List<String>) settingScope;
 			} else {
@@ -82,8 +84,7 @@ public class Theme {
 				fontStyle = FontStyle.None;
 
 				String[] segments = ((String) settingsFontStyle).split(" ");
-				for (int j = 0, lenJ = segments.length; j < lenJ; j++) {
-					String segment = segments[j];
+				for (String segment : segments) {
 					if ("italic".equals(segment)) {
 						fontStyle = fontStyle | FontStyle.Italic;
 					} else if ("bold".equals(segment)) {
@@ -200,8 +201,7 @@ public class Theme {
 
 		ThemeTrieElement root = new ThemeTrieElement(new ThemeTrieElementRule(0, null, FontStyle.NotSet, 0, 0),
 				Collections.emptyList());
-		for (int i = 0, len = parsedThemeRules.size(); i < len; i++) {
-			ParsedThemeRule rule = parsedThemeRules.get(i);
+		for (ParsedThemeRule rule : parsedThemeRules) {
 			root.insert(0, rule.scope, rule.parentScopes, rule.fontStyle, colorMap.getId(rule.foreground),
 					colorMap.getId(rule.background));
 		}
@@ -210,72 +210,50 @@ public class Theme {
 	}
 
 	public Theme(ColorMap colorMap, ThemeTrieElementRule defaults, ThemeTrieElement root) {
-		this._colorMap = colorMap;
-		this._root = root;
-		this._defaults = defaults;
-		this._cache = new HashMap<>();
+		this.colorMap = colorMap;
+		this.root = root;
+		this.defaults = defaults;
+		this.cache = new HashMap<>();
 	}
 
 	public Set<String> getColorMap() {
-		return this._colorMap.getColorMap();
+		return this.colorMap.getColorMap();
 	}
 
 	public String getColor(int id) {
-		return this._colorMap.getColor(id);
+		return this.colorMap.getColor(id);
 	}
 
 	public ThemeTrieElementRule getDefaults() {
-		return this._defaults;
+		return this.defaults;
 	}
 
 	public List<ThemeTrieElementRule> match(String scopeName) {
-		if (!this._cache.containsKey(scopeName)) {
-			this._cache.put(scopeName, this._root.match(scopeName));
+		if (!this.cache.containsKey(scopeName)) {
+			this.cache.put(scopeName, this.root.match(scopeName));
 		}
-		return this._cache.get(scopeName);
+		return this.cache.get(scopeName);
 	}
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((_cache == null) ? 0 : _cache.hashCode());
-		result = prime * result + ((_colorMap == null) ? 0 : _colorMap.hashCode());
-		result = prime * result + ((_defaults == null) ? 0 : _defaults.hashCode());
-		result = prime * result + ((_root == null) ? 0 : _root.hashCode());
-		return result;
+		return Objects.hash(cache, colorMap, defaults, root);
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		Theme other = (Theme) obj;
-		if (_cache == null) {
-			if (other._cache != null)
-				return false;
-		} else if (!_cache.equals(other._cache))
-			return false;
-		if (_colorMap == null) {
-			if (other._colorMap != null)
-				return false;
-		} else if (!_colorMap.equals(other._colorMap))
-			return false;
-		if (_defaults == null) {
-			if (other._defaults != null)
-				return false;
-		} else if (!_defaults.equals(other._defaults))
-			return false;
-		if (_root == null) {
-			if (other._root != null)
-				return false;
-		} else if (!_root.equals(other._root))
-			return false;
-		return true;
+		return Objects.equals(cache, other.cache) && Objects.equals(colorMap, other.colorMap) &&
+				Objects.equals(defaults, other.defaults) && Objects.equals(root, other.root);
 	}
 
 }

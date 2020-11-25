@@ -1,9 +1,10 @@
 /**
  *  Copyright (c) 2015-2017 Angelo ZERR.
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  which accompanies this distribution, and is available at
- *  http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Initial code from https://github.com/Microsoft/vscode-textmate/
  * Initial copyright Copyright (C) Microsoft Corporation. All rights reserved.
@@ -27,9 +28,15 @@ import org.eclipse.tm4e.core.theme.IRawTheme;
  */
 public class ThemeReader {
 
-	public final static IThemeParser XML_PARSER = new IThemeParser() {
+	/**
+	 * Helper class, use methods statically
+	 */
+	private ThemeReader() {
+	}
 
-		private XMLPListParser<IRawTheme> parser = new XMLPListParser<IRawTheme>(true);
+	public static final IThemeParser XML_PARSER = new IThemeParser() {
+
+		private final XMLPListParser<IRawTheme> parser = new XMLPListParser<>(true);
 
 		@Override
 		public IRawTheme parse(InputStream contents) throws Exception {
@@ -37,9 +44,9 @@ public class ThemeReader {
 		}
 	};
 
-	public final static IThemeParser JSON_PARSER = new IThemeParser() {
+	public static final IThemeParser JSON_PARSER = new IThemeParser() {
 
-		private JSONPListParser<IRawTheme> parser = new JSONPListParser<IRawTheme>(true);
+		private final JSONPListParser<IRawTheme> parser = new JSONPListParser<>(true);
 
 		@Override
 		public IRawTheme parse(InputStream contents) throws Exception {

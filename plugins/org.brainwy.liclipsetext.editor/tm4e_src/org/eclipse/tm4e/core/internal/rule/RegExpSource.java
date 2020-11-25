@@ -1,9 +1,10 @@
 /**
  *  Copyright (c) 2015-2017 Angelo ZERR.
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  which accompanies this distribution, and is available at
- *  http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Initial code from https://github.com/Microsoft/vscode-textmate/
  * Initial copyright Copyright (C) Microsoft Corporation. All rights reserved.
@@ -24,7 +25,7 @@ import java.util.stream.Collectors;
 import org.eclipse.tm4e.core.internal.oniguruma.IOnigCaptureIndex;
 
 /**
- * 
+ *
  * @see https://github.com/Microsoft/vscode-textmate/blob/master/src/rule.ts
  *
  */
@@ -35,11 +36,11 @@ public class RegExpSource {
 	private static final Pattern REGEXP_CHARACTERS = Pattern
 			.compile("[\\-\\\\\\{\\}\\*\\+\\?\\|\\^\\$\\.\\,\\[\\]\\(\\)\\#\\s]");
 
-	public int ruleId;
-	public boolean hasAnchor;
-	public boolean hasBackReferences;
-	private IRegExpSourceAnchorCache _anchorCache;
-	public String source;
+	private int ruleId;
+	private boolean _hasAnchor;
+	private boolean _hasBackReferences;
+	private IRegExpSourceAnchorCache anchorCache;
+	private String source;
 
 	public RegExpSource(String regExpSource, int ruleId) {
 		this(regExpSource, ruleId, true);
@@ -50,20 +51,21 @@ public class RegExpSource {
 			this._handleAnchors(regExpSource);
 		} else {
 			this.source = regExpSource;
-			this.hasAnchor = false;
+			this._hasAnchor = false;
 		}
 
-		if (this.hasAnchor) {
-			this._anchorCache = this._buildAnchorCache();
+		if (this._hasAnchor) {
+			this.anchorCache = this._buildAnchorCache();
 		}
 
 		this.ruleId = ruleId;
-		this.hasBackReferences = HAS_BACK_REFERENCES.matcher(this.source).find();
+		this._hasBackReferences = HAS_BACK_REFERENCES.matcher(this.source).find();
 
 		// console.log('input: ' + regExpSource + ' => ' + this.source + ', ' +
 		// this.hasAnchor);
 	}
 
+	@Override
 	public RegExpSource clone() {
 		return new RegExpSource(this.source, this.ruleId, true);
 	}
@@ -74,8 +76,8 @@ public class RegExpSource {
 		}
 		this.source = newSource;
 
-		if (this.hasAnchor) {
-			this._anchorCache = this._buildAnchorCache();
+		if (this._hasAnchor) {
+			this.anchorCache = this._buildAnchorCache();
 		}
 	}
 
@@ -106,7 +108,7 @@ public class RegExpSource {
 				}
 			}
 
-			this.hasAnchor = hasAnchor;
+			this._hasAnchor = hasAnchor;
 			if (lastPushedPos == 0) {
 				// No \z hit
 				this.source = regExpSource;
@@ -115,7 +117,7 @@ public class RegExpSource {
 				this.source = output.toString(); // join('');
 			}
 		} else {
-			this.hasAnchor = false;
+			this._hasAnchor = false;
 			this.source = regExpSource;
 		}
 	}
@@ -138,7 +140,7 @@ public class RegExpSource {
 		catch(Throwable e) {
 			//e.printStackTrace();
 		}
-		
+
 		return lineText;
 	}
 
@@ -209,23 +211,39 @@ public class RegExpSource {
 	}
 
 	public String resolveAnchors(boolean allowA, boolean allowG) {
-		if (!this.hasAnchor) {
+		if (!this._hasAnchor) {
 			return this.source;
 		}
 
 		if (allowA) {
 			if (allowG) {
-				return this._anchorCache.A1_G1;
+				return this.anchorCache.A1_G1;
 			} else {
-				return this._anchorCache.A1_G0;
+				return this.anchorCache.A1_G0;
 			}
 		} else {
 			if (allowG) {
-				return this._anchorCache.A0_G1;
+				return this.anchorCache.A0_G1;
 			} else {
-				return this._anchorCache.A0_G0;
+				return this.anchorCache.A0_G0;
 			}
 		}
+	}
+
+	public boolean hasAnchor() {
+		return this._hasAnchor;
+	}
+
+	public String getSource() {
+		return this.source;
+	}
+
+	public Integer getRuleId() {
+		return this.ruleId;
+	}
+
+	public boolean hasBackReferences() {
+		return this._hasBackReferences;
 	}
 
 }
