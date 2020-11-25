@@ -65,19 +65,21 @@ public class PartitioningSwiftTest extends TestCase {
         List<String> asList = TestUtils.partitionAsList(document);
         asList = Arrays.asList(asList.get(asList.size() - 1));
         String last = TestUtils.scanAll(language, document, asList);
-        assertEquals(TestUtils.listToExpected("storage.type.swift:0:3",
+        assertEquals(TestUtils.listToExpected("keyword.other.declaration-specifier.swift:0:3",
                 "source.swift:3:5",
-                "keyword.operator.assignment.swift:8:1",
+                "keyword.operator.custom.infix.swift:8:1",
                 "source.swift:9:1",
                 "punctuation.definition.string.begin.swift:10:1",
-                "string.quoted.double.swift:11:1",
+                "string.quoted.double.single-line.swift:11:1",
                 "punctuation.definition.string.end.swift:12:1",
-                "source.swift:13:10",
+                "source.swift:13:2",
+                "support.function.any-method.swift:15:7",
+                "punctuation.definition.arguments.begin.swift:22:1",
                 "constant.numeric.integer.decimal.swift:23:2",
-                "source.swift:25:3",
+                "punctuation.definition.arguments.end.swift:25:1",
+                "source.swift:26:2",
                 "punctuation.definition.comment.swift:28:2",
-                "comment.line.double-slash.swift:30:11",
-                "comment.line.double-slash.swift:41:2"), last);
+                "comment.line.double-slash.swift:30:13"), last);
 
     }
 

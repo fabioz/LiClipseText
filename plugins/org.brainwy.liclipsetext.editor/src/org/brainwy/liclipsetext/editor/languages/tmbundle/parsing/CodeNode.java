@@ -25,6 +25,9 @@ class CodeNode extends NodeWithContents {
     static {
         replacements.put("\"$TM_BUNDLE_SUPPORT/bin/snippet_paren.rb\"", "(");
         replacements.put("\"$TM_BUNDLE_SUPPORT/bin/snippet_paren.rb\" end", ")");
+        replacements.put("echo $TM_ORGANIZATION_NAME", "echo ORGANIZATION_NAME");
+        replacements.put("date +\"%e %B, %Y\" | sed 's/^ //'", "date +\"%e %B, %Y\" | sed 's/^ //'");
+        replacements.put("[[ $TM_LINE_INDEX != 0 ]] && echo; echo", "echo");
     }
 
     @Override

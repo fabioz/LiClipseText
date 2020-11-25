@@ -130,9 +130,12 @@ public class LanguagesManagerTest extends TestCase {
                 "Cpp",
                 "DXL",
                 "Django",
+                "Format String",
+                "Gemfile",
                 "Go",
                 "HTML",
                 "HTML", // TM Bundle
+                "HTML (Derivative)", // TM Bundle
                 "HTML (Ruby - ERB)", // TM Bundle
                 "Java",
                 "JavaScript", // TM Bundle
@@ -158,6 +161,8 @@ public class LanguagesManagerTest extends TestCase {
                 "Shell Script (Bash)",
                 "StringTemplate",
                 "Swift",
+                "TypeScript",
+                "TypeScriptReact",
                 "XML",
                 "Xgui20",
                 "Yaml",
@@ -198,15 +203,20 @@ public class LanguagesManagerTest extends TestCase {
                 "source.raml",
                 "source.regexp.oniguruma",
                 "source.ruby",
+                "source.ruby.gemfile",
                 "source.scss",
                 "source.shell",
                 "source.swift",
                 "source.tm-properties",
+                "source.ts",
+                "source.tsx",
                 "text.html.basic",
+                "text.html.derivative",
                 "text.html.erb",
                 "text.html.markdown",
-                "text.html.php"));
-        assertEquals(42, languagesMetadata.size());
+                "text.html.php",
+                "textmate.format-string"));
+        assertEquals(47, languagesMetadata.size());
         for (LanguageMetadata languageMetadata : languagesMetadata) {
             LiClipseLanguage language = languageMetadata.file.loadLanguage(true);
             assertNotNull(language);

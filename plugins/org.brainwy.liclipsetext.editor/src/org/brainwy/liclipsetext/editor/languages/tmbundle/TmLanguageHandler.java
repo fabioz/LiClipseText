@@ -298,7 +298,7 @@ public class TmLanguageHandler {
         }
 
         private void handleFalse() {
-            TrueBuffer buf = (TrueBuffer) stack.pop();
+            FalseBuffer buf = (FalseBuffer) stack.pop();
             Object parent = stack.peek();
             if (parent instanceof Entry) {
                 stack.pop(); // Key value: pop entry

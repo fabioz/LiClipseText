@@ -310,7 +310,7 @@ public class LanguagesManager {
                                     try {
                                         onSnippetFound((TmSnippetPart) part);
                                     } catch (Exception e) {
-                                        Log.log(e);
+                                        Log.log("Error loading: " + elementName, e);
                                     }
                                 } else if (part instanceof TmIndentPart) {
                                     onIndentFound((TmIndentPart) part);

@@ -51,9 +51,8 @@ public class TmSnippetsIntegratedTest extends TestCase {
         for (ICompletionProposal iCompletionProposal : computeCompletions) {
             lst.add(iCompletionProposal.getDisplayString().replaceAll("\\{var(\\d)*\\}", "{var}"));
         }
-        assertEquals(TestUtils.listToExpected("php - <?${var} ${cursor} ?>",
+        assertEquals(TestUtils.listToExpected("echo - <?${var} ${var} ?>${cursor}",
                 "echoh - <?${var} htmlentities(${var}, ENT_QUOTES, 'utf-8') ?>${cursor}",
-                "echo - <?${var} ${var} ?>${cursor}",
                 "else - <?${var} else: ?>",
                 "foreach - <?${var} foreach ($$${variable} as $$${key}${var}): ?>\n\t${cursor}\n<?${var} endforeach ?>",
                 "ifelse - <?${var} if (${condition}): ?>\n\t${var}\n<?${var} else: ?>\n\t${cursor}\n<?${var} endif ?>",
