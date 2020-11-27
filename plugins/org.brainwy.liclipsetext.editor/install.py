@@ -15,6 +15,7 @@ def RunCog():
         dict(ext='xml,xsd', kind='xml', img='xml', filenames=".pydevproject,.project,.classpath", base_type="org.eclipse.core.runtime.xml"),
         dict(ext='js', kind='javascript', img='javascript'),
         dict(ext='ts', kind='typescript', img='typescript'),
+        dict(ext='json', kind='json', img='json'),
         dict(ext='java', kind='java', img='java'),
         dict(ext='liclipse', kind='liclipse', img='liclipse'),
         dict(ext='dxl', kind='dxl', img='dxl'),

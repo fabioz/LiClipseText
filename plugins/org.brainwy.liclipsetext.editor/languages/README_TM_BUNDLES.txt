@@ -21,6 +21,7 @@ curl -L -o scss.tmbundle https://github.com/MarioRicalde/SCSS.tmbundle/archive/m
 curl -L -o cmake.tmbundle https://github.com/textmate/cmake.tmbundle/archive/master.zip
 curl -L -o javascript.tmbundle https://github.com/textmate/javascript.tmbundle/archive/master.zip
 curl -L -o typescript.tmbundle https://github.com/stanger/TypeScript-TextMate/raw/master/dist/TypeScript.tmbundle.zip
+curl -L -o json.tmbundle https://github.com/textmate/json.tmbundle/archive/master.zip
 
 LiClipse should then automatically recognize the bundle.
 
