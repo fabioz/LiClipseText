@@ -1,0 +1,12 @@
+name: RobotFramework
+file_extensions: [robot, resource]
+tm_language: robot.tmLanguage
+
+outline:
+  - {type: Scope, scope: [text.robot, string.robot.header], define: class} #scope is a list to identify sub-rule
+
+comment: {type: singleLine, sequence: '#'}
+
+auto_edit:
+  - {auto_close_parens: ['(', '[', '{'], scope: text.robot} #Will close the parens if it's not properly balanced
+  - {auto_skip_parens: [')', ']', '}'], scope: text.robot} #Will skip the close parens if it's properly balanced

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>comment</key>
+	<string>
+	Robot Framework syntax highlighting for txt format.
+	</string>
+	<key>fileTypes</key>
+	<array>
+		<string>robot</string>
+	</array>
+	<key>keyEquivalent</key>
+	<string>^~R</string>
+	<key>name</key>
+	<string>robottxt</string>
+	<key>patterns</key>
+	<array>
+		<dict>
+			<key>match</key>
+			<string>(^\*\*\*.*?\*\*\*)|((?&lt;=^\|)\s+\*\*\*.*?\*\*\*)</string>
+			<key>name</key>
+			<string>string.robot.header</string>
+		</dict>
+		<dict>
+			<key>match</key>
+			<string>\[.*?\]</string>
+			<key>name</key>
+			<string>storage.type.method.robot</string>
+		</dict>
+		<dict>
+			<key>match</key>
+			<string>(\$\{.*?\})|(@\{.*?\})</string>
+			<key>name</key>
+			<string>storage.type.method.robot</string>
+		</dict>
+		<dict>
+			<key>begin</key>
+			<string>((^\s*)|(\s\s)|\t)(?&lt;!\\)#</string>
+			<key>end</key>
+			<string>$</string>
+			<key>name</key>
+			<string>comment.robot</string>
+		</dict>
+		<dict>
+			<key>begin</key>
+			<string>(^[^ \t\*\n\|]+)|((?&lt;=^\|)\s+[^ \t\*\n\|]+)</string>
+			<key>end</key>
+			<string>\s{2}|\t|$|\s+(?=\|)</string>
+			<key>name</key>
+			<string>keyword.control.robot</string>
+		</dict>
+	</array>
+	<key>scopeName</key>
+	<string>text.robot</string>
+	<key>uuid</key>
+	<string>816657c6-3f21-4ea2-95fc-14dfed6f76bc</string>
+</dict>
+</plist>

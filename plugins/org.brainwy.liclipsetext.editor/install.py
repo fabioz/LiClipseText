@@ -48,6 +48,7 @@ def RunCog():
         dict(ext='raml', kind='source.raml', img='source.raml'),
         dict(ext='cmake', kind='source.cmake', img='source.cmake', filenames="CMakeLists.txt,cmake"),
         dict(ext='cmakecache', kind='source.cache.cmake', img='source.cache.cmake', filenames="CMakeCache.txt"),
+        dict(ext='robot,resource', kind='text.robot', img='text.robot'),
         ]
 
     plugin_file = os.path.join(parent_dir, 'plugin.xml')

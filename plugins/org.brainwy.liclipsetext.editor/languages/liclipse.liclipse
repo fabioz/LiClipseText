@@ -10,7 +10,7 @@ scope:
 
   default:
     class: ['scope_to_color_name', 'scope_definition_rules', 'scope', 'file_extensions', 'filename', 'name', 'outline', 'indent',
-    'type', 'inherit', 'patch', 'spell_check', 'mustStartUppercase']
+    'type', 'inherit', 'patch', 'spell_check', 'mustStartUppercase', 'tm_language']
     bracket: ['{', '[', ']', '}']
     keyword: [OptionalMultiLineRule, AnyWordRule, PatternRule, SingleLineRule, SequenceRule, SequencesRule, RegexpRule, OneOrMoreSpacesRule,
               EndOfLineRule, ZeroOrMoreSpacesRule, NumberRule, CompositeRule, OptionalSequenceRule, IndentedBlockRule,

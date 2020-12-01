@@ -34,13 +34,13 @@ import org.brainwy.liclipsetext.editor.rules.SwitchLanguageToken;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.partitioner.DummyToken;
 import org.brainwy.liclipsetext.shared_core.partitioner.IChangeTokenRule;
+import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.brainwy.liclipsetext.shared_core.string.StringUtils;
 import org.brainwy.liclipsetext.shared_core.structure.OrderedMap;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.AssertionFailedException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.text.IDocument;
-import org.brainwy.liclipsetext.shared_core.partitioner.ILiClipsePredicateRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.yaml.snakeyaml.Yaml;
 
@@ -217,6 +217,8 @@ public class LiClipseLanguageIO {
                     return;
                 }
             }
+        } else {
+            data.remove(LiClipseLanguage.TM_LANGUAGE);
         }
 
         String editorId = (String) data.remove(LiClipseLanguage.EDITOR_ID);
@@ -437,7 +439,8 @@ public class LiClipseLanguageIO {
         }
     }
 
-    private int fixTopLevelRulesToHaveValidTokens(LiClipseLanguage ret, List<ILiClipsePredicateRule> rules, Set<String> found,
+    private int fixTopLevelRulesToHaveValidTokens(LiClipseLanguage ret, List<ILiClipsePredicateRule> rules,
+            Set<String> found,
             int nextId) {
         for (ILiClipsePredicateRule rule : rules) {
             IToken successToken = rule.getSuccessToken();

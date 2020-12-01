@@ -102,7 +102,7 @@ public class LanguagesManagerTest extends TestCase {
                 return false;
             }
         });
-        assertEquals(23, listFiles.length);
+        assertEquals(24, listFiles.length);
         for (File file : listFiles) {
             try {
                 LanguageMetadataFileInfo fileInfo = new LanguageMetadataFileInfo(file, (File) null);
@@ -137,6 +137,7 @@ public class LanguagesManagerTest extends TestCase {
                 "HTML", // TM Bundle
                 "HTML (Derivative)", // TM Bundle
                 "HTML (Ruby - ERB)", // TM Bundle
+                "JSON",
                 "Java",
                 "JavaScript", // TM Bundle
                 "Javascript",
@@ -156,6 +157,7 @@ public class LanguagesManagerTest extends TestCase {
                 "ReStructured Text",
                 "Regular Expressions (JavaScript)",
                 "Regular Expressions (Oniguruma)",
+                "RobotFramework",
                 "Ruby",
                 "SCSS",
                 "Shell Script (Bash)",
@@ -186,6 +188,7 @@ public class LanguagesManagerTest extends TestCase {
                 "Nim",
                 "Python",
                 "ReStructured Text",
+                "RobotFramework",
                 "StringTemplate",
                 "XML",
                 "Xgui20",
@@ -198,6 +201,7 @@ public class LanguagesManagerTest extends TestCase {
                 "source.dosbatch",
                 "source.js",
                 "source.js.regexp",
+                "source.json",
                 "source.perl",
                 "source.perl.6",
                 "source.raml",
@@ -216,7 +220,7 @@ public class LanguagesManagerTest extends TestCase {
                 "text.html.markdown",
                 "text.html.php",
                 "textmate.format-string"));
-        assertEquals(47, languagesMetadata.size());
+        assertEquals(49, languagesMetadata.size());
         for (LanguageMetadata languageMetadata : languagesMetadata) {
             LiClipseLanguage language = languageMetadata.file.loadLanguage(true);
             assertNotNull(language);
