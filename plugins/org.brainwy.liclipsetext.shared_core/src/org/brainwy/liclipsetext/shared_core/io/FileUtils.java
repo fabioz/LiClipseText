@@ -1093,29 +1093,29 @@ public class FileUtils {
         List<String> lines = null;
         byte[] cbuf = null;
         int nChars = -1;
-        if (file.exists()) {
+        try {
+            FileInputStream stream = new FileInputStream(file);
             try {
-                FileInputStream stream = new FileInputStream(file);
-                try {
-                    lines = new ArrayList<String>(2);
-                    cbuf = new byte[1024 * 2];
-                    //Consider that a line is not longer than 1024 chars (more than enough for a coding or shebang declaration).
-                    nChars = stream.read(cbuf);
-                    if (nChars > 0) {
-                        for (String line : StringUtils.iterLines(new String(cbuf, 0, nChars))) {
-                            lines.add(line);
-                            if (2 == lines.size()) {
-                                break;
-                            }
+                lines = new ArrayList<String>(2);
+                cbuf = new byte[1024 * 2];
+                //Consider that a line is not longer than 1024 chars (more than enough for a coding or shebang declaration).
+                nChars = stream.read(cbuf);
+                if (nChars > 0) {
+                    for (String line : StringUtils.iterLines(new String(cbuf, 0, nChars))) {
+                        lines.add(line);
+                        if (2 == lines.size()) {
+                            break;
                         }
                     }
-
-                } finally {
-                    stream.close();
                 }
-            } catch (Exception e) {
-                Log.log(e);
+
+            } finally {
+                stream.close();
             }
+        } catch (FileNotFoundException e) {
+            // Don't log: file was removed in the meanwhile
+        } catch (Exception e) {
+            Log.log(e);
         }
         return new ReadLines(lines, cbuf, nChars);
     }
