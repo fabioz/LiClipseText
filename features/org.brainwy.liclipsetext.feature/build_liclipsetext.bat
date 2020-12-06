@@ -17,12 +17,18 @@ set DRIVE=x:
 set BASE_LOCAL_LICLIPSE_GIT=x:\liclipsetext
 set BUILD_DIR=X:\liclipsetext_build\build_dir
 set DEPLOY_DIR=X:\liclipsetext_build\deploy_dir
-set JAVA_HOME=C:\bin\jdk1.8.0_77
-set MAVEN_BIN=C:\bin\apache-maven-3.3.9\bin
-set GIT_EXECUTABLE="p:\git\bin\git.exe"
-set ECLIPSE_CLEAN=C:\bin\eclipse46m7
-set LAUNCHER_PLUGIN=org.eclipse.equinox.launcher_1.3.200.v20160318-1642.jar
-set BUILDER_PLUGIN=org.eclipse.pde.build_3.9.200.v20160204-0642
+set JAVA_HOME=C:\bin\jdk-15.0.1.9-hotspot
+set MAVEN_BIN=C:\bin\apache-maven-3.5.3\bin
+set GIT_EXECUTABLE="C:\Program Files\Git\bin\git.exe"
+set ECLIPSE_CLEAN=C:\bin\eclipse_417_clean
+set LAUNCHER_PLUGIN=org.eclipse.equinox.launcher_1.5.800.v20200727-1323.jar
+set BUILDER_PLUGIN=org.eclipse.pde.build_3.10.800.v20200410-1419
+@echo Expected in env var: SIGN_KEYPASS
+@echo Expected in env var: SIGN_STOREPASS
+@echo Expected in env var: SIGN_ALIAS
+@echo Expected in env var: SIGN_KEYSTORE
+@echo Expected in env var: SIGN_STORETYPE
+@echo Expected in env var: SIGN_TSA
 SET MAVEN_OPTS=-Xmx1024m
 
 
@@ -31,13 +37,12 @@ set BASEWS=win32
 set BASEARCH=x86
 
 set PATH=
-set PATH=C:\bin\Python27
-set PATH=p:\FastCopy211;%PATH%
+set PATH=C:\bin\FastCopy211;%PATH%
 set PATH=C:\Windows\system32;%PATH%
 set PATH=%MAVEN_BIN%;%PATH%
 set PATH=%JAVA_HOME%\bin;%PATH%
-set PATH=p:\git\bin;%PATH%
-set PATH=%ECLIPSE_CLEAN%\plugins\org.apache.ant_1.9.6.v201510161327\bin;%PATH%
+set PATH="C:\Program Files\Git\bin\";%PATH%
+set PATH=%ECLIPSE_CLEAN%\plugins\org.apache.ant_1.10.8.v20200515-1239\bin;%PATH%
 
 
 @echo actual build command

@@ -12,7 +12,7 @@
        Red Hat Incorporated - initial implementation
        Jonah Graham - add testing, signing and deployment
        Fabio Zadrozny - port for LiClipseText
-       
+
 Using:
 
   To run a LiClipseText build you need to:
@@ -174,12 +174,12 @@ Using:
 		<repository>
             <layout>p2</layout>
 			<id>orbit</id>
-			<url>http://download.eclipse.org/tools/orbit/downloads/drops/R20170516192513/repository</url>
+			<url>https://download.eclipse.org/tools/orbit/downloads/drops/R20200831200620/repository/</url>
 		</repository>
 		<repository>
             <layout>p2</layout>
-			<id>eclipse-oxygen</id>
-			<url>http://download.eclipse.org/releases/oxygen</url>
+			<id>2020-09</id>
+			<url>http://download.eclipse.org/releases/2020-09</url>
 		</repository>
     </repositories>
 </project>
