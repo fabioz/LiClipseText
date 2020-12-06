@@ -5,7 +5,7 @@ import re
 
 
 def find_files(top, additional=()):
-    print top
+    print(top)
     search = ('feature.xml', 'pom.xml', 'manifest.mf') + additional
     for root, dirs, files in os.walk(top):
         for d in ('.svn', '.git', '.metadata'):
