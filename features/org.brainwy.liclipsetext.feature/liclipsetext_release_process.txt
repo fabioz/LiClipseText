@@ -10,7 +10,8 @@ X:\liclipsetext\features\org.brainwy.liclipsetext.feature\build_liclipsetext.bat
 
 Create "2.2.0" version in "https://bintray.com/fabioz/liclipsetext/liclipsetext/new/version"
 Add "2.2.0" in X:\release_tools\liclipsetext_uploader_bintray.py
-C:\tools\Miniconda\envs\tests_py27\python.exe X:\release_tools\liclipsetext_uploader_bintray.py -s X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\repository -d https://api.bintray.com/content/fabioz/liclipsetext/2.2.0/
+activate py37_tests
+python X:\release_tools\liclipsetext_uploader_bintray.py -s X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\repository -d https://api.bintray.com/content/fabioz/liclipsetext/2.2.0/
 
         ** Submit p2 repository to github
 
