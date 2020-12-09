@@ -1,0 +1,6 @@
+extend: text.html.markdown
+
+patch:
+  outline:
+    - {type: Regexp, scope: [text.html.markdown], regexp: '((\r?\n|\r)|^)(.*)(\r?\n|\r)(----|====)', define: class, group: 3}
+    - {type: Regexp, scope: [text.html.markdown], regexp: '((\r?\n|\r)|^)(\s*)(#+)(\s*)(.*)(\r?\n|\r)', define: class, group: 6}

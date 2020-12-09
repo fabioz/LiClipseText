@@ -98,7 +98,7 @@ public class ScopeNavigationMatch implements INavigationMatch {
                 for (TypedPosition typedPosition : acceptedPositions) {
                     IRegion[] region = checkMatch(document, typedPosition.getOffset(), typedPosition.getLength(),
                             initialOffset,
-                            forward);
+                            forward, stopOnFirst);
                     if (region != null) {
                         addRegions(regions, region);
                         if (stopOnFirst) {
@@ -123,7 +123,7 @@ public class ScopeNavigationMatch implements INavigationMatch {
                                     .getContentTypeFromToken(token);
                             if (contentTypeFromToken != null && scopeParts[1].equals(contentTypeFromToken)) {
                                 IRegion[] region = checkMatch(document, subTokensTokensProvider.getTokenOffset(),
-                                        subTokensTokensProvider.getTokenLength(), initialOffset, forward);
+                                        subTokensTokensProvider.getTokenLength(), initialOffset, forward, stopOnFirst);
                                 if (region != null) {
                                     addRegions(regions, region);
                                     if (stopOnFirst) {
@@ -155,7 +155,7 @@ public class ScopeNavigationMatch implements INavigationMatch {
                         for (IRegion iRegion : possibleRegions) {
                             IRegion region[] = checkMatch(document, iRegion.getOffset(), iRegion.getLength(),
                                     initialOffset,
-                                    forward);
+                                    forward, stopOnFirst);
                             if (region != null) {
                                 addRegions(regions, region);
                                 if (stopOnFirst) {
@@ -243,8 +243,10 @@ public class ScopeNavigationMatch implements INavigationMatch {
      * @param document
      * @param forward
      * @param initialOffset
+     * @param stopOnFirst
      */
-    protected IRegion[] checkMatch(IDocument document, int offset, int length, int initialOffset, boolean forward) {
+    protected IRegion[] checkMatch(IDocument document, int offset, int length, int initialOffset, boolean forward,
+            boolean stopOnFirst) {
         if (forward) {
             if (offset <= initialOffset) {
                 return null;
@@ -266,7 +268,7 @@ public class ScopeNavigationMatch implements INavigationMatch {
      */
     private List<TypedPosition> calculatePositions(IDocument document,
             LiClipseDocumentPartitioner liClipseDocumentPartitioner)
-                    throws BadPositionCategoryException {
+            throws BadPositionCategoryException {
         //Ok, we have all the types and position (and whatever is not there is 'default').
         Position[] positions = PartitionCodeReader.getDocumentTypedPositions(document, IDocument.DEFAULT_CONTENT_TYPE);
 

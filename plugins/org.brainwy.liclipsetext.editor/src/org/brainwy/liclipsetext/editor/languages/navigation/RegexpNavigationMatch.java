@@ -7,6 +7,7 @@
 package org.brainwy.liclipsetext.editor.languages.navigation;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -37,11 +38,12 @@ public class RegexpNavigationMatch extends ScopeNavigationMatch {
     }
 
     @Override
-    protected IRegion[] checkMatch(IDocument document, int offset, int length, int initialOffset, boolean forward) {
-        IRegion[] region = super.checkMatch(document, offset, length, initialOffset, forward);
+    protected IRegion[] checkMatch(IDocument document, int offset, int length, int initialOffset, boolean forward,
+            boolean stopOnFirst) {
+        IRegion[] region = new IRegion[] { new Region(offset, length) };
         List<IRegion> foundRegions = new ArrayList<IRegion>();
         if (region != null) {
-            for (int i = 0; i < region.length; i++) {
+            OUT: for (int i = 0; i < region.length; i++) {
                 IRegion iRegion = region[i];
                 String contents;
                 if (iRegion.getOffset() > document.getLength()) {
@@ -65,12 +67,30 @@ public class RegexpNavigationMatch extends ScopeNavigationMatch {
                         break;
                     }
                     int start = matcher.start(group);
-                    foundRegions.add(new Region(iRegion.getOffset() + start, matcher.end(group) - start));
+                    int regionStartOffset = iRegion.getOffset() + start;
+                    int regionEndOffset = matcher.end(group) - start;
+
+                    if (forward) {
+                        if (regionStartOffset <= initialOffset) {
+                            continue;
+                        }
+                    } else {
+                        if ((regionStartOffset + regionEndOffset) >= initialOffset) {
+                            break OUT;
+                        }
+                    }
+                    foundRegions.add(new Region(regionStartOffset, regionEndOffset));
+                    if (forward && stopOnFirst) {
+                        break OUT;
+                    }
                 }
             }
         }
         if (foundRegions.size() == 0) {
             return null;
+        }
+        if (!forward) {
+            Collections.reverse(foundRegions);
         }
         return foundRegions.toArray(new IRegion[foundRegions.size()]);
     }
