@@ -8,13 +8,14 @@ parent_dir = os.path.split(__file__)[0]
 def RunCog():
 
     import cog
-    cog.PRINT_COG = False
+    # Encoding needed for html.liclipse
+    cog.ENCODING = 'latin1'
 
     lst = [
         dict(ext='html,htm', kind='html', img='html'),
         dict(ext='xml,xsd', kind='xml', img='xml', filenames=".pydevproject,.project,.classpath", base_type="org.eclipse.core.runtime.xml"),
         dict(ext='js', kind='javascript', img='javascript'),
-        dict(ext='ts', kind='typescript', img='typescript'),
+        dict(ext='ts', kind='TypeScript', img='typescript'),
         dict(ext='json', kind='json', img='json'),
         dict(ext='java', kind='java', img='java'),
         dict(ext='liclipse', kind='liclipse', img='liclipse'),
@@ -54,14 +55,14 @@ def RunCog():
     plugin_file = os.path.join(parent_dir, 'plugin.xml')
     new_lines = []
     found = False
-    with file(plugin_file, 'r') as f:
+    with open(plugin_file, 'r') as f:
         for line in f.readlines():
             if line.strip().startswith('EDITORS_LST = '):
                 found = True
                 line = '    EDITORS_LST = %s\n' % (lst,)
             new_lines.append(line)
     assert found
-    with file(plugin_file, 'w') as f:
+    with open(plugin_file, 'w') as f:
         f.write(''.join(new_lines))
 
     cog.RunCogInFiles([plugin_file])

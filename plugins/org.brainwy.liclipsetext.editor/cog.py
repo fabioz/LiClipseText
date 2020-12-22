@@ -2,20 +2,22 @@
 
 """ Cog code generation tool.
     http://nedbatchelder.com/code/cog
-    
+
     Copyright 2004-2008, Ned Batchelder.
 """
 
 # $Id: cogapp.py 141 2008-05-22 10:56:43Z nedbat $
 
-import md5, os, re, string, sys, traceback, types
-import imp, compiler
+import hashlib, os, re, string, sys, traceback, types
+import imp
 import copy, getopt, shlex
-from cStringIO import StringIO
+from io import StringIO
 
 __all__ = ['Cog', 'CogUsageError']
 
 __version__ = '2.1.20080522'       # History at the end of the file.
+
+ENCODING = 'utf-8'
 
 usage = """\
 cog - generate code with inlined Python code.
@@ -44,11 +46,6 @@ OPTIONS:
     -h          Print this help.
 """
 
-PRINT_COG = False
-
-# Get True and False right even if they aren't already defined.
-True, False = 0 == 0, 0 == 1
-
 # Other package modules
 
 import re, types
@@ -58,7 +55,7 @@ def whitePrefix(strings):
         in the argument list.
     """
     # Remove all blank lines from the list
-    strings = filter(lambda s: s.strip() != '', strings)
+    strings = [s for s in strings if s.strip() != '']
 
     if not strings: return ''
 
@@ -80,7 +77,7 @@ def reindentBlock(lines, newIndent=''):
         Remove any common whitespace indentation.
         Re-indent using newIndent, and return it as a single string.
     """
-    if isinstance(lines, types.StringTypes):
+    if isinstance(lines, str):
         lines = lines.split('\n')
     oldIndent = whitePrefix(lines)
     outLines = []
@@ -185,9 +182,7 @@ class CogGenerator(Redirectable):
 
         # In Python 2.2, the last line has to end in a newline.
         intext = "import cog\n" + intext + "\n"
-        if PRINT_COG:
-            print intext
-        code = compiler.compile(intext, filename=str(fname), mode='exec')
+        code = compile(intext, filename=str(fname), mode='exec')
 
         # Make sure the "cog" module has our state.
         cog.cogmodule.msg = self.msg
@@ -207,7 +202,7 @@ class CogGenerator(Redirectable):
         return reindentBlock(self.outstring, prefOut)
 
     def msg(self, s):
-        print >> self.stdout, "Message: " + s
+        print("Message: " + s, file=self.stdout)
 
     def out(self, sOut='', dedent=False, trimblanklines=False):
         """ The cog.out function.
@@ -295,7 +290,7 @@ class CogOptions:
         # Parse the command line arguments.
         try:
             opts, self.args = getopt.getopt(argv, 'cdD:eI:o:rs:Uvw:xz')
-        except getopt.error, msg:
+        except getopt.error as msg:
             raise CogUsageError(msg)
 
         # Handle the command line arguments.
@@ -361,17 +356,17 @@ class Cog(Redirectable):
         self.installCogModule()
 
     def showWarning(self, msg):
-        print >> self.stdout, "Warning:", msg
+        print("Warning:", msg, file=self.stdout)
 
     def isBeginSpecLine(self, s):
-        return string.find(s, self.sBeginSpec) >= 0
+        return s.find(self.sBeginSpec) >= 0
 
     def isEndSpecLine(self, s):
-        return string.find(s, self.sEndSpec) >= 0 and \
+        return s.find(self.sEndSpec) >= 0 and \
             not self.isEndOutputLine(s)
 
     def isEndOutputLine(self, s):
-        return string.find(s, self.sEndOutput) >= 0
+        return s.find(self.sEndOutput) >= 0
 
     def installCogModule(self):
         """ Magic mumbo-jumbo so that imported Python modules
@@ -389,14 +384,14 @@ class Cog(Redirectable):
         sFileIn = fname or ''
         sFileOut = fname or ''
         # Convert filenames to files.
-        if isinstance(fIn, types.StringTypes):
+        if isinstance(fIn, str):
             # Open the input file.
             sFileIn = fIn
-            fIn = open(fIn, 'r')
-        if isinstance(fOut, types.StringTypes):
+            fIn = open(fIn, 'r', encoding=ENCODING)
+        if isinstance(fOut, str):
             # Open the output file.
             sFileOut = fOut
-            fOut = open(fOut, self.sOutputMode)
+            fOut = open(fOut, self.sOutputMode, encoding=ENCODING)
 
         fIn = NumberedFileReader(fIn)
 
@@ -477,7 +472,7 @@ class Cog(Redirectable):
 
             # Eat all the lines in the output section.  While reading past
             # them, compute the md5 hash of the old output.
-            hasher = md5.new()
+            hasher = hashlib.md5()
             while l and not self.isEndOutputLine(l):
                 if self.isBeginSpecLine(l):
                     raise CogError("Unexpected '%s'" % self.sBeginSpec,
@@ -485,7 +480,7 @@ class Cog(Redirectable):
                 if self.isEndSpecLine(l):
                     raise CogError("Unexpected '%s'" % self.sEndSpec,
                         file=sFileIn, line=fIn.linenumber())
-                hasher.update(l)
+                hasher.update(l.encode(ENCODING))
                 l = fIn.readline()
             curHash = hasher.hexdigest()
 
@@ -496,12 +491,12 @@ class Cog(Redirectable):
 
             # Write the output of the spec to be the new output if we're
             # supposed to generate code.
-            hasher = md5.new()
+            hasher = hashlib.md5()
             if not self.options.bNoGenerate:
                 sFile = "%s+%d" % (sFileIn, firstLineNum)
                 sGen = gen.evaluate(cog=self, globals=globals, fname=sFile)
                 sGen = self.suffixLines(sGen)
-                hasher.update(sGen)
+                hasher.update(sGen.encode(ENCODING))
                 fOut.write(sGen)
             newHash = hasher.hexdigest()
 
@@ -571,7 +566,7 @@ class Cog(Redirectable):
                 # Can't write!
                 raise CogError("Can't overwrite %s" % sOldPath)
         f = open(sOldPath, self.sOutputMode)
-        f.write(sNewText)
+        f.write(sNewText.encode(ENCODING))
         f.close()
 
     def saveIncludePath(self):
@@ -611,16 +606,16 @@ class Cog(Redirectable):
             elif self.options.bReplace:
                 # We want to replace the cog file with the output,
                 # but only if they differ.
-                print >> self.stdout, "Cogging %s" % sFile,
+                print("Cogging %s" % sFile, end=' ', file=self.stdout)
                 bNeedNewline = True
 
                 try:
-                    fOldFile = open(sFile)
+                    fOldFile = open(sFile, encoding=ENCODING)
                     sOldText = fOldFile.read()
                     fOldFile.close()
                     sNewText = self.processString(sOldText, fname=sFile)
                     if sOldText != sNewText:
-                        print >> self.stdout, "  (changed)"
+                        print("  (changed)", file=self.stdout)
                         bNeedNewline = False
                         self.replaceFile(sFile, sNewText)
                 finally:
@@ -629,7 +624,7 @@ class Cog(Redirectable):
                     # same line, but also make sure to break the line before
                     # any traceback.
                     if bNeedNewline:
-                        print >> self.stdout
+                        print(file=self.stdout)
             else:
                 self.processFile(sFile, self.stdout, sFile)
         finally:
@@ -638,7 +633,7 @@ class Cog(Redirectable):
     def processFileList(self, sFileList):
         """ Process the files in a file list.
         """
-        for l in open(sFileList).readlines():
+        for l in open(sFileList, encoding=ENCODING).readlines():
             # Use shlex to parse the line like a shell.
             lex = shlex.shlex(l, posix=True)
             lex.whitespace_split = True
@@ -676,14 +671,14 @@ class Cog(Redirectable):
 
         # Provide help if asked for anywhere in the command line.
         if '-?' in argv or '-h' in argv:
-            print >> self.stderr, usage,
+            print(usage, end=' ', file=self.stderr)
             return
 
         self.options.parseArgs(argv)
         self.options.validate()
 
         if self.options.bShowVersion:
-            print >> self.stdout, "Cog version %s" % __version__
+            print("Cog version %s" % __version__, file=self.stdout)
             return
 
         if self.options.args:
@@ -699,15 +694,15 @@ class Cog(Redirectable):
         try:
             self.callableMain(argv)
             return 0
-        except CogUsageError, err:
-            print >> self.stderr, err
-            print >> self.stderr, "(for help use -?)"
+        except CogUsageError as err:
+            print(err, file=self.stderr)
+            print("(for help use -?)", file=self.stderr)
             return 2
-        except CogGeneratedError, err:
-            print >> self.stderr, "Error: %s" % err
+        except CogGeneratedError as err:
+            print("Error: %s" % err, file=self.stderr)
             return 3
-        except CogError, err:
-            print >> self.stderr, err
+        except CogError as err:
+            print(err, file=self.stderr)
             return 1
         except:
             traceback.print_exc(None, self.stderr)
@@ -768,7 +763,7 @@ def RunCogInFiles(files):
     #-U to write \n and not native lines
     ret = Cog().main(['unused', '-r', '-U'] + files)
 
-    print "Time to run cog: %.2f sec" % (time.clock() - start)
+    print("Time to run cog: %.2f sec" % (time.clock() - start))
     return ret
 
 #=======================================================================================================================
