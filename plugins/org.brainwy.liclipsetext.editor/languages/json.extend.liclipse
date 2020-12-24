@@ -1,0 +1,11 @@
+extend: source.json
+
+patch:
+  indent: {
+    type: braces, #Braces are used for indenting in Json
+    scope: 'source.json', #Only braces found in the default scope are considered
+    outline_scopes: [class], #Scopes are created where the outline defines a class or method.
+  }
+
+  outline:
+    - {type: Regexp, scope: ['source.json'], regexp: '\"([^\"]+)\"\s*:', define: class, group: 1}
