@@ -1,0 +1,9 @@
+extend: source.ts
+
+patch:
+  outline:
+    # - {type: Scope, scope: ['source.ts', 'storage.type.function.ts'], define: class}
+    - {type: Regexp, scope: ['source.ts'], regexp: '\bfunction\s+(\w+)\s*\(', define: method, group: 1}
+    - {type: Regexp, scope: ['source.ts'], regexp: '\binterface\s+(\w+)', define: interface, group: 1}
+    - {type: Regexp, scope: ['source.ts'], regexp: '\benum\s+(\w+)', define: enum, group: 1}
+    - {type: Regexp, scope: ['source.ts'], regexp: '\bclass\s+(\w+)', define: class, group: 1}
