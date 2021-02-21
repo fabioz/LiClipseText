@@ -19,6 +19,7 @@ import org.brainwy.liclipsetext.editor.preferences.LiClipseTextPreferences;
 import org.brainwy.liclipsetext.shared_core.auto_edit.AutoEditStrategyBackspaceHelper;
 import org.brainwy.liclipsetext.shared_core.auto_edit.AutoEditStrategyScopeCreationHelper;
 import org.brainwy.liclipsetext.shared_core.auto_edit.IIndentationStringProvider;
+import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.eclipse.compare.CompareConfiguration;
 import org.eclipse.compare.IViewerCreator;
 import org.eclipse.compare.contentmergeviewer.TextMergeViewer;
@@ -179,14 +180,19 @@ public class AbstractMergeViewerCreator implements IViewerCreator {
 
             LiClipseSourceViewerConfiguration configuration = new LiClipseSourceViewerConfiguration(
                     LiClipseTextEditorPlugin.getDefault()
-                            .getColorManager(), LiClipseTextPreferences.getChainedPreferenceStore());
+                            .getColorManager(),
+                    LiClipseTextPreferences.getChainedPreferenceStore());
             configuration.setPartitioner(defaultPartitioner); //Note: create a new partitioner each time so that we don't have the same for 2 different documents!
             sourceViewer.configure(configuration);
         }
 
         @Override
         protected void handleDispose(DisposeEvent event) {
-            super.handleDispose(event);
+            try {
+                super.handleDispose(event);
+            } catch (Exception e) {
+                Log.log(e);
+            }
         }
 
         @Override

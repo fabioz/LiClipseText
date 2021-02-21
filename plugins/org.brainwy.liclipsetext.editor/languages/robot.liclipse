@@ -1,4 +1,4 @@
-name: RobotFramework
+name: text.robot
 file_extensions: [robot, resource]
 tm_language: robot.tmLanguage
 
