@@ -23,7 +23,7 @@ Require-Bundle: org.brainwy.liclipsetext.shared_core;bundle-version="[2.2.0,2.2.
  org.eclipse.ltk.core.refactoring,
  org.eclipse.ltk.ui.refactoring,
  org.eclipse.ui.forms
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Bundle-ActivationPolicy: lazy
 Export-Package: org.brainwy.liclipsetext.shared_ui,
  org.brainwy.liclipsetext.shared_ui.actions,
@@ -45,3 +45,4 @@ Export-Package: org.brainwy.liclipsetext.shared_ui,
  org.brainwy.liclipsetext.shared_ui.tree,
  org.brainwy.liclipsetext.shared_ui.utils,
  org.brainwy.liclipsetext.shared_ui.word_boundaries
+Automatic-Module-Name: org.brainwy.liclipsetext.shared.ui
