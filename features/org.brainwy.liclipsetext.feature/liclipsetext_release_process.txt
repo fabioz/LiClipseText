@@ -2,20 +2,20 @@ Update the version:
 
 x:
 cd x:\liclipsetext
-python update_version.py 2.2.0
+python update_version.py 2.3.0
 
 
 
 X:\liclipsetext\features\org.brainwy.liclipsetext.feature\build_liclipsetext.bat
 
-Create "2.2.0" version in "https://bintray.com/fabioz/liclipsetext/liclipsetext/new/version"
-Add "2.2.0" in X:\release_tools\liclipsetext_uploader_bintray.py
+Create "2.3.0" version in "https://bintray.com/fabioz/liclipsetext/liclipsetext/new/version"
+Add "2.3.0" in X:\release_tools\liclipsetext_uploader_bintray.py
 activate py37_tests
-python X:\release_tools\liclipsetext_uploader_bintray.py -s X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\repository -d https://api.bintray.com/content/fabioz/liclipsetext/2.2.0/
+python X:\release_tools\liclipsetext_uploader_bintray.py -s X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\repository -d https://api.bintray.com/content/fabioz/liclipsetext/2.3.0/
 
         ** Submit p2 repository to github
 
-git tag liclipsetext_2_2_0 -a -m "LiClipseText 2.2.0"
+git tag liclipsetext_2_3_0 -a -m "LiClipseText 2.3.0"
 git push --tags
 
 
