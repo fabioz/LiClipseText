@@ -2,7 +2,7 @@ Update the version:
 
 x:
 cd x:\liclipsetext
-python update_version.py 2.3.0
+python update_version.py 2.4.0
 
 
 
@@ -10,43 +10,43 @@ X:\liclipsetext\features\org.brainwy.liclipsetext.feature\build_liclipsetext.bat
 
 x:
 cd X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\runnable
-"C:\Program Files\7-Zip\7z" a -tzip -r "LiClipseText 2.3.0.zip" features plugins
+"C:\Program Files\7-Zip\7z" a -tzip -r "LiClipseText 2.4.0.zip" features plugins
 cd X:\liclipsetext_build\build_dir\liclipsetext
-git archive -o "X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\runnable\LiClipseText 2.3.0-sources.zip" origin/master
+git archive -o "X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\runnable\LiClipseText 2.4.0-sources.zip" origin/master
 
 
 cd /D X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\
-mkdir org.brainwy.liclipsetext.p2-repo-2.3.0-SNAPSHOT
-cd org.brainwy.liclipsetext.p2-repo-2.3.0-SNAPSHOT
-"C:\Program Files\7-Zip\7z" x ..\org.brainwy.liclipsetext.p2-repo-2.3.0-SNAPSHOT.zip
+mkdir org.brainwy.liclipsetext.p2-repo-2.4.0-SNAPSHOT
+cd org.brainwy.liclipsetext.p2-repo-2.4.0-SNAPSHOT
+"C:\Program Files\7-Zip\7z" x ..\org.brainwy.liclipsetext.p2-repo-2.4.0-SNAPSHOT.zip
 
 
-set CONVERT_SOURCE=X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\org.brainwy.liclipsetext.p2-repo-2.3.0-SNAPSHOT
-SET CONVERT_FINAL_ZIP=X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\runnable\LiClipseText 2.3.0.zip
+set CONVERT_SOURCE=X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\org.brainwy.liclipsetext.p2-repo-2.4.0-SNAPSHOT
+SET CONVERT_FINAL_ZIP=X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\runnable\LiClipseText 2.4.0.zip
 SET CONVERT_TARGET_DIR=X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\github
-python X:\release_tools\convert_to_github.py 2.3.0
+python X:\release_tools\convert_to_github.py 2.4.0
 
 
         ** Submit p2 repository to github
 
-git tag liclipsetext_2_3_0 -a -m "LiClipseText 2.3.0"
+git tag liclipsetext_2_4_0 -a -m "LiClipseText 2.4.0"
 git push --tags
 
 
 Do GH release in:
-    https://github.com/fabioz/LiClipseText/releases/new?tag=liclipsetext_2_3_0
+    https://github.com/fabioz/LiClipseText/releases/new?tag=liclipsetext_2_4_0
     Contents in: X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\github
     Message:
 
-		This release contains LiClipseText 2.3.0
-		
+		This release contains LiClipseText 2.4.0
+
 		It's possible to add it as an Eclipse update site using the url:
-		
-		https://github.com/fabioz/LiClipseText/releases/download/liclipsetext_2_3_0/
-		
+
+		https://github.com/fabioz/LiClipseText/releases/download/liclipsetext_2_4_0/
+
 		Or get a .zip to install manually by unzipping it in the dropins:
-		
-		https://github.com/fabioz/LiClipseText/releases/download/liclipsetext_2_3_0/LiClipseText.2.3.0.zip
+
+		https://github.com/fabioz/LiClipseText/releases/download/liclipsetext_2_4_0/LiClipseText.2.4.0.zip
 
 
 Update the homepage at liclipse.page:
