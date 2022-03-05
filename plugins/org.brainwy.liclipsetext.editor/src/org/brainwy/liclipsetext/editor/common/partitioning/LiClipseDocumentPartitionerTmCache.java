@@ -10,12 +10,14 @@ import org.brainwy.liclipsetext.editor.partitioning.ICustomPartitionTokenScanner
 import org.brainwy.liclipsetext.editor.partitioning.ScannerRange;
 import org.brainwy.liclipsetext.editor.rules.SubLanguageToken;
 import org.brainwy.liclipsetext.editor.rules.SwitchLanguageToken;
+import org.brainwy.liclipsetext.shared_core.callbacks.ICallback0;
 import org.brainwy.liclipsetext.shared_core.document.DocumentTimeStampChangedException;
 import org.brainwy.liclipsetext.shared_core.log.Log;
 import org.brainwy.liclipsetext.shared_core.string.StringUtils;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.ISynchronizable;
 import org.eclipse.jface.text.ITypedRegion;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.TypedPosition;
@@ -70,133 +72,195 @@ public class LiClipseDocumentPartitionerTmCache extends LiClipseDocumentPartitio
     public final static class Tm4eDocCache {
         // We should have 1 entry for each partition (and must damage it accordingly).
         private final List<Tm4eScannerCache> caches = new ArrayList<>();
+        private final Object cachesLock = new Object();
 
-        public synchronized void updateFrom(IGrammar grammar, ScannerRange scannerRange)
+        private Object runWithLocks(IDocument document, ICallback0<?> callback) {
+            Object lockObject = null;
+            if (document instanceof ISynchronizable) {
+                ISynchronizable iSynchronizable = (ISynchronizable) document;
+                lockObject = iSynchronizable.getLockObject();
+            }
+            if (lockObject != null) {
+                synchronized (lockObject) {
+                    synchronized (cachesLock) {
+                        return callback.call();
+                    }
+                }
+            } else {
+                synchronized (cachesLock) {
+                    return callback.call();
+                }
+            }
+        }
+
+        public interface ICallbackWithExc<Ret> {
+
+            Ret call() throws DocumentTimeStampChangedException;
+        }
+
+        private Object runWithLocksWithExc(IDocument document, ICallbackWithExc<?> callback)
                 throws DocumentTimeStampChangedException {
-            scannerRange.checkDocumentTimeStampChanged();
-            Tm4eScannerCache tm4eCache = (Tm4eScannerCache) scannerRange.tm4eCache;
-            if (tm4eCache == null) {
-                return; // Empty line may get here.
+            Object lockObject = null;
+            if (document instanceof ISynchronizable) {
+                ISynchronizable iSynchronizable = (ISynchronizable) document;
+                lockObject = iSynchronizable.getLockObject();
             }
-            tm4eCache.prevState = null; // This isn't valid anymore (it's only useful during the current parsing).
-            for (Iterator<Tm4eScannerCache> it = caches.iterator(); it.hasNext();) {
-                Tm4eScannerCache currTm4eCache = it.next();
-                if (currTm4eCache.startLine == tm4eCache.startLine) {
-                    it.remove();
+            if (lockObject != null) {
+                synchronized (lockObject) {
+                    synchronized (cachesLock) {
+                        return callback.call();
+                    }
+                }
+            } else {
+                synchronized (cachesLock) {
+                    return callback.call();
                 }
             }
-            this.caches.add(tm4eCache);
         }
 
-        private synchronized void onlyKeepPartitionsFromLanguageSwitchRules(DocumentEvent e,
+        public void updateFrom(IGrammar grammar, ScannerRange scannerRange)
+                throws DocumentTimeStampChangedException {
+            runWithLocksWithExc(scannerRange.getDocument(), () -> {
+                scannerRange.checkDocumentTimeStampChanged();
+                Tm4eScannerCache tm4eCache = (Tm4eScannerCache) scannerRange.tm4eCache;
+                if (tm4eCache == null) {
+                    return null; // Empty line may get here.
+                }
+                tm4eCache.prevState = null; // This isn't valid anymore (it's only useful during the current parsing).
+                for (Iterator<Tm4eScannerCache> it = caches.iterator(); it.hasNext();) {
+                    Tm4eScannerCache currTm4eCache = it.next();
+                    if (currTm4eCache.startLine == tm4eCache.startLine) {
+                        it.remove();
+                    }
+                }
+                this.caches.add(tm4eCache);
+                return null;
+            });
+        }
+
+        private void onlyKeepPartitionsFromLanguageSwitchRules(DocumentEvent e,
                 List<SwitchLanguageToken> switchLanguageTokens) {
-
             IDocument document = e.getDocument();
-            List<TypedPosition> lineRegions = new ArrayList<>();
-            for (SwitchLanguageToken switchLanguageToken : switchLanguageTokens) {
-                SubLanguageToken[] subTokens = switchLanguageToken.subTokens;
-                if (subTokens.length > 0) {
-                    int start = subTokens[0].offset;
-                    int end = subTokens[subTokens.length - 1].offset + subTokens[subTokens.length - 1].len;
+            runWithLocks(document, () -> {
+                List<TypedPosition> lineRegions = new ArrayList<>();
+                for (SwitchLanguageToken switchLanguageToken : switchLanguageTokens) {
+                    SubLanguageToken[] subTokens = switchLanguageToken.subTokens;
+                    if (subTokens.length > 0) {
+                        int start = subTokens[0].offset;
+                        int end = subTokens[subTokens.length - 1].offset + subTokens[subTokens.length - 1].len;
 
-                    try {
-                        int startLine = document.getLineOfOffset(start);
-                        int endLine = document.getLineOfOffset(end);
-                        lineRegions.add(new TypedPosition(startLine, endLine, (String) switchLanguageToken.getData()));
-                    } catch (BadLocationException e1) {
-                        // This shouldn't happen (we should be consistent at this point).
-                        Log.log(e1);
+                        try {
+                            int startLine = document.getLineOfOffset(start);
+                            int endLine = document.getLineOfOffset(end);
+                            lineRegions
+                                    .add(new TypedPosition(startLine, endLine, (String) switchLanguageToken.getData()));
+                        } catch (BadLocationException e1) {
+                            // This shouldn't happen (we should be consistent at this point).
+                            Log.log(e1);
+                        }
                     }
                 }
-            }
 
-            for (Iterator<Tm4eScannerCache> it = caches.iterator(); it.hasNext();) {
-                Tm4eScannerCache tm4eCache = it.next();
-                boolean found = false;
-                for (TypedPosition p : lineRegions) {
-                    if (p.includes(tm4eCache.startLine)) {
-                        found = true;
-                        break;
+                for (Iterator<Tm4eScannerCache> it = caches.iterator(); it.hasNext();) {
+                    Tm4eScannerCache tm4eCache = it.next();
+                    boolean found = false;
+                    for (TypedPosition p : lineRegions) {
+                        if (p.includes(tm4eCache.startLine)) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        it.remove();
                     }
                 }
-                if (!found) {
-                    it.remove();
-                }
-            }
+                return null;
+            });
         }
 
-        public synchronized void documentAboutToBeChanged(DocumentEvent event) {
+        public void documentAboutToBeChanged(DocumentEvent event) {
             int replacedTextLen = event.getLength();
             int offset = event.getOffset();
 
             String text = event.getText();
             int linesAdded = StringUtils.countLineBreaks(text);
-            int linesRemoved = 0;
             IDocument document = event.getDocument();
-            try {
-                if (replacedTextLen > 0) {
-                    String string = document.get(offset, event.getLength());
-                    linesRemoved = StringUtils.countLineBreaks(string);
-                }
-                int lineFromOffset = document.getLineOfOffset(offset);
-                int linesDiff = linesAdded - linesRemoved;
-                Position linesRemovedPosition = new Position(lineFromOffset, linesRemoved);
+            runWithLocks(document, () -> {
+                try {
+                    int linesRemoved = 0;
+                    if (replacedTextLen > 0) {
+                        String string = document.get(offset, event.getLength());
+                        linesRemoved = StringUtils.countLineBreaks(string);
+                    }
+                    int lineFromOffset = document.getLineOfOffset(offset);
+                    int linesDiff = linesAdded - linesRemoved;
+                    Position linesRemovedPosition = new Position(lineFromOffset, linesRemoved);
 
-                for (Iterator<Tm4eScannerCache> it = caches.iterator(); it.hasNext();) {
-                    Tm4eScannerCache tm4eCache = it.next();
-                    if (tm4eCache.startLine == lineFromOffset || linesRemovedPosition.includes(tm4eCache.startLine)) {
-                        it.remove();
-                        continue;
+                    for (Iterator<Tm4eScannerCache> it = caches.iterator(); it.hasNext();) {
+                        Tm4eScannerCache tm4eCache = it.next();
+                        if (tm4eCache.startLine == lineFromOffset
+                                || linesRemovedPosition.includes(tm4eCache.startLine)) {
+                            it.remove();
+                            continue;
+                        }
+                        if (tm4eCache.startLine < lineFromOffset && tm4eCache.lines.length >= lineFromOffset) {
+                            // Invalidate this cache from the given line downwards.
+                            StackElement[] lines = new StackElement[lineFromOffset - tm4eCache.startLine];
+                            // Note: we keep only the valid ones (i.e.: don't keep any which have nulls).
+                            System.arraycopy(tm4eCache.lines, 0, lines, 0, lineFromOffset - tm4eCache.startLine);
+                            tm4eCache.lines = lines;
+                            continue;
+                        }
+                        if (tm4eCache.startLine > lineFromOffset) {
+                            tm4eCache.startLine += linesDiff;
+                        }
                     }
-                    if (tm4eCache.startLine < lineFromOffset && tm4eCache.lines.length >= lineFromOffset) {
-                        // Invalidate this cache from the given line downwards.
-                        StackElement[] lines = new StackElement[lineFromOffset - tm4eCache.startLine];
-                        // Note: we keep only the valid ones (i.e.: don't keep any which have nulls).
-                        System.arraycopy(tm4eCache.lines, 0, lines, 0, lineFromOffset - tm4eCache.startLine);
-                        tm4eCache.lines = lines;
-                        continue;
-                    }
-                    if (tm4eCache.startLine > lineFromOffset) {
-                        tm4eCache.startLine += linesDiff;
-                    }
+                } catch (BadLocationException e) {
+                    // This is bad, our assumptions are no longer correct. Clear all caches.
+                    Log.log("This should NEVER happen (clearing all caches)!", e);
+                    this.caches.clear();
                 }
-            } catch (BadLocationException e) {
-                // This is bad, our assumptions are no longer correct. Clear all caches.
-                Log.log("This should NEVER happen (clearing all caches)!", e);
-                this.caches.clear();
-                return;
-            }
+                return null;
+            });
         }
 
         /**
          * Just for testing!
          */
-        public synchronized void setCaches(List<Tm4eScannerCache> caches) {
-            this.caches.clear();
-            this.caches.addAll(caches);
+        public void setCaches(List<Tm4eScannerCache> caches) {
+            synchronized (cachesLock) {
+                this.caches.clear();
+                this.caches.addAll(caches);
+            }
         }
 
-        public synchronized List<Tm4eScannerCache> getCaches() {
-            List<Tm4eScannerCache> ret = new ArrayList<>(caches.size());
-            ret.addAll(caches);
-            return ret;
+        public List<Tm4eScannerCache> getCaches() {
+            synchronized (cachesLock) {
+                List<Tm4eScannerCache> ret = new ArrayList<>(caches.size());
+                ret.addAll(caches);
+                return ret;
+            }
         }
 
-        public synchronized void clear() {
-            caches.clear();
+        public void clear() {
+            synchronized (cachesLock) {
+                caches.clear();
+            }
         }
 
-        public synchronized Tm4eScannerCache getCachedCopy(int partitionStartLine, String lineContents,
+        public Tm4eScannerCache getCachedCopy(int partitionStartLine, String lineContents,
                 ScannerRange scannerRange, IGrammar grammar) throws DocumentTimeStampChangedException {
-            if (caches.size() == 0) {
-                return null;
-            }
-            for (Tm4eScannerCache tm4eCache : caches) {
-                if (tm4eCache.startLine == partitionStartLine) {
-                    return tm4eCache.copy();
+            return (Tm4eScannerCache) runWithLocksWithExc(scannerRange.getDocument(), () -> {
+                if (caches.size() == 0) {
+                    return null;
                 }
-            }
-            return null;
+                for (Tm4eScannerCache tm4eCache : caches) {
+                    if (tm4eCache.startLine == partitionStartLine) {
+                        return tm4eCache.copy();
+                    }
+                }
+                return null;
+            });
         }
     }
 
