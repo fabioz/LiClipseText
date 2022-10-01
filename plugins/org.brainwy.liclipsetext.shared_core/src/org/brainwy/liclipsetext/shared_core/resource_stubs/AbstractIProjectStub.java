@@ -24,6 +24,11 @@ import org.eclipse.core.runtime.content.IContentTypeMatcher;
 public class AbstractIProjectStub extends AbstractIContainerStub implements IProject {
 
     @Override
+    public String getDefaultLineSeparator() throws CoreException {
+        return "\n";
+    }
+
+    @Override
     public void build(int kind, IProgressMonitor monitor) throws CoreException {
         throw new RuntimeException("Not implemented");
     }
