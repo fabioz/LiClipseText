@@ -1,17 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <description url="http://liclipse.com/LiClipseText">LiClipseText</description>   
-   
+   <description url="http://liclipse.com/LiClipseText">
+      LiClipseText
+   </description>
    <feature url="features/org.brainwy.liclipsetext.feature_0.0.0.qualifier.jar" id="org.brainwy.liclipsetext.feature" version="0.0.0">
       <category name="LiClipseText"/>
-  </feature>
-
+   </feature>
    <feature url="features/org.brainwy.liclipsetext.feature.source_0.0.0.qualifier.jar" id="org.brainwy.liclipsetext.feature.source" version="0.0.0">
       <category name="LiClipseText"/>
    </feature>
-   
+   <bundle id="org.joni">
+      <category name="LiClipseText"/>
+   </bundle>
+   <bundle id="org.jcodings">
+      <category name="LiClipseText"/>
+   </bundle>
+   <bundle id="com.google.gson">
+      <category name="LiClipseText"/>
+   </bundle>
+   <bundle id="org.objectweb.asm">
+      <category name="LiClipseText"/>
+   </bundle>
    <category-def name="LiClipseText" label="LiClipseText">
-      <description>LiClipseText</description>
-   </category-def>   
-   
+      <description>
+         LiClipseText
+      </description>
+   </category-def>
 </site>

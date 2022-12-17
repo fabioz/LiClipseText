@@ -141,6 +141,7 @@ COPYRIGHT 20016 BRAINWY SOFTWARE LTDA-ME
       <import plugin="org.jcodings" version="1.0.18" match="greaterOrEqual"/>
       <import plugin="org.joni" version="2.1.11" match="greaterOrEqual"/>
       <import plugin="org.eclipse.search"/>
+      <import plugin="org.objectweb.asm"/>
    </requires>
 
    <plugin
@@ -160,33 +161,5 @@ COPYRIGHT 20016 BRAINWY SOFTWARE LTDA-ME
          download-size="151"
          install-size="151"
          version="2.4.0.qualifier"/>
-
-   <plugin
-         id="org.jcodings"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.joni"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="com.google.gson"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.objectweb.asm"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
 
 </feature>
