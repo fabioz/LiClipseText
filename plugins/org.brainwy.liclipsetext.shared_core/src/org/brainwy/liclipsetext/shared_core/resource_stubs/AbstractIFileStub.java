@@ -93,7 +93,7 @@ public class AbstractIFileStub extends AbstractIResourceStub implements IFile {
 
     @Override
     public IFileState[] getHistory(IProgressMonitor monitor) throws CoreException {
-        throw new RuntimeException("Not implemented");
+        return new IFileState[0];
     }
 
     @Override
