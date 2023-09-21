@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2015-2017 Angelo ZERR.
+ * Copyright (c) 2015-2017 Angelo ZERR.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -11,52 +11,52 @@
  * Initial license: MIT
  *
  * Contributors:
- *  - GitHub Inc.: Initial code, written in JavaScript, licensed under MIT license
- *  - Angelo Zerr <angelo.zerr@gmail.com> - translation and adaptation to Java
+ * - GitHub Inc.: Initial code, written in JavaScript, licensed under MIT license
+ * - Angelo Zerr <angelo.zerr@gmail.com> - translation and adaptation to Java
  */
-
 package org.eclipse.tm4e.core.internal.oniguruma;
 
 import org.joni.Region;
 
-public class OnigResult {
+/**
+ * @see <a href="https://github.com/atom/node-oniguruma/blob/master/src/onig-result.cc">
+ *      github.com/atom/node-oniguruma/blob/master/src/onig-result.cc</a>
+ */
+final class OnigResult {
 
 	private int indexInScanner;
 	private final Region region;
 
-	public OnigResult(Region region, int indexInScanner) {
+	OnigResult(final Region region, final int indexInScanner) {
 		this.region = region;
 		this.indexInScanner = indexInScanner;
 	}
 
-	public int getIndex() {
+	int getIndex() {
 		return indexInScanner;
 	}
 
-	public void setIndex(int index) {
-		this.indexInScanner = index;
+	void setIndex(final int index) {
+		indexInScanner = index;
 	}
 
-	public int locationAt(int index) {
-		int bytes = region.beg[index];
+	int locationAt(final int index) {
+		final int bytes = region.getBeg(index);
 		if (bytes > 0) {
 			return bytes;
-		} else {
-			return 0;
 		}
+		return 0;
 	}
 
-	public int count() {
-		return region.numRegs;
+	int count() {
+		return region.getNumRegs();
 	}
 
-	public int lengthAt(int index) {
-		int bytes = region.end[index] - region.beg[index];
+	int lengthAt(final int index) {
+		final int bytes = region.getEnd(index) - region.getBeg(index);
 		if (bytes > 0) {
 			return bytes;
-		} else {
-			return 0;
 		}
+		return 0;
 	}
-
 }

@@ -64,42 +64,42 @@ public class CharsRegion {
         if (region == null) {
             return 0;
         }
-        return region.numRegs;
+        return region.getNumRegs();
     }
 
     public int getStrBeginPos(int groupId) {
         if (groupId == 0) {
             return bytes.getCharPosFromBytesPos(matcher.getBegin());
         }
-        if (groupId >= region.beg.length) {
+        if (groupId >= region.getNumRegs()) {
             return -1;
         }
-        return bytes.getCharPosFromBytesPos(region.beg[groupId]);
+        return bytes.getCharPosFromBytesPos(region.getBeg(groupId));
     }
 
     public int getStrEndPos(int groupId) {
         if (groupId == 0) {
             return bytes.getCharPosFromBytesPos(matcher.getEnd());
         }
-        return bytes.getCharPosFromBytesPos(region.end[groupId] - 1) + 1;
+        return bytes.getCharPosFromBytesPos(region.getEnd(groupId) - 1) + 1;
     }
 
     public int getBytesBeginPos(int groupId) {
         if (groupId == 0) {
             return matcher.getBegin();
         }
-        return region.beg[groupId];
+        return region.getBeg(groupId);
     }
 
     public int getBytesEndPos(int groupId) {
         if (groupId == 0) {
             return matcher.getEnd();
         }
-        return region.end[groupId];
+        return region.getEnd(groupId);
     }
 
     public boolean hasGroup(int groupId) {
-        return region.numRegs >= groupId && region.beg[groupId] >= 0;
+        return region.getNumRegs() >= groupId && region.getBeg(groupId) >= 0;
     }
 
     public String getStrPosContents(int groupId) {
