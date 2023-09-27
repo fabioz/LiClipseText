@@ -28,8 +28,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.core.expressions;bundle-version="3.5.100",
  org.eclipse.ui.genericeditor;bundle-version="1.0.0";resolution:=optional,
  com.google.gson;bundle-version="2.2.4",
- org.jcodings;bundle-version="1.0.18",
- org.joni;bundle-version="2.1.11"
+ org.jcodings;bundle-version="1.0.18"
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Bundle-ActivationPolicy: lazy
 Export-Package: com.eclipsesource.json,
@@ -78,5 +77,6 @@ Export-Package: com.eclipsesource.json,
  org.brainwy.liclipsetext.editor.views.languages,
  org.brainwy.liclipsetext.editor.views.partitioning
 Bundle-ClassPath: .,
- libs/sac-1.3.jar
+ libs/sac-1.3.jar,
+ libs/joni-2.2.1.jar
 Automatic-Module-Name: org.brainwy.liclipsetext.editor
