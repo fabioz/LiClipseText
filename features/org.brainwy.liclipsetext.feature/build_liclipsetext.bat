@@ -14,15 +14,12 @@
 set BRANCH=master
 
 set DRIVE=x:
-set BASE_LOCAL_LICLIPSE_GIT=x:\liclipsetext
+set BASE_LOCAL_LICLIPSE_GIT=X:\liclipsews\liclipsews\LiClipseText
 set BUILD_DIR=X:\liclipsetext_build\build_dir
 set DEPLOY_DIR=X:\liclipsetext_build\deploy_dir
-set JAVA_HOME=C:\bin\jdk-11.0.9
-set MAVEN_BIN=C:\bin\apache-maven-3.5.3\bin
+set JAVA_HOME=D:\bin\jdk-11.0.17+8
+set MAVEN_BIN=X:\liclipsews\maven\apache-maven-3.8.6\bin
 set GIT_EXECUTABLE="C:\Program Files\Git\bin\git.exe"
-set ECLIPSE_CLEAN=C:\bin\eclipse_417_clean
-set LAUNCHER_PLUGIN=org.eclipse.equinox.launcher_1.5.800.v20200727-1323.jar
-set BUILDER_PLUGIN=org.eclipse.pde.build_3.10.800.v20200410-1419
 @echo Expected in env var: SIGN_KEYPASS
 @echo Expected in env var: SIGN_STOREPASS
 @echo Expected in env var: SIGN_ALIAS
@@ -36,13 +33,11 @@ set BASEOS=win32
 set BASEWS=win32
 set BASEARCH=x86
 
-set PATH=
 set PATH=C:\bin\FastCopy211;%PATH%
 set PATH=C:\Windows\system32;%PATH%
 set PATH=%MAVEN_BIN%;%PATH%
 set PATH=%JAVA_HOME%\bin;%PATH%
 set PATH="C:\Program Files\Git\bin\";%PATH%
-set PATH=%ECLIPSE_CLEAN%\plugins\org.apache.ant_1.10.8.v20200515-1239\bin;%PATH%
 
 
 @echo actual build command
@@ -57,7 +52,7 @@ git reset --hard
 git clean -f -d -x
 git checkout -f
 git remote update
-git reset --hard origin/%BRANCH%
+git fetch
 git checkout %BRANCH%
 git pull origin %BRANCH%
 @echo If copied/pasted into cmd.exe, it will break here
