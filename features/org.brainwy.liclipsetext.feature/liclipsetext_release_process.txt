@@ -9,21 +9,21 @@ python update_version.py 2.5.0
 X:\liclipsews\liclipsews\LiClipseText\features\org.brainwy.liclipsetext.feature\build_liclipsetext.bat
 
 x:
-cd X:\liclipsews\liclipsews\LiClipseText_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\runnable
+cd X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\runnable
 "C:\Program Files\7-Zip\7z" a -tzip -r "LiClipseText 2.5.0.zip" features plugins
-cd X:\liclipsews\liclipsews\LiClipseText_build\build_dir\liclipsetext
-git archive -o "X:\liclipsews\liclipsews\LiClipseText_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\runnable\LiClipseText 2.5.0-sources.zip" origin/master
+cd X:\liclipsetext_build\build_dir\liclipsetext
+git archive -o "X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\runnable\LiClipseText 2.5.0-sources.zip" origin/master
 
 
-cd /D X:\liclipsews\liclipsews\LiClipseText_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\
+cd /D X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\
 mkdir org.brainwy.liclipsetext.p2-repo-2.5.0-SNAPSHOT
 cd org.brainwy.liclipsetext.p2-repo-2.5.0-SNAPSHOT
 "C:\Program Files\7-Zip\7z" x ..\org.brainwy.liclipsetext.p2-repo-2.5.0-SNAPSHOT.zip
 
 
-set CONVERT_SOURCE=X:\liclipsews\liclipsews\LiClipseText_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\org.brainwy.liclipsetext.p2-repo-2.5.0-SNAPSHOT
-SET CONVERT_FINAL_ZIP=X:\liclipsews\liclipsews\LiClipseText_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\runnable\LiClipseText 2.5.0.zip
-SET CONVERT_TARGET_DIR=X:\liclipsews\liclipsews\LiClipseText_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\github
+set CONVERT_SOURCE=X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\org.brainwy.liclipsetext.p2-repo-2.5.0-SNAPSHOT
+SET CONVERT_FINAL_ZIP=X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\runnable\LiClipseText 2.5.0.zip
+SET CONVERT_TARGET_DIR=X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\github
 python X:\release_tools\convert_to_github.py 2.5.0
 
 
@@ -35,7 +35,7 @@ git push --tags
 
 Do GH release in:
     https://github.com/fabioz/LiClipseText/releases/new?tag=liclipsetext_2_5_0
-    Contents in: X:\liclipsews\liclipsews\LiClipseText_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\github
+    Contents in: X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\github
     Message:
 
 		This release contains LiClipseText 2.5.0
