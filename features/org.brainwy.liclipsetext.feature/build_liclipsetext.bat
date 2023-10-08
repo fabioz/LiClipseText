@@ -58,7 +58,7 @@ git pull origin %BRANCH%
 @echo If copied/pasted into cmd.exe, it will break here
 
 @echo to clean after the build: -DcleanAfter.set=true
-mvn install -X
+mvn install
 
 
 
