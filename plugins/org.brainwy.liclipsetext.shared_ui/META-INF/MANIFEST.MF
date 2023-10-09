@@ -23,7 +23,7 @@ Require-Bundle: org.brainwy.liclipsetext.shared_core;bundle-version="[2.5.0,2.5.
  org.eclipse.ltk.core.refactoring,
  org.eclipse.ltk.ui.refactoring,
  org.eclipse.ui.forms
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-ActivationPolicy: lazy
 Export-Package: org.brainwy.liclipsetext.shared_ui,
  org.brainwy.liclipsetext.shared_ui.actions,
