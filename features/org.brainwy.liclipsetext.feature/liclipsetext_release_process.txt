@@ -36,6 +36,9 @@ git push --tags
 Do GH release in:
     https://github.com/fabioz/LiClipseText/releases/new?tag=liclipsetext_2_5_0
     Contents in: X:\liclipsetext_build\build_dir\liclipsetext\features\org.brainwy.liclipsetext.p2-repo\target\github
+	Title:
+		LiClipseText 2.5.0
+
     Message:
 
 		This release contains LiClipseText 2.5.0
