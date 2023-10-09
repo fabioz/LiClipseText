@@ -183,8 +183,8 @@ Using:
 		</repository>
 		<repository>
             <layout>p2</layout>
-			<id>2022-12</id>
-			<url>https://download.eclipse.org/releases/2022-12/</url>
+			<id>2023-09</id>
+			<url>https://download.eclipse.org/releases/2023-09/</url>
 		</repository>
     </repositories>
 </project>
