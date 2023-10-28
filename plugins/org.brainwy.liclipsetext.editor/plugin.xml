@@ -226,7 +226,7 @@
     <!-- Note: run the install.py to regenerate the actions contents! -->
     <extension point="org.eclipse.core.contenttype.contentTypes">
         <content-type base-type="org.eclipse.core.runtime.xml"
-            file-extensions="xml,xsd" file-names=".pydevproject,.project,.classpath"
+            file-extensions="xml,xsd" file-names=".pydevproject,.project,.classpath,.launch"
             id="com.brainwy.liclipse.xml" name="Xml File" priority="normal"/>
     </extension>
     <!-- Note: run the install.py to regenerate the actions contents! -->
