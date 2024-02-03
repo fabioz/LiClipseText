@@ -46,7 +46,7 @@
 						<repository>
 				            <layout>p2</layout>
 							<id>orbit</id>
-							<url>https://download.eclipse.org/tools/orbit/downloads/drops/R20200831200620/repository/</url>
+							<url>https://download.eclipse.org/tools/orbit/simrel/orbit-aggregation/milestone/S202401281010/</url>
 						</repository>
 						<repository>
 				            <layout>p2</layout>
